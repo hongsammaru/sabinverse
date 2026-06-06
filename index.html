@@ -577,6 +577,9 @@ function checkPw() {
     document.getElementById('pw-screen').style.display='none';
     document.getElementById('admin-panel').style.display='block';
     document.getElementById('pw-err').style.display='none';
+    renderAdminLists();
+    renderGuests(); // 방명록 × 버튼 표시
+    renderNotice(); // 공지사항 × 버튼 표시
   } else {
     document.getElementById('pw-err').style.display='block';
     document.getElementById('pw-input').value='';
