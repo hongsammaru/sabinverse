@@ -444,12 +444,7 @@ function showSection(id, btn) {
 
 function openVideo(id, title, desc, type) {
   document.getElementById('modal-title').textContent = title;
-  document.getElementById('modal-desc').textContent = desc || '';
-  document.getElementById('modal-yt-link').href = 'https://youtu.be/' + id;
   document.getElementById('modal-iframe').src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0';
-  // 영상시면 유튜브 버튼 숨기기
-  const ytBtn = document.getElementById('modal-yt-btn');
-  if (ytBtn) ytBtn.style.display = type === 'poem' ? 'none' : 'inline-flex';
   document.getElementById('video-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
