@@ -442,11 +442,14 @@ function showSection(id, btn) {
   window.scrollTo({top:document.querySelector('nav').offsetTop, behavior:'smooth'});
 }
 
-function openVideo(id, title, desc) {
+function openVideo(id, title, desc, type) {
   document.getElementById('modal-title').textContent = title;
   document.getElementById('modal-desc').textContent = desc || '';
   document.getElementById('modal-yt-link').href = 'https://youtu.be/' + id;
   document.getElementById('modal-iframe').src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0';
+  // 영상시면 유튜브 버튼 숨기기
+  const ytBtn = document.getElementById('modal-yt-btn');
+  if (ytBtn) ytBtn.style.display = type === 'poem' ? 'none' : 'inline-flex';
   document.getElementById('video-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -459,7 +462,8 @@ document.getElementById('video-modal').addEventListener('click', function(e){ if
 
 function renderVideoCard(v, tag) {
   const t = v.title.replace(/'/g,"\'"), d = (v.desc||'').replace(/'/g,"\'");
-  return `<div class="video-card" onclick="openVideo('${v.id}','${t}','${d}')">
+  const type = tag === '영상시' ? 'poem' : 'music';
+  return `<div class="video-card" onclick="openVideo('${v.id}','${t}','${d}','${type}')">
     <div class="video-thumb">
       <img src="https://img.youtube.com/vi/${v.id}/maxresdefault.jpg"
            onerror="this.src='https://img.youtube.com/vi/${v.id}/hqdefault.jpg'" alt="${v.title}">
