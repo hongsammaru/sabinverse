@@ -585,6 +585,22 @@ function checkPw() {
     document.getElementById('pw-input').value='';
   }
 }
+function renderAdminLists() {
+  // 방명록 목록
+  const gel = document.getElementById('admin-guest-list');
+  if (gel) {
+    if (guests.length === 0) {
+      gel.innerHTML = '<p style="font-size:13px;color:var(--muted);padding:8px">방명록이 없습니다.</p>';
+    } else {
+      gel.innerHTML = guests.map((g,i)=>`
+        <div class="admin-item">
+          <span><strong>${g.name}</strong> — ${g.text.slice(0,25)}...</span>
+          <button style="background:none;border:none;color:#cc0000;cursor:pointer;font-size:18px;font-weight:bold;padding:0 6px" onclick="deleteGuest(${i})">×</button>
+        </div>`).join('');
+    }
+  }
+}
+
 function switchAdminTab(id,btn) {
   document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.admin-tab').forEach(b=>b.classList.remove('active'));
