@@ -349,10 +349,9 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
       </div>
       <div id="guest-admin" class="admin-section">
         <div class="admin-note">
-          방명록 글을 삭제하려면<br>
-          각 글 오른쪽의 <strong>×</strong> 버튼을 누르세요.<br>
-          (관리자 로그인 상태에서만 보입니다)
+          방명록 글 오른쪽의 <strong style="color:#cc0000">×</strong> 버튼으로 삭제하세요.
         </div>
+        <div id="admin-guest-list" style="margin-top:1rem;display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto"></div>
       </div>
 
       <div id="dicasi-admin" class="admin-section">
@@ -516,7 +515,7 @@ function renderNotice(page) {
       <span class="notice-date">${n.date}</span>
       <span class="notice-title">${n.title}</span>
       ${n.isNew?'<span class="notice-new">NEW</span>':''}
-      ${adminUnlocked ? `<button onclick="deleteNotice(${startIdx+i})" style="background:none;border:none;color:#a05a5a;cursor:pointer;font-size:18px;line-height:1;padding:0 4px;margin-left:8px">×</button>` : ''}
+      ${adminUnlocked ? `<button onclick="deleteNotice(${startIdx+i})" style="background:none;border:none;color:#cc0000;cursor:pointer;font-size:20px;font-weight:bold;line-height:1;padding:0 8px;margin-left:8px">×</button>` : ''}
     </li>`).join('');
   renderPagination('notice-pg', notices.length, pages.notice, 'renderNotice');
 }
@@ -531,7 +530,7 @@ function renderGuests(page) {
         <span class="entry-name">${g.name}</span>
         <div style="display:flex;align-items:center;gap:10px">
           <span class="entry-date">${g.date}</span>
-          ${adminUnlocked ? `<button onclick="deleteGuest(${startIdx+i})" style="background:none;border:none;color:#a05a5a;cursor:pointer;font-size:20px;line-height:1;padding:0 4px">×</button>` : ''}
+          ${adminUnlocked ? `<button onclick="deleteGuest(${startIdx+i})" style="background:none;border:none;color:#cc0000;cursor:pointer;font-size:22px;font-weight:bold;line-height:1;padding:0 8px">×</button>` : ''}
         </div>
       </div>
       <p class="entry-text">${g.text}</p>
