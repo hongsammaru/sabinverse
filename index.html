@@ -370,6 +370,7 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
         <div class="admin-field"><label>제목</label><input type="text" id="n-title" placeholder="공지 제목"></div>
         <div class="admin-field"><label>날짜</label><input type="text" id="n-date" placeholder="2026.06.06"></div>
         <button class="admin-add-btn" onclick="addNotice()">공지사항 추가</button>
+        <div id="admin-notice-list" style="margin-top:1rem;display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto"></div>
       </div>
     </div>
   </div>
@@ -596,6 +597,19 @@ function renderAdminLists() {
         <div class="admin-item">
           <span><strong>${g.name}</strong> — ${g.text.slice(0,25)}...</span>
           <button style="background:none;border:none;color:#cc0000;cursor:pointer;font-size:18px;font-weight:bold;padding:0 6px" onclick="deleteGuest(${i})">×</button>
+        </div>`).join('');
+    }
+  }
+  // 공지사항 목록
+  const nel = document.getElementById('admin-notice-list');
+  if (nel) {
+    if (notices.length === 0) {
+      nel.innerHTML = '<p style="font-size:13px;color:var(--muted);padding:8px">공지사항이 없습니다.</p>';
+    } else {
+      nel.innerHTML = notices.map((n,i)=>`
+        <div class="admin-item">
+          <span><strong>${n.date}</strong> — ${n.title.slice(0,25)}...</span>
+          <button style="background:none;border:none;color:#cc0000;cursor:pointer;font-size:18px;font-weight:bold;padding:0 6px" onclick="deleteNotice(${i})">×</button>
         </div>`).join('');
     }
   }
