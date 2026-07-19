@@ -130,6 +130,17 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
 .dicasi-card img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;transition:transform .3s}
 .dicasi-card:hover img{transform:scale(1.03)}
 .dicasi-card-title{padding:12px 14px;font-family:'Noto Serif KR',serif;font-size:13px;color:var(--muted);text-align:center}
+.nangsong-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:2rem}
+.nangsong-card{background:var(--white);border:1px solid rgba(201,168,76,.2);border-radius:2px;padding:24px 22px;transition:box-shadow .25s,border-color .25s}
+.nangsong-card:hover{box-shadow:0 12px 40px rgba(26,18,8,.1);border-color:rgba(201,168,76,.5)}
+.nangsong-title{font-family:'Noto Serif KR',serif;font-size:18px;color:var(--ink);margin-bottom:4px}
+.nangsong-desc{font-size:13px;color:var(--muted);margin-bottom:14px}
+.nangsong-card audio{width:100%;height:40px}
+.nangsong-card video{width:100%;max-height:520px;background:#000;border-radius:2px;display:block}
+.nangsong-sub{margin-top:4rem;padding-top:3rem;border-top:1px solid rgba(201,168,76,.25)}
+.nangsong-sub-header{text-align:center;margin-bottom:2rem}
+.nangsong-sub-header h3{font-family:'Noto Serif KR',serif;font-size:26px;font-weight:400;color:var(--ink);margin-bottom:6px}
+.nangsong-sub-header p{font-size:14px;color:var(--muted)}
 
 .img-modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,6,2,0.95);z-index:400;align-items:center;justify-content:center;padding:20px}
 .img-modal-overlay.open{display:flex}
@@ -159,6 +170,7 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
   .intro-portrait{display:none !important}
   .intro-layout{grid-template-columns:1fr !important}
   .dicasi-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .nangsong-grid{grid-template-columns:1fr}
   .nav-btn{padding:14px 8px;font-size:11px;letter-spacing:0}
   .nav-subscribe-btn{font-size:10px;padding:6px 10px;margin-left:4px}
 }
@@ -182,7 +194,7 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
 <nav>
   <div class="nav-inner">
     <button class="nav-btn" onclick="showSection('intro',this)">소개글</button>
-    <button class="nav-btn" onclick="showSection('poem',this)">영상시</button>
+    <button class="nav-btn" onclick="showSection('poem',this)">시낭송</button>
     <button class="nav-btn active" onclick="showSection('music',this)">영상음악</button>
     <button class="nav-btn" onclick="showSection('dicasi',this)">디카시</button>
     <button class="nav-btn" onclick="showSection('guestbook',this)">방명록</button>
@@ -195,11 +207,11 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
 
 <section id="poem" class="section">
   <div class="section-header">
-    <h2>영상시</h2>
-    <p>시의 언어가 영상과 어우러지는 공간</p>
+    <h2>시낭송</h2>
+    <p>사빈의 목소리로 듣는 시</p>
   </div>
-  <div class="video-grid" id="poem-grid"><div class="loading">불러오는 중...</div></div>
-  <div class="pagination" id="poem-pg"></div>
+  <div class="nangsong-grid" id="nangsong-grid"><div class="loading">준비 중입니다.</div></div>
+  <div class="pagination" id="nangsong-pg"></div>
 </section>
 
 <section id="music" class="section active">
@@ -578,15 +590,68 @@ async function confirmDelete() {
   }
 }
 
+
+// ── 시낭송 ──
+const nangsongList = [];
+const pages_nangsong = {nangsong:1};
+
+async function loadNangsongSheet() {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=poem`;
+  try {
+    const res = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.match(/google.visualization.Query.setResponse\(([\s\S]*?)\);/)[1]);
+    json.table.rows.forEach((row, idx) => {
+      if (idx === 0) return;
+      if (!row.c[1]) return;
+      const src = row.c[1].v;
+      const title = row.c[2] ? row.c[2].v : '';
+      const desc = row.c[3] ? row.c[3].v : '';
+      nangsongList.push({src, title, desc});
+    });
+    nangsongList.reverse();
+  } catch(e) {
+    console.error('nangsong 시트 로드 실패:', e);
+  }
+  renderNangsong();
+}
+
+function renderNangsong(page) {
+  if (page) pages_nangsong.nangsong = page;
+  const grid = document.getElementById('nangsong-grid');
+  if (nangsongList.length === 0) {
+    grid.innerHTML = '<div class="loading">준비 중입니다. 곧 시낭송을 만나보실 수 있습니다.</div>';
+    document.getElementById('nangsong-pg').innerHTML = '';
+    return;
+  }
+  const start = (pages_nangsong.nangsong - 1) * PER;
+  const items = nangsongList.slice(start, start + PER);
+  grid.innerHTML = items.map(n => {
+    const isVideo = /\.(mp4|webm|mov)$/i.test(n.src);
+    const player = isVideo
+      ? `<video controls preload="metadata" src="${n.src}" onplay="pauseOtherAudio(this)" playsinline></video>`
+      : `<audio controls preload="none" src="${n.src}" onplay="pauseOtherAudio(this)"></audio>`;
+    return `
+    <div class="nangsong-card">
+      <div class="nangsong-title">${n.title||''}</div>
+      ${n.desc ? `<div class="nangsong-desc">${n.desc}</div>` : ''}
+      ${player}
+    </div>`;
+  }).join('');
+  renderPagination('nangsong-pg', nangsongList.length, pages_nangsong.nangsong, 'renderNangsong');
+}
+
+function pauseOtherAudio(cur) {
+  document.querySelectorAll('audio, video').forEach(a => { if (a !== cur) a.pause(); });
+}
+
 async function loadFromSheet() {
   allVideos.music = await loadSheet('music');
   allVideos.music.reverse();
-  allVideos.poem = await loadSheet('poem');
-  allVideos.poem.reverse();
   renderMusic();
-  renderPoem();
   await loadNoticeSheet();
   await loadDicasiSheet();
+  await loadNangsongSheet();
 }
 
 function showSection(id, btn) {
