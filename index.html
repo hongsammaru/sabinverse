@@ -198,6 +198,7 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
     <button class="nav-btn active" onclick="showSection('music',this)">영상음악</button>
     <button class="nav-btn" onclick="showSection('dicasi',this)">디카시</button>
     <button class="nav-btn" onclick="showSection('guestbook',this)">방명록</button>
+    <button class="nav-btn" onclick="showSection('board',this)">게시판</button>
     <button class="nav-btn" onclick="showSection('notice',this)">공지사항</button>
     <a class="nav-subscribe-btn" href="https://www.youtube.com/@Sabin-Verse-26?sub_confirmation=1" target="_blank">구독</a>
   </div>
@@ -309,6 +310,102 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
         </div>
       </div>
     </div>
+  </div>
+</section>
+
+<section id="board" class="section">
+  <div class="section-header">
+    <h2>게시판</h2>
+    <p>자유롭게 이야기를 나눠주세요</p>
+  </div>
+  <div style="width:100%;max-width:760px;margin:0 auto">
+
+    <!-- 목록 화면 -->
+    <div id="bd-list-view">
+      <div style="text-align:right;margin-bottom:1.2rem">
+        <button onclick="toggleBdForm()" style="font-family:'Noto Sans KR',sans-serif;font-size:12px;letter-spacing:2px;color:var(--ink);background:var(--gold);border:none;padding:8px 20px;cursor:pointer">글쓰기</button>
+      </div>
+
+      <!-- 글쓰기 폼 (숨김) -->
+      <div id="bd-form" style="display:none;background:#fff8f0;border:1px solid rgba(201,168,76,.2);padding:1.5rem;margin-bottom:2rem">
+        <div style="margin-bottom:1rem">
+          <label style="font-family:'Noto Serif KR',serif;font-size:12px;color:#7a5c2e;display:block;margin-bottom:4px">제목 *</label>
+          <input id="bd-title" type="text" placeholder="제목" maxlength="60" style="width:100%;padding:8px;border:1px solid rgba(201,168,76,.3);background:#fff;font-family:'Noto Serif KR',serif;font-size:13px;box-sizing:border-box">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div>
+            <label style="font-family:'Noto Serif KR',serif;font-size:12px;color:#7a5c2e;display:block;margin-bottom:4px">이름 *</label>
+            <input id="bd-name" type="text" placeholder="이름" maxlength="20" style="width:100%;padding:8px;border:1px solid rgba(201,168,76,.3);background:#fff;font-family:'Noto Serif KR',serif;font-size:13px;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="font-family:'Noto Serif KR',serif;font-size:12px;color:#7a5c2e;display:block;margin-bottom:4px">비밀번호 * (삭제시 필요)</label>
+            <input id="bd-pw" type="password" placeholder="비밀번호" style="width:100%;padding:8px;border:1px solid rgba(201,168,76,.3);background:#fff;font-family:'Noto Serif KR',serif;font-size:13px;box-sizing:border-box">
+          </div>
+        </div>
+        <div style="margin-bottom:1rem">
+          <label style="font-family:'Noto Serif KR',serif;font-size:12px;color:#7a5c2e;display:block;margin-bottom:4px">내용 *</label>
+          <textarea id="bd-content" placeholder="내용을 입력해주세요" rows="6" maxlength="2000" style="width:100%;padding:8px;border:1px solid rgba(201,168,76,.3);background:#fff;font-family:'Noto Serif KR',serif;font-size:13px;resize:vertical;box-sizing:border-box;line-height:1.7"></textarea>
+        </div>
+        <button onclick="submitBoard()" style="font-family:'Noto Sans KR',sans-serif;font-size:12px;letter-spacing:2px;color:var(--ink);background:var(--gold);border:none;padding:10px 28px;cursor:pointer">등록</button>
+        <button onclick="toggleBdForm()" style="font-family:'Noto Sans KR',sans-serif;font-size:12px;letter-spacing:2px;color:#7a5c2e;background:none;border:1px solid rgba(201,168,76,.3);padding:10px 20px;cursor:pointer;margin-left:8px">취소</button>
+        <span id="bd-form-status" style="font-size:12px;color:#7a5c2e;margin-left:12px"></span>
+      </div>
+
+      <!-- 목록 테이블 -->
+      <div style="border-top:2px solid #7a5c2e">
+        <div style="display:grid;grid-template-columns:50px 1fr 90px 90px;padding:10px 4px;border-bottom:1px solid rgba(201,168,76,.5);font-family:'Noto Sans KR',sans-serif;font-size:12px;color:#7a5c2e;letter-spacing:1px;text-align:center">
+          <span>번호</span><span>제목</span><span>글쓴이</span><span>날짜</span>
+        </div>
+        <div id="bd-rows"></div>
+      </div>
+      <div id="bd-paging" style="display:flex;justify-content:center;gap:6px;margin-top:1.5rem"></div>
+    </div>
+
+    <!-- 상세 화면 (숨김) -->
+    <div id="bd-detail-view" style="display:none">
+      <div style="border-top:2px solid #7a5c2e;border-bottom:1px solid rgba(201,168,76,.5);padding:1.2rem 4px">
+        <h3 id="bd-d-title" style="font-family:'Noto Serif KR',serif;font-size:18px;font-weight:600;color:#241a0c;margin:0 0 8px"></h3>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span id="bd-d-name" style="font-family:'Noto Serif KR',serif;font-size:13px;color:#7a5c2e"></span>
+          <span id="bd-d-date" style="font-family:'Noto Serif KR',serif;font-size:12px;color:#7a6a4a"></span>
+        </div>
+      </div>
+      <div id="bd-d-content" style="font-family:'Noto Serif KR',serif;font-size:15px;color:#241a0c;line-height:1.9;padding:1.5rem 4px;white-space:pre-wrap;border-bottom:1px solid rgba(201,168,76,.5);min-height:100px"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:1rem">
+        <button onclick="showBdList()" style="font-family:'Noto Sans KR',sans-serif;font-size:12px;letter-spacing:2px;color:#7a5c2e;background:none;border:1px solid rgba(201,168,76,.4);padding:8px 20px;cursor:pointer">목록</button>
+        <button onclick="openBdDelete('post', bdCurrentId)" style="font-family:'Noto Sans KR',sans-serif;font-size:11px;color:#aaa;background:none;border:none;cursor:pointer">글 삭제</button>
+      </div>
+
+      <!-- 댓글 -->
+      <div style="margin-top:2.5rem">
+        <div style="font-family:'Noto Sans KR',sans-serif;font-size:13px;letter-spacing:1px;color:#7a5c2e;border-bottom:1px solid rgba(201,168,76,.5);padding-bottom:8px;margin-bottom:4px">댓글 <span id="bd-cmt-count"></span></div>
+        <div id="bd-cmt-list"></div>
+        <div style="background:#fff8f0;border:1px solid rgba(201,168,76,.2);padding:1rem;margin-top:1.2rem">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:.8rem">
+            <input id="bd-c-name" type="text" placeholder="이름" maxlength="20" style="padding:8px;border:1px solid rgba(201,168,76,.3);background:#fff;font-family:'Noto Serif KR',serif;font-size:13px;box-sizing:border-box">
+            <input id="bd-c-pw" type="password" placeholder="비밀번호 (삭제시 필요)" style="padding:8px;border:1px solid rgba(201,168,76,.3);background:#fff;font-family:'Noto Serif KR',serif;font-size:13px;box-sizing:border-box">
+          </div>
+          <textarea id="bd-c-content" placeholder="댓글을 남겨주세요" rows="2" maxlength="300" style="width:100%;padding:8px;border:1px solid rgba(201,168,76,.3);background:#fff;font-family:'Noto Serif KR',serif;font-size:13px;resize:vertical;box-sizing:border-box"></textarea>
+          <div style="text-align:right;margin-top:.6rem">
+            <span id="bd-c-status" style="font-size:12px;color:#7a5c2e;margin-right:10px"></span>
+            <button onclick="submitBdComment()" style="font-family:'Noto Sans KR',sans-serif;font-size:12px;letter-spacing:2px;color:var(--ink);background:var(--gold);border:none;padding:8px 22px;cursor:pointer">댓글 등록</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 삭제 모달 -->
+    <div id="bd-delete-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center">
+      <div style="background:#fff;padding:2rem;max-width:320px;width:90%">
+        <p style="font-family:'Noto Serif KR',serif;font-size:14px;color:#3a2e1a;margin-bottom:1rem">비밀번호를 입력하세요</p>
+        <input id="bd-delete-pw" type="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter')confirmBdDelete()" style="width:100%;padding:8px;border:1px solid #ddd;font-size:13px;box-sizing:border-box;margin-bottom:1rem">
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button onclick="document.getElementById('bd-delete-modal').style.display='none'" style="padding:8px 16px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px">취소</button>
+          <button onclick="confirmBdDelete()" style="padding:8px 16px;background:var(--gold);border:none;cursor:pointer;font-size:12px;color:var(--ink)">삭제</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -656,6 +753,7 @@ async function loadFromSheet() {
 
 function showSection(id, btn) {
   if (id === 'guestbook') loadGuestbook();
+  if (id === 'board') loadBoard();
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -905,6 +1003,187 @@ function renderDicasiAdminList() {
 renderDicasi();
 loadFromSheet();
 renderNotice();
+
+
+// ==================== 게시판 ====================
+const BOARD_URL = 'https://script.google.com/macros/s/AKfycbwBS4cbi-KiLBOz6xMbOe11-3LS-HJljH15rsT9ua921rRUun3de8RI92xcHGtYybrL/exec';
+let bdPosts = [];
+let bdComments = [];
+let bdPage = 1;
+const BD_PER_PAGE = 10;
+let bdCurrentId = null;
+let bdDeleteType = null;
+let bdDeleteId = null;
+let bdLoaded = false;
+
+function bdEsc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function loadBoard() {
+  try {
+    const res = await fetch(BOARD_URL);
+    const data = await res.json();
+    bdPosts = (data.posts || []).slice().reverse(); // 최신글 먼저
+    bdComments = data.comments || [];
+    bdLoaded = true;
+    if (bdCurrentId && document.getElementById('bd-detail-view').style.display !== 'none') {
+      renderBdDetail(bdCurrentId);
+    } else {
+      renderBdList();
+    }
+  } catch(e) {
+    console.error('게시판 로드 실패', e);
+    document.getElementById('bd-rows').innerHTML = '<p style="text-align:center;font-family:Noto Serif KR,serif;font-size:13px;color:#aaa;padding:2rem">게시판을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</p>';
+  }
+}
+
+function renderBdList() {
+  const el = document.getElementById('bd-rows');
+  if (!bdPosts.length) {
+    el.innerHTML = '<p style="text-align:center;font-family:Noto Serif KR,serif;font-size:13px;color:#aaa;padding:2.5rem">아직 글이 없어요. 첫 번째 글을 남겨주세요 😊</p>';
+    document.getElementById('bd-paging').innerHTML = '';
+    return;
+  }
+  const start = (bdPage - 1) * BD_PER_PAGE;
+  const pagePosts = bdPosts.slice(start, start + BD_PER_PAGE);
+  el.innerHTML = pagePosts.map((p, i) => {
+    const num = bdPosts.length - start - i;
+    const cnt = bdComments.filter(cm => String(cm.postId) === String(p.id)).length;
+    const cntHtml = cnt ? ` <span style="color:#b8963e;font-size:12px">[${cnt}]</span>` : '';
+    return `
+    <div style="display:grid;grid-template-columns:50px 1fr 90px 90px;align-items:center;padding:12px 4px;border-bottom:1px solid rgba(201,168,76,.3)">
+      <span style="text-align:center;font-family:'Noto Serif KR',serif;font-size:12px;color:#9a8a6a">${num}</span>
+      <span onclick="openBdPost('${p.id}')" style="cursor:pointer;font-family:'Noto Serif KR',serif;font-size:14px;color:#241a0c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px">${bdEsc(p.title)}${cntHtml}</span>
+      <span style="text-align:center;font-family:'Noto Serif KR',serif;font-size:12px;color:#7a5c2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${bdEsc(p.name)}</span>
+      <span style="text-align:center;font-family:'Noto Serif KR',serif;font-size:11px;color:#9a8a6a">${bdEsc(p.date)}</span>
+    </div>`;
+  }).join('');
+
+  const totalPages = Math.ceil(bdPosts.length / BD_PER_PAGE);
+  const pg = document.getElementById('bd-paging');
+  if (totalPages <= 1) { pg.innerHTML = ''; return; }
+  let html = '';
+  for (let i = 1; i <= totalPages; i++) {
+    const on = i === bdPage;
+    html += `<button onclick="bdPage=${i};renderBdList()" style="min-width:32px;padding:6px 8px;border:1px solid rgba(201,168,76,.4);background:${on ? 'var(--gold)' : 'none'};color:${on ? 'var(--ink)' : '#7a5c2e'};font-size:12px;cursor:pointer">${i}</button>`;
+  }
+  pg.innerHTML = html;
+}
+
+function openBdPost(id) {
+  bdCurrentId = String(id);
+  renderBdDetail(bdCurrentId);
+  document.getElementById('bd-list-view').style.display = 'none';
+  document.getElementById('bd-detail-view').style.display = 'block';
+  window.scrollTo({top: document.querySelector('nav').offsetTop, behavior: 'smooth'});
+}
+
+function renderBdDetail(id) {
+  const p = bdPosts.find(x => String(x.id) === String(id));
+  if (!p) { showBdList(); return; }
+  document.getElementById('bd-d-title').textContent = p.title;
+  document.getElementById('bd-d-name').textContent = p.name;
+  document.getElementById('bd-d-date').textContent = p.date;
+  document.getElementById('bd-d-content').textContent = p.content;
+  const cmts = bdComments.filter(cm => String(cm.postId) === String(id));
+  document.getElementById('bd-cmt-count').textContent = cmts.length ? cmts.length : '';
+  const cl = document.getElementById('bd-cmt-list');
+  cl.innerHTML = cmts.length ? cmts.map(cm => `
+    <div style="border-bottom:1px solid rgba(201,168,76,.25);padding:.9rem 4px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-family:'Noto Serif KR',serif;font-size:13px;font-weight:600;color:#241a0c">${bdEsc(cm.name)}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:'Noto Serif KR',serif;font-size:11px;color:#9a8a6a">${bdEsc(cm.date)}</span>
+          <button onclick="openBdDelete('comment','${cm.id}')" style="font-size:10px;color:#bbb;background:none;border:none;cursor:pointer;padding:2px 4px">삭제</button>
+        </div>
+      </div>
+      <p style="font-family:'Noto Serif KR',serif;font-size:13px;color:#3a2e1a;line-height:1.7;margin:0;white-space:pre-wrap">${bdEsc(cm.content)}</p>
+    </div>`).join('')
+  : '<p style="font-family:Noto Serif KR,serif;font-size:12px;color:#aaa;padding:1rem 4px">아직 댓글이 없어요.</p>';
+}
+
+function showBdList() {
+  bdCurrentId = null;
+  document.getElementById('bd-detail-view').style.display = 'none';
+  document.getElementById('bd-list-view').style.display = 'block';
+  renderBdList();
+}
+
+function toggleBdForm() {
+  const f = document.getElementById('bd-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+async function submitBoard() {
+  const title = document.getElementById('bd-title').value.trim();
+  const name = document.getElementById('bd-name').value.trim();
+  const pw = document.getElementById('bd-pw').value.trim();
+  const content = document.getElementById('bd-content').value.trim();
+  const status = document.getElementById('bd-form-status');
+  if (!title || !name || !pw || !content) { status.textContent = '모든 항목을 입력해주세요'; return; }
+  status.textContent = '등록 중...';
+  try {
+    await fetch(BOARD_URL, { method: 'POST', body: JSON.stringify({action:'write', title, name, password:pw, content}) });
+    document.getElementById('bd-title').value = '';
+    document.getElementById('bd-name').value = '';
+    document.getElementById('bd-pw').value = '';
+    document.getElementById('bd-content').value = '';
+    status.textContent = '등록됐습니다 😊';
+    setTimeout(() => { status.textContent = ''; document.getElementById('bd-form').style.display = 'none'; }, 1200);
+    bdPage = 1;
+    loadBoard();
+  } catch(e) {
+    status.textContent = '오류가 발생했습니다';
+  }
+}
+
+async function submitBdComment() {
+  const name = document.getElementById('bd-c-name').value.trim();
+  const pw = document.getElementById('bd-c-pw').value.trim();
+  const content = document.getElementById('bd-c-content').value.trim();
+  const status = document.getElementById('bd-c-status');
+  if (!name || !pw || !content) { status.textContent = '이름, 비밀번호, 내용을 입력해주세요'; return; }
+  status.textContent = '등록 중...';
+  try {
+    await fetch(BOARD_URL, { method: 'POST', body: JSON.stringify({action:'comment', postId: bdCurrentId, name, password:pw, content}) });
+    document.getElementById('bd-c-name').value = '';
+    document.getElementById('bd-c-pw').value = '';
+    document.getElementById('bd-c-content').value = '';
+    status.textContent = '등록됐습니다 😊';
+    setTimeout(() => status.textContent = '', 2000);
+    loadBoard();
+  } catch(e) {
+    status.textContent = '오류가 발생했습니다';
+  }
+}
+
+function openBdDelete(type, id) {
+  bdDeleteType = type;
+  bdDeleteId = String(id);
+  document.getElementById('bd-delete-pw').value = '';
+  document.getElementById('bd-delete-modal').style.display = 'flex';
+  document.getElementById('bd-delete-pw').focus();
+}
+
+async function confirmBdDelete() {
+  const pw = document.getElementById('bd-delete-pw').value.trim();
+  if (!pw) return;
+  document.getElementById('bd-delete-modal').style.display = 'none';
+  try {
+    const res = await fetch(BOARD_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: bdDeleteType === 'post' ? 'deletePost' : 'deleteComment', id: bdDeleteId, password: pw })
+    });
+    const r = await res.json();
+    if (!r.ok) { alert('비밀번호가 일치하지 않습니다'); return; }
+    if (bdDeleteType === 'post') { showBdList(); }
+    loadBoard();
+  } catch(e) {
+    alert('오류가 발생했습니다');
+  }
+}
+
 </script>
 </body>
 </html>
