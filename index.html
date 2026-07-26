@@ -15,8 +15,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--paper);color:var(--i
 .top-bar-brand{display:flex;flex-direction:column;gap:4px}
 .top-bar-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--gold-light);letter-spacing:6px;text-transform:uppercase}
 .top-bar-tagline{font-family:'Noto Serif KR',serif;font-size:11px;font-weight:300;color:rgba(232,213,163,0.9);letter-spacing:3px}
-.subscribe-btn{font-size:12px;letter-spacing:2px;color:var(--ink);background:var(--gold);border:none;padding:9px 20px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:500;text-decoration:none;transition:background .2s;white-space:nowrap}
-.subscribe-btn:hover{background:var(--gold-light)}
+.subscribe-btn{font-size:12px;letter-spacing:2px;color:#e62117;background:none;border:1px solid rgba(230,33,23,.5);padding:9px 20px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:700;text-decoration:none;transition:color .2s,border-color .2s;white-space:nowrap}
+.subscribe-btn:hover{color:#ff4d44;border-color:#ff4d44}
 
 .hero{position:relative;width:100%;height:350px;overflow:hidden}
 .hero-img{width:100%;height:100%;object-fit:cover;object-position:center center;display:block}
@@ -29,8 +29,8 @@ nav{position:sticky;top:0;z-index:100;background:var(--ink);border-bottom:1px so
 .nav-btn:hover{color:var(--gold-light)}
 .nav-btn.active{color:var(--gold)}
 .nav-btn.active::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:24px;height:2px;background:var(--gold)}
-.nav-subscribe-btn{font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:500;letter-spacing:2px;color:var(--gold);background:none;border:1px solid rgba(201,168,76,.5);padding:5px 12px;text-decoration:none;margin-left:8px;transition:color .2s,border-color .2s;white-space:nowrap;align-self:center}
-.nav-subscribe-btn:hover{color:var(--gold-light);border-color:var(--gold-light)}
+.nav-subscribe-btn{font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:#e62117;background:none;border:1px solid rgba(230,33,23,.5);padding:5px 12px;text-decoration:none;margin-left:8px;transition:color .2s,border-color .2s;white-space:nowrap;align-self:center}
+.nav-subscribe-btn:hover{color:#ff4d44;border-color:#ff4d44}
 
 main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
 .section{display:none;animation:fadeIn .4s ease}
