@@ -31,6 +31,8 @@ nav{position:sticky;top:0;z-index:100;background:var(--ink);border-bottom:1px so
 .nav-btn.active::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:24px;height:2px;background:var(--gold)}
 .nav-subscribe-btn{font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:#e62117;background:none;border:1px solid rgba(230,33,23,.5);padding:5px 12px;text-decoration:none;margin-left:8px;transition:color .2s,border-color .2s;white-space:nowrap;align-self:center}
 .nav-subscribe-btn:hover{color:#ff4d44;border-color:#ff4d44}
+.nav-contact-btn{font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(232,213,163,.95);background:none;border:1px solid rgba(201,168,76,.55);padding:5px 12px;text-decoration:none;margin-left:8px;transition:color .2s,border-color .2s;white-space:nowrap;align-self:center}
+.nav-contact-btn:hover{color:var(--gold-light);border-color:var(--gold-light)}
 
 main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
 .section{display:none;animation:fadeIn .4s ease}
@@ -173,7 +175,7 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
   .dicasi-grid{grid-template-columns:1fr 1fr;gap:10px}
   .nangsong-grid{grid-template-columns:1fr}
   .nav-btn{padding:14px 8px;font-size:11px;letter-spacing:0}
-  .nav-subscribe-btn{font-size:10px;padding:6px 10px;margin-left:4px}
+  .nav-subscribe-btn{font-size:10px;padding:6px 10px;margin-left:4px}.nav-contact-btn{font-size:10px;padding:6px 10px;margin-left:4px}
 }
 </style>
 </head>
@@ -184,8 +186,7 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
     <div class="top-bar-title">Sabin Verse</div>
     <div class="top-bar-tagline">시가 노래가 되고 &nbsp;노래가 감정이 되는 곳</div>
   </div>
-  <button class="admin-trigger" onclick="openAdmin()" >관리자</button>
-  <a class="admin-trigger" href="mailto:master@sabinverse.com?subject=Sabin%20Verse%20문의&body=안녕하세요.%20Sabin%20Verse를%20찾아주셔서%20감사합니다." style="margin-left:8px;text-decoration:none;display:inline-block">✉️ Contact Us</a>
+  <button class="admin-trigger" onclick="openAdmin()">관리자</button>
 </div>
 
 <div class="hero">
@@ -203,6 +204,7 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
     <button class="nav-btn" onclick="showSection('board',this)">게시판</button>
     <button class="nav-btn" onclick="showSection('notice',this)">공지사항</button>
     <a class="nav-subscribe-btn" href="https://www.youtube.com/@Sabin-Verse-26?sub_confirmation=1" target="_blank" style="color:#ff0033">▶ YouTube</a>
+    <a class="nav-contact-btn" href="mailto:master@sabinverse.com?subject=Sabin%20Verse%20문의&body=안녕하세요.%20Sabin%20Verse를%20찾아주셔서%20감사합니다." target="_blank">✉️ Contact Us</a>
   </div>
 </nav>
 
