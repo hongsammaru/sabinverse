@@ -11,175 +11,357 @@
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #f5f3f0 0%, #faf8f6 100%);
+            background: #faf8f6;
             color: #333;
             line-height: 1.6;
         }
 
         /* 헤더 */
-        header {
-            background: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        nav {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1.5rem 2rem;
+        .header-top {
+            background: #2c2c2c;
+            color: #ccc;
+            padding: 0.8rem 2rem;
+            font-size: 0.85rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
+        }
+
+        .logo-section {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-bottom: 2px solid #d4a574;
         }
 
         .logo {
-            font-size: 1.8rem;
+            font-size: 2.2rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #d4a574 0%, #c9916f 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: 0.5px;
+            letter-spacing: 3px;
+            color: #d4a574;
+            margin-bottom: 0.5rem;
         }
 
-        .nav-links {
+        .tagline {
+            font-size: 0.95rem;
+            color: #999;
+            letter-spacing: 1px;
+        }
+
+        /* 관리자 영역 */
+        .admin-top {
             display: flex;
-            gap: 2rem;
-            list-style: none;
+            gap: 1rem;
             align-items: center;
-            flex-wrap: wrap;
         }
 
-        .nav-links a {
+        .admin-btn, .contact-btn-header {
+            background: none;
+            border: none;
+            color: #d4a574;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.3rem 0.8rem;
+            transition: color 0.3s ease;
+        }
+
+        .admin-btn:hover, .contact-btn-header:hover {
+            color: #e8c4a0;
+        }
+
+        /* 네비게이션 */
+        nav {
+            background: #3c3c3c;
+            padding: 1.2rem 2rem;
+            text-align: center;
+        }
+
+        nav a {
+            color: #ccc;
             text-decoration: none;
-            color: #666;
+            margin: 0 1.5rem;
             font-size: 0.95rem;
             transition: color 0.3s ease;
-            font-weight: 500;
+            display: inline-block;
         }
 
-        .nav-links a:hover {
+        nav a:hover {
             color: #d4a574;
         }
 
-        .contact-btn {
-            background: linear-gradient(135deg, #d4a574 0%, #c9916f 100%);
-            color: white !important;
-            padding: 0.6rem 1.5rem;
-            border-radius: 25px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
-            border: none;
+        nav a.youtube {
+            color: #d4a574;
             font-weight: 600;
         }
 
-        .contact-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(212, 165, 116, 0.3);
+        /* 헤로 섹션 */
+        .hero-section {
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400"><rect fill="%23654321" width="1200" height="400"/></svg>');
+            background-size: cover;
+            background-position: center;
+            height: 350px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        /* 메인 컨텐츠 */
+        .hero-content h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+
+        /* 섹션 타이틀 */
+        .section-title {
+            text-align: center;
+            padding: 3rem 0 2rem;
+            font-size: 2.2rem;
+            color: #333;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        /* 콘텐츠 */
         .container {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
             padding: 0 2rem;
         }
 
-        .hero {
+        /* 영상 섹션 */
+        .video-section {
+            padding: 3rem 0;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .video-item {
             text-align: center;
-            padding: 4rem 0;
+            transition: transform 0.3s ease;
         }
 
-        .hero h1 {
-            font-size: 2.5rem;
+        .video-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #ddd;
+            border-radius: 8px;
             margin-bottom: 1rem;
-            color: #222;
-            font-weight: 700;
+            overflow: hidden;
+            position: relative;
         }
 
-        .tagline {
-            font-size: 1.2rem;
+        .video-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(212, 165, 116, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .video-category {
+            font-size: 0.8rem;
+            color: #999;
+            margin-bottom: 0.3rem;
+        }
+
+        .video-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        /* 페이지네이션 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 2rem 0 3rem;
+        }
+
+        .pagination a, .pagination span {
+            padding: 0.6rem 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination a:hover {
+            border-color: #d4a574;
             color: #d4a574;
-            font-style: italic;
-            margin-bottom: 3rem;
+        }
+
+        .pagination .active {
+            background: #3c3c3c;
+            color: white;
+            border-color: #3c3c3c;
+        }
+
+        /* 더보기 버튼 */
+        .view-all-btn {
+            display: inline-block;
+            margin: 0 auto;
+            padding: 0.8rem 2rem;
+            border: 2px solid #d4a574;
+            background: transparent;
+            color: #d4a574;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .view-all-btn:hover {
+            background: #d4a574;
+            color: white;
+        }
+
+        .view-all-section {
+            text-align: center;
+            margin: 2rem 0 3rem;
         }
 
         /* 소개글 섹션 */
         .about-section {
             background: white;
-            border-radius: 10px;
-            padding: 3rem;
-            margin: 3rem 0;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            line-height: 1.9;
+            padding: 3rem 2rem;
+            margin: 2rem 0;
+            border-radius: 8px;
+            line-height: 1.8;
         }
 
         .about-section h2 {
-            font-size: 1.5rem;
-            color: #333;
-            margin-bottom: 1.5rem;
-            font-weight: 700;
-        }
-
-        .about-section p {
-            color: #555;
-            margin-bottom: 1.2rem;
-            font-size: 1rem;
-        }
-
-        /* 콘텐츠 섹션 */
-        .content-section {
-            background: white;
-            border-radius: 10px;
-            padding: 2.5rem;
-            margin: 2rem 0;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        .content-section h3 {
             font-size: 1.3rem;
             color: #333;
             margin-bottom: 1.5rem;
             font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
         }
 
-        .content-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
+        .about-section p {
+            color: #666;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
         }
 
-        .content-item {
-            background: linear-gradient(135deg, #faf8f6 0%, #f5f3f0 100%);
+        /* 방명록 */
+        .guestbook-section {
+            background: white;
+            padding: 3rem 2rem;
+            margin: 2rem 0;
             border-radius: 8px;
-            padding: 1.5rem;
-            text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .content-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(212, 165, 116, 0.15);
-        }
-
-        .content-item-title {
-            font-weight: 600;
+        .guestbook-section h2 {
+            font-size: 1.3rem;
             color: #333;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
         }
 
-        .content-item-desc {
+        .guestbook-form {
+            background: #f9f7f5;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: inline-block;
+            width: 80px;
+            color: #333;
+            font-weight: 600;
             font-size: 0.9rem;
-            color: #777;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 0.6rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            width: calc(100% - 100px);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+            width: 100%;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.6rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #d4a574;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #c9916f;
+        }
+
+        .btn-secondary {
+            background: #ddd;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #ccc;
         }
 
         /* 연락 폼 모달 */
@@ -191,7 +373,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.6);
             animation: fadeIn 0.3s ease;
         }
 
@@ -221,11 +403,24 @@
             }
         }
 
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.3rem;
+            color: #333;
+            font-weight: 600;
+        }
+
         .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
             color: #999;
-            float: right;
-            font-size: 1.5rem;
-            font-weight: bold;
             cursor: pointer;
             transition: color 0.3s ease;
         }
@@ -234,186 +429,318 @@
             color: #333;
         }
 
-        .modal h2 {
-            color: #333;
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #333;
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
+        .modal-form input,
+        .modal-form textarea {
             padding: 0.8rem;
             border: 1px solid #ddd;
             border-radius: 5px;
             font-family: inherit;
             font-size: 0.95rem;
-            transition: border-color 0.3s ease;
         }
 
-        .form-group input:focus,
-        .form-group textarea:focus {
+        .modal-form input:focus,
+        .modal-form textarea:focus {
             outline: none;
             border-color: #d4a574;
             box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
         }
 
-        .form-group textarea {
+        .modal-form textarea {
             resize: vertical;
             min-height: 120px;
         }
 
         .submit-btn {
-            width: 100%;
             padding: 0.8rem;
-            background: linear-gradient(135deg, #d4a574 0%, #c9916f 100%);
+            background: #d4a574;
             color: white;
             border: none;
             border-radius: 5px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: background 0.3s ease;
         }
 
         .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(212, 165, 116, 0.3);
-        }
-
-        /* 방명록 */
-        .guestbook {
-            background: white;
-            border-radius: 10px;
-            padding: 2.5rem;
-            margin: 2rem 0;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        .guestbook h3 {
-            font-size: 1.3rem;
-            color: #333;
-            margin-bottom: 1.5rem;
-            font-weight: 600;
-        }
-
-        .guestbook-form {
-            background: #f9f7f5;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-        }
-
-        .guestbook-form input,
-        .guestbook-form textarea {
-            width: 100%;
-            padding: 0.8rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-family: inherit;
-        }
-
-        .guestbook-btn {
-            background: #d4a574;
-            color: white;
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.3s ease;
-        }
-
-        .guestbook-btn:hover {
             background: #c9916f;
         }
 
-        /* 관리자 */
-        .admin-section {
+        .modal-footer {
             text-align: center;
-            margin-top: 3rem;
-            padding: 1rem;
-            border-top: 1px solid #eee;
-        }
-
-        .admin-btn {
-            background: #999;
-            color: white;
-            padding: 0.5rem 1.2rem;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: background 0.3s ease;
-        }
-
-        .admin-btn:hover {
-            background: #777;
+            font-size: 0.85rem;
+            color: #999;
+            margin-top: 1rem;
         }
 
         /* 푸터 */
         footer {
-            background: #222;
-            color: white;
+            background: #2c2c2c;
+            color: #ccc;
             text-align: center;
             padding: 2rem;
-            margin-top: 4rem;
+            margin-top: 3rem;
             font-size: 0.9rem;
         }
 
         footer p {
-            margin: 0.5rem 0;
+            margin: 0.3rem 0;
         }
 
         /* 반응형 */
+        @media (max-width: 1024px) {
+            .video-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
         @media (max-width: 768px) {
-            .nav-links {
-                gap: 1rem;
+            .video-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
 
-            .hero h1 {
-                font-size: 2rem;
+            .logo {
+                font-size: 1.8rem;
             }
 
-            .about-section {
-                padding: 2rem;
+            nav a {
+                display: block;
+                margin: 0.3rem 0;
             }
 
-            .modal-content {
-                margin: 20% auto;
-                padding: 1.5rem;
+            .header-top {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .video-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <!-- 헤더 & 네비게이션 -->
-    <header>
-        <nav>
-            <div class="logo">Sabin Verse</div>
-            <ul class="nav-links">
-                <li><a href="#home">홈</a></li>
-                <li><a href="#poem">시낭송</a></li>
-                <li><a href="#music">영상음악</a></li>
-                <li><a href="#photo">디카시</a></li>
-                <li><a href="#guestbook">방명록</a></li>
-                <li><button class="contact-btn" onclick="openContactForm()">✉️ Contact Us</button></li>
-            </ul>
-        </nav>
-    </header>
+    <!-- 상단 헤더 -->
+    <div class="header-top">
+        <div></div>
+        <div class="admin-top">
+            <button class="contact-btn-header" onclick="openContactForm()">✉️ Contact Us</button>
+            <span>|</span>
+            <button class="admin-btn" onclick="adminLogin()">관리자</button>
+        </div>
+    </div>
+
+    <!-- 로고 섹션 -->
+    <div class="logo-section">
+        <div class="logo">SABIN VERSE</div>
+        <div class="tagline">시가 노래가 되고 노래가 감정이 되는 곳</div>
+    </div>
+
+    <!-- 네비게이션 -->
+    <nav>
+        <a href="#about">소개글</a>
+        <a href="#poem">시낭송</a>
+        <a href="#music">영상음악</a>
+        <a href="#photo">디카시</a>
+        <a href="#guestbook">방명록</a>
+        <a href="#board">게시판</a>
+        <a href="#notice">공지사항</a>
+        <a href="https://youtube.com/@sabinverse" target="_blank" class="youtube">▶ YouTube</a>
+    </nav>
+
+    <!-- 헤로 섹션 -->
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1>영상으로야</h1>
+        </div>
+    </div>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="container">
+        <!-- 영상 그리드 -->
+        <div class="video-section" id="music">
+            <div class="video-grid">
+                <div class="video-item">
+                    <div class="video-thumbnail">
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #8B6914, #D4A574); display: flex; align-items: center; justify-content: center;">
+                            <div class="play-icon">▶</div>
+                        </div>
+                    </div>
+                    <div class="video-category">영상음악</div>
+                    <div class="video-title">3차 플레이리스트</div>
+                </div>
+                <div class="video-item">
+                    <div class="video-thumbnail">
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #8B6914, #D4A574); display: flex; align-items: center; justify-content: center;">
+                            <div class="play-icon">▶</div>
+                        </div>
+                    </div>
+                    <div class="video-category">영상음악</div>
+                    <div class="video-title">추억을 잠시</div>
+                </div>
+                <div class="video-item">
+                    <div class="video-thumbnail">
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #8B6914, #D4A574); display: flex; align-items: center; justify-content: center;">
+                            <div class="play-icon">▶</div>
+                        </div>
+                    </div>
+                    <div class="video-category">영상음악</div>
+                    <div class="video-title">네 심장은 두근 박</div>
+                </div>
+                <div class="video-item">
+                    <div class="video-thumbnail">
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #8B6914, #D4A574); display: flex; align-items: center; justify-content: center;">
+                            <div class="play-icon">▶</div>
+                        </div>
+                    </div>
+                    <div class="video-category">영상음악</div>
+                    <div class="video-title">못다한 내 사랑</div>
+                </div>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="pagination">
+                <span class="active">1</span>
+                <a href="#">2</a>
+                <a href="#">3</a>
+                <a href="#">4</a>
+                <a href="#">5</a>
+                <a href="#">6</a>
+                <a href="#">7</a>
+                <a href="#">8</a>
+                <a href="#">9</a>
+                <a href="#">›</a>
+            </div>
+
+            <!-- 더보기 -->
+            <div class="view-all-section">
+                <button class="view-all-btn">전체영상 보기</button>
+            </div>
+        </div>
+
+        <!-- 소개글 -->
+        <section class="about-section" id="about">
+            <h2>소개글</h2>
+            <p>
+                시가 노래가 되는 곳, <strong>Sabin Verse</strong>입니다.
+            </p>
+            <p>
+                무심코 지나친 하루, 잠 못 드는 밤의 사색, 잊고 싶지 않은 사랑과 이별의 기억.
+                이 모든 감정을 시로 쓰고 노래로 엮어 세상에 전합니다.
+            </p>
+            <p>
+                사랑과 이별, 영상시, 영상음악, 그리고 디카시까지.
+                Sabin Verse는 당신의 감정을 어루만지는 따뜻한 기록을 담아냅니다.
+            </p>
+            <p>
+                제 노래와 글이 당신의 마음에 닿아 잔잔한 위로가 되길 바랍니다.
+                천천히 머물며 당신의 마음을 건드리는 풍경을 찾아보세요.
+                영상과 사진, 그리고 음악이 어우러진 다채로운 감정의 풍경을 편안하게 둘러봐 주세요 😊
+            </p>
+        </section>
+
+        <!-- 방명록 -->
+        <section class="guestbook-section" id="guestbook">
+            <h2>방명록</h2>
+            <p>Sabin Verse를 다녀가신 흔적을 남겨주세요</p>
+            <div class="guestbook-form">
+                <div class="form-group">
+                    <label>이름</label>
+                    <input type="text" placeholder="이름을 입력하세요" required>
+                    <span style="color: #d4a574; margin-left: 5px;">*</span>
+                </div>
+                <div class="form-group">
+                    <label>비밀번호</label>
+                    <input type="password" placeholder="(삭제시 필요)" required>
+                    <span style="color: #d4a574; margin-left: 5px;">*</span>
+                </div>
+                <div class="form-group">
+                    <label style="vertical-align: top;">메시지</label>
+                    <textarea placeholder="메시지를 입력하세요 (0/100)" maxlength="100" required></textarea>
+                    <span style="color: #d4a574; margin-left: 5px;">*</span>
+                </div>
+                <div class="form-buttons">
+                    <button class="btn btn-primary">등록</button>
+                    <button class="btn btn-secondary">취소</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Contact Us 모달 -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✉️ Contact Us</h2>
+                <button class="close-btn" onclick="closeContactForm()">&times;</button>
+            </div>
+            <form class="modal-form" onsubmit="submitContact(event)">
+                <input type="text" id="name" placeholder="이름" required>
+                <input type="email" id="email" placeholder="이메일" required>
+                <input type="text" id="subject" placeholder="제목" required>
+                <textarea id="message" placeholder="메시지" required></textarea>
+                <button type="submit" class="submit-btn">전송</button>
+            </form>
+            <div class="modal-footer">
+                📧 master@sabinverse.com으로 전송됩니다
+            </div>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <footer>
+        <p><strong>Sabin Verse © 2026</strong></p>
+        <p>Sabin · 이은자</p>
+        <p>All rights reserved</p>
+    </footer>
+
+    <script>
+        function openContactForm() {
+            document.getElementById('contactModal').style.display = 'block';
+        }
+
+        function closeContactForm() {
+            document.getElementById('contactModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('contactModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function submitContact(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const subject = document.getElementById('subject').value;
+            const message = document.getElementById('message').value;
+
+            const mailtoLink = `mailto:master@sabinverse.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`발신자: ${name} (${email})\n\n${message}`)}`;
+            window.location.href = mailtoLink;
+
+            document.querySelector('.modal-form').reset();
+            closeContactForm();
+        }
+
+        function adminLogin() {
+            const password = prompt('관리자 비밀번호를 입력하세요:');
+            if (password) {
+                alert('관리자 패널로 이동합니다');
+            }
+        }
+    </script>
+</body>
+</html>
 
     <!-- 메인 컨텐츠 -->
     <div class="container">
