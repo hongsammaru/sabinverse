@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sabin Verse - 시가 노래가 되고, 노래가 감정이 되는 곳</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f5f3f0 0%, #faf8f6 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 헤더 */
+        header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #d4a574 0%, #c9916f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #666;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            color: #d4a574;
+        }
+
+        .contact-btn {
+            background: linear-gradient(135deg, #d4a574 0%, #c9916f 100%);
+            color: white !important;
+            padding: 0.6rem 1.5rem;
+            border-radius: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-weight: 600;
+        }
+
+        .contact-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(212, 165, 116, 0.3);
+        }
+
+        /* 메인 컨텐츠 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #222;
+            font-weight: 700;
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            color: #d4a574;
+            font-style: italic;
+            margin-bottom: 3rem;
+        }
+
+        /* 소개글 섹션 */
+        .about-section {
+            background: white;
+            border-radius: 10px;
+            padding: 3rem;
+            margin: 3rem 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            line-height: 1.9;
+        }
+
+        .about-section h2 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .about-section p {
+            color: #555;
+            margin-bottom: 1.2rem;
+            font-size: 1rem;
+        }
+
+        /* 콘텐츠 섹션 */
+        .content-section {
+            background: white;
+            border-radius: 10px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .content-section h3 {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .content-item {
+            background: linear-gradient(135deg, #faf8f6 0%, #f5f3f0 100%);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .content-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(212, 165, 116, 0.15);
+        }
+
+        .content-item-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .content-item-desc {
+            font-size: 0.9rem;
+            color: #777;
+        }
+
+        /* 연락 폼 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close-btn {
+            color: #999;
+            float: right;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .modal h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #d4a574;
+            box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: linear-gradient(135deg, #d4a574 0%, #c9916f 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(212, 165, 116, 0.3);
+        }
+
+        /* 방명록 */
+        .guestbook {
+            background: white;
+            border-radius: 10px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .guestbook h3 {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .guestbook-form {
+            background: #f9f7f5;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .guestbook-form input,
+        .guestbook-form textarea {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+        }
+
+        .guestbook-btn {
+            background: #d4a574;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .guestbook-btn:hover {
+            background: #c9916f;
+        }
+
+        /* 관리자 */
+        .admin-section {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .admin-btn {
+            background: #999;
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+
+        .admin-btn:hover {
+            background: #777;
+        }
+
+        /* 푸터 */
+        footer {
+            background: #222;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+            font-size: 0.9rem;
+        }
+
+        footer p {
+            margin: 0.5rem 0;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .about-section {
+                padding: 2rem;
+            }
+
+            .modal-content {
+                margin: 20% auto;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 & 네비게이션 -->
+    <header>
+        <nav>
+            <div class="logo">Sabin Verse</div>
+            <ul class="nav-links">
+                <li><a href="#home">홈</a></li>
+                <li><a href="#poem">시낭송</a></li>
+                <li><a href="#music">영상음악</a></li>
+                <li><a href="#photo">디카시</a></li>
+                <li><a href="#guestbook">방명록</a></li>
+                <li><button class="contact-btn" onclick="openContactForm()">✉️ Contact Us</button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="container">
+        <!-- 히어로 섹션 -->
+        <section class="hero" id="home">
+            <h1>Sabin Verse</h1>
+            <p class="tagline">시가 노래가 되고, 노래가 감정이 되는 곳</p>
+        </section>
+
+        <!-- 소개글 섹션 -->
+        <section class="about-section">
+            <h2>Sabin Verse에 대하여</h2>
+            <p>
+                시가 노래가 되는 곳, <strong>Sabin Verse</strong>입니다.
+            </p>
+            <p>
+                무심코 지나친 하루, 잠 못 드는 밤의 사색, 잊고 싶지 않은 사랑과 이별의 기억.
+                이 모든 감정을 시로 쓰고 노래로 엮어 세상에 전합니다.
+            </p>
+            <p>
+                사랑과 이별, 영상시, 영상음악, 그리고 디카시까지.
+                Sabin Verse는 당신의 감정을 어루만지는 따뜻한 기록을 담아냅니다.
+            </p>
+            <p>
+                제 노래와 글이 당신의 마음에 닿아 잔잔한 위로가 되길 바랍니다.
+                천천히 머물며 당신의 마음을 건드리는 풍경을 찾아보세요.
+            </p>
+            <p>
+                영상과 사진, 그리고 음악이 어우러진 다채로운 감정의 풍경을 편안하게 둘러봐 주세요 😊
+            </p>
+        </section>
+
+        <!-- 콘텐츠 섹션 -->
+        <section class="content-section" id="poem">
+            <h3>🎤 시낭송</h3>
+            <p>사빈의 목소리로 듣는 시</p>
+            <div class="content-grid">
+                <div class="content-item">
+                    <div class="content-item-title">시낭송 영상</div>
+                    <div class="content-item-desc">감정을 담은 목소리로</div>
+                </div>
+                <div class="content-item">
+                    <div class="content-item-title">새로운 시</div>
+                    <div class="content-item-desc">매주 업데이트 예정</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section" id="music">
+            <h3>🎵 영상음악</h3>
+            <p>음악과 시가 하나의 흐름으로 만나는 곳</p>
+            <div class="content-grid">
+                <div class="content-item">
+                    <div class="content-item-title">Original Music</div>
+                    <div class="content-item-desc">사빈의 창작곡</div>
+                </div>
+                <div class="content-item">
+                    <div class="content-item-title">Music Video</div>
+                    <div class="content-item-desc">시각적 감정 표현</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section" id="photo">
+            <h3>📸 디카시</h3>
+            <p>사진과 시가 하나가 되는 공간</p>
+            <div class="content-grid">
+                <div class="content-item">
+                    <div class="content-item-title">감성 사진</div>
+                    <div class="content-item-desc">시의 풍경</div>
+                </div>
+                <div class="content-item">
+                    <div class="content-item-title">순간의 기억</div>
+                    <div class="content-item-desc">담아낸 감정</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 방명록 -->
+        <section class="guestbook" id="guestbook">
+            <h3>💌 방명록</h3>
+            <p>Sabin Verse를 다녀가신 흔적을 남겨주세요</p>
+            <div class="guestbook-form">
+                <input type="text" placeholder="이름 (필수)" required>
+                <textarea placeholder="메시지 (최대 100자)" maxlength="100"></textarea>
+                <button class="guestbook-btn">✍️ 등록</button>
+            </div>
+        </section>
+
+        <!-- 관리자 -->
+        <div class="admin-section">
+            <button class="admin-btn" onclick="adminLogin()">관리자</button>
+        </div>
+    </div>
+
+    <!-- Contact Us 모달 -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeContactForm()">&times;</span>
+            <h2>✉️ Contact Us</h2>
+            <p style="color: #666; margin-bottom: 1.5rem; font-size: 0.95rem;">
+                문의사항이 있으시면 아래 양식을 작성해주세요. 빠르게 답변드리겠습니다.
+            </p>
+            <form id="contactForm" onsubmit="submitContact(event)">
+                <div class="form-group">
+                    <label for="name">이름 *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">이메일 *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="subject">제목 *</label>
+                    <input type="text" id="subject" name="subject" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">메시지 *</label>
+                    <textarea id="message" name="message" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">전송</button>
+            </form>
+            <p style="color: #999; font-size: 0.85rem; margin-top: 1rem; text-align: center;">
+                📧 master@sabinverse.com으로 전송됩니다
+            </p>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <footer>
+        <p><strong>Sabin Verse</strong> © 2026 All rights reserved</p>
+        <p>이은자 · 시인 · 작사가</p>
+        <p>
+            <a href="https://youtube.com/@sabinverse" style="color: #d4a574; text-decoration: none;">YouTube</a> | 
+            <a href="https://sabinverse.com" style="color: #d4a574; text-decoration: none;">Website</a> | 
+            <a href="https://x.com" style="color: #d4a574; text-decoration: none;">X</a>
+        </p>
+    </footer>
+
+    <script>
+        // Contact Us 모달
+        function openContactForm() {
+            document.getElementById('contactModal').style.display = 'block';
+        }
+
+        function closeContactForm() {
+            document.getElementById('contactModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('contactModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function submitContact(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const subject = document.getElementById('subject').value;
+            const message = document.getElementById('message').value;
+
+            // 실제 구현에서는 이 부분에서 서버로 전송
+            const mailtoLink = `mailto:master@sabinverse.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`발신자: ${name} (${email})\n\n${message}`)}`;
+            window.location.href = mailtoLink;
+
+            // 폼 초기화
+            document.getElementById('contactForm').reset();
+            closeContactForm();
+        }
+
+        function adminLogin() {
+            const password = prompt('관리자 비밀번호를 입력하세요:');
+            if (password) {
+                alert('관리자 패널로 이동합니다');
+                // 실제 로그인 처리
+            }
+        }
+    </script>
+</body>
+</html>
