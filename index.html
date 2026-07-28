@@ -140,13 +140,19 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
 .dicasi-card img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;transition:transform .3s}
 .dicasi-card:hover img{transform:scale(1.03)}
 .dicasi-card-title{padding:12px 14px;font-family:'Noto Serif KR',serif;font-size:13px;color:var(--muted);text-align:center}
-.nangsong-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:2rem}
-.nangsong-card{background:var(--white);border:1px solid rgba(201,168,76,.2);border-radius:2px;padding:24px 22px;transition:box-shadow .25s,border-color .25s}
-.nangsong-card:hover{box-shadow:0 12px 40px rgba(26,18,8,.1);border-color:rgba(201,168,76,.5)}
-.nangsong-title{font-family:'Noto Serif KR',serif;font-size:18px;color:var(--ink);margin-bottom:4px}
-.nangsong-desc{font-size:13px;color:var(--muted);margin-bottom:14px}
-.nangsong-card audio{width:100%;height:40px}
-.nangsong-card video{width:100%;max-height:520px;background:#000;border-radius:2px;display:block}
+.nangsong-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;margin-bottom:2rem}
+.nangsong-card{background:var(--white);border:1px solid rgba(201,168,76,.2);border-radius:2px;overflow:hidden;cursor:pointer;transition:transform .25s,box-shadow .25s,border-color .25s}
+.nangsong-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(26,18,8,.12);border-color:rgba(201,168,76,.5)}
+.nangsong-thumb{position:relative;width:100%;aspect-ratio:16/9;background:var(--ink);overflow:hidden}
+.nangsong-thumb video{width:100%;height:100%;object-fit:cover;opacity:.9;transition:opacity .3s,transform .3s;pointer-events:none;display:block}
+.nangsong-card:hover .nangsong-thumb video{opacity:1;transform:scale(1.03)}
+.nangsong-thumb.audio-only{background:linear-gradient(135deg,#241a0c 0%,#3a2c14 100%)}
+.nangsong-thumb.audio-only::before{content:'♪';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:52px;color:rgba(201,168,76,.18)}
+.nangsong-info{padding:16px 18px}
+.nangsong-tag{font-size:10px;letter-spacing:2px;color:var(--gold-dark);text-transform:uppercase;margin-bottom:6px}
+.nangsong-title{font-family:'Noto Serif KR',serif;font-size:15px;font-weight:400;color:var(--ink);line-height:1.5;margin-bottom:5px}
+.nangsong-desc{font-size:12px;color:var(--muted);line-height:1.6}
+.modal-video video{position:absolute;inset:0;width:100%;height:100%;background:#000;display:block}
 .nangsong-sub{margin-top:4rem;padding-top:3rem;border-top:1px solid rgba(201,168,76,.25)}
 .nangsong-sub-header{text-align:center;margin-bottom:2rem}
 .nangsong-sub-header h3{font-family:'Noto Serif KR',serif;font-size:26px;font-weight:400;color:var(--ink);margin-bottom:6px}
@@ -180,7 +186,10 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
   .intro-portrait{display:none !important}
   .intro-layout{grid-template-columns:1fr !important}
   .dicasi-grid{grid-template-columns:1fr 1fr;gap:10px}
-  .nangsong-grid{grid-template-columns:1fr}
+  .nangsong-grid{grid-template-columns:1fr 1fr;gap:12px}
+  .nangsong-info{padding:10px 12px}
+  .nangsong-title{font-size:13px}
+  .nangsong-desc{display:none}
   .nav-inner{justify-content:flex-end;padding:0 14px;position:relative}
   .nav-toggle{display:flex}
   .nav-menu{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;background:var(--ink);border-bottom:1px solid rgba(201,168,76,.25);box-shadow:0 10px 24px rgba(0,0,0,.45);z-index:120}
@@ -459,6 +468,7 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
     </div>
     <div class="modal-video">
       <iframe id="modal-iframe" src="" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+      <video id="modal-local" controls playsinline preload="metadata" style="display:none"></video>
     </div>
 
   </div>
@@ -749,17 +759,40 @@ function renderNangsong(page) {
   const items = nangsongList.slice(start, start + PER);
   grid.innerHTML = items.map(n => {
     const isVideo = /\.(mp4|webm|mov)$/i.test(n.src);
-    const player = isVideo
-      ? `<video controls preload="metadata" src="${n.src}" onplay="pauseOtherAudio(this)" playsinline></video>`
-      : `<audio controls preload="none" src="${n.src}" onplay="pauseOtherAudio(this)"></audio>`;
+    const t = (n.title||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    const thumb = isVideo
+      ? `<div class="nangsong-thumb"><video src="${n.src}#t=0.5" preload="metadata" muted playsinline></video>${PLAY_ICON}</div>`
+      : `<div class="nangsong-thumb audio-only">${PLAY_ICON}</div>`;
     return `
-    <div class="nangsong-card">
-      <div class="nangsong-title">${n.title||''}</div>
-      ${n.desc ? `<div class="nangsong-desc">${n.desc}</div>` : ''}
-      ${player}
+    <div class="nangsong-card" onclick="openLocalVideo('${n.src}','${t}')">
+      ${thumb}
+      <div class="nangsong-info">
+        <div class="nangsong-tag">시낭송</div>
+        <div class="nangsong-title">${n.title||''}</div>
+        ${n.desc ? `<div class="nangsong-desc">${n.desc}</div>` : ''}
+      </div>
     </div>`;
   }).join('');
   renderPagination('nangsong-pg', nangsongList.length, pages_nangsong.nangsong, 'renderNangsong');
+}
+
+const PLAY_ICON = `<div class="play-btn"><div class="play-circle"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>`;
+
+function openLocalVideo(src, title) {
+  const iframe = document.getElementById('modal-iframe');
+  const local = document.getElementById('modal-local');
+  document.getElementById('modal-title').textContent = title || '';
+  iframe.src = '';
+  iframe.style.display = 'none';
+  local.style.display = 'block';
+  local.src = src;
+  const mv = document.querySelector('.modal-video');
+  mv.style.aspectRatio = '16/9';
+  mv.style.maxWidth = '';
+  mv.style.margin = '';
+  document.getElementById('video-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  local.play().catch(()=>{});
 }
 
 function pauseOtherAudio(cur) {
@@ -807,6 +840,9 @@ function showSection(id, btn) {
 }
 
 function openVideo(id, title, desc, type) {
+  const local = document.getElementById('modal-local');
+  if (local) { local.pause(); local.removeAttribute('src'); local.load(); local.style.display = 'none'; }
+  document.getElementById('modal-iframe').style.display = '';
   document.getElementById('modal-title').textContent = title;
   document.getElementById('modal-iframe').src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0';
   // 영상시(쇼츠)는 세로 비율, 나머지는 가로 비율
@@ -826,6 +862,9 @@ function openVideo(id, title, desc, type) {
 function closeModal() {
   document.getElementById('video-modal').classList.remove('open');
   document.getElementById('modal-iframe').src = '';
+  const local = document.getElementById('modal-local');
+  if (local) { local.pause(); local.removeAttribute('src'); local.load(); local.style.display = 'none'; }
+  document.getElementById('modal-iframe').style.display = '';
   document.body.style.overflow = '';
 }
 document.getElementById('video-modal').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
