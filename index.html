@@ -744,7 +744,7 @@ async function loadNangsongSheet() {
       let title = row.c[2] ? String(row.c[2].v) : '';
       const rawTitle = title;
       // 시낭송 제목 앞 관리번호(예: 2_21) 화면에서만 숨김 — 구글 시트는 그대로
-      if (sheetName === 'poem') title = title.replace(/^\s*\d+\s*[_\-]\s*\d+\s*[.\-)]?\s*/, '') || title;
+      title = title.replace(/^\s*\d+\s*[_\-]\s*\d+\s*[.\-)]?\s*/, '') || title;
       const desc = row.c[3] ? row.c[3].v : '';
       nangsongList.push({src, title, desc});
     });
