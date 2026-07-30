@@ -196,8 +196,10 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
   .nav-menu.open{display:flex}
   .nav-menu .nav-btn{width:100%;text-align:left;padding:11px 22px;font-size:14px;letter-spacing:1px;border-bottom:1px solid rgba(201,168,76,.12)}
   .nav-menu .nav-btn.active::after{left:22px;bottom:4px;transform:none;width:18px}
-  .nav-menu .nav-links{display:flex;gap:10px;padding:12px 22px}
-  .nav-menu .nav-subscribe-btn,.nav-menu .nav-contact-btn{font-size:11px;padding:8px 12px;margin:0}
+  .nav-links{display:flex;align-items:center;gap:2px;order:1}
+  .nav-toggle{order:2;margin-left:4px}
+  .nav-links .btn-label{display:none}
+  .nav-subscribe-btn,.nav-contact-btn{border:none;background:none;margin:0;padding:10px 8px;font-size:19px;line-height:1;letter-spacing:0}
 }
 </style>
 </head>
@@ -229,10 +231,10 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
     <button class="nav-btn" onclick="showSection('guestbook',this)">방명록</button>
     <button class="nav-btn" onclick="showSection('board',this)">게시판</button>
     <button class="nav-btn" onclick="showSection('notice',this)">공지사항</button>
-    <div class="nav-links">
-    <a class="nav-subscribe-btn" href="https://www.youtube.com/@Sabin-Verse-26?sub_confirmation=1" target="_blank" style="color:#ff0033">▶ YouTube</a>
-    <a class="nav-contact-btn" href="mailto:master@sabinverse.com?subject=Sabin%20Verse%20문의&body=안녕하세요.%20Sabin%20Verse를%20찾아주셔서%20감사합니다." target="_blank">✉️ Contact Us</a>
     </div>
+    <div class="nav-links">
+    <a class="nav-subscribe-btn" href="https://www.youtube.com/@Sabin-Verse-26?sub_confirmation=1" target="_blank" style="color:#ff0033" title="YouTube 구독" aria-label="YouTube 구독">▶<span class="btn-label"> YouTube</span></a>
+    <a class="nav-contact-btn" href="mailto:master@sabinverse.com?subject=Sabin%20Verse%20문의&body=안녕하세요.%20Sabin%20Verse를%20찾아주셔서%20감사합니다." target="_blank" title="문의하기" aria-label="문의하기">✉️<span class="btn-label"> Contact Us</span></a>
     </div>
   </div>
 </nav>
@@ -553,13 +555,16 @@ async function loadSheet(sheetName) {
       if (idx === 0) return; // 헤더 스킵
       if (!row.c[1]) return;
       const id = row.c[1].v;
-      const title = row.c[2] ? row.c[2].v : '';
+      let title = row.c[2] ? String(row.c[2].v) : '';
+      const rawTitle = title;
+      // 시낭송 제목 앞 관리번호(예: 2_21) 화면에서만 숨김 — 구글 시트는 그대로
+      if (sheetName === 'poem') title = title.replace(/^\s*\d+\s*[_\-]\s*\d+\s*[.\-)]?\s*/, '') || title;
       const desc = row.c[3] ? row.c[3].v : '';
       // 링크에서 ID 추출 (https://youtu.be/xxxxx 형태도 처리)
       let cleanId = id;
       const m = id.match(/(?:youtu\.be\/|v=|embed\/)([\w-]{11})/);
       if (m) cleanId = m[1];
-      if (cleanId && cleanId !== 'id') items.push({id: cleanId, title, desc});
+      if (cleanId && cleanId !== 'id') items.push({id: cleanId, title, desc, rawTitle});
     });
     return items;
   } catch(e) {
@@ -736,7 +741,10 @@ async function loadNangsongSheet() {
       if (idx === 0) return;
       if (!row.c[1]) return;
       const src = row.c[1].v;
-      const title = row.c[2] ? row.c[2].v : '';
+      let title = row.c[2] ? String(row.c[2].v) : '';
+      const rawTitle = title;
+      // 시낭송 제목 앞 관리번호(예: 2_21) 화면에서만 숨김 — 구글 시트는 그대로
+      if (sheetName === 'poem') title = title.replace(/^\s*\d+\s*[_\-]\s*\d+\s*[.\-)]?\s*/, '') || title;
       const desc = row.c[3] ? row.c[3].v : '';
       nangsongList.push({src, title, desc});
     });
