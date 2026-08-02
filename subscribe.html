@@ -1,80 +1,69 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>sabin verse — 시가 노래가 되는 곳</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sabin verse — 시가 노래가 되는 순간</title>
+<meta property="og:title" content="sabin verse — 시가 노래가 되는 순간을 함께해요">
+<meta property="og:description" content="시인이자 작사가 사빈의 영상시와 영상음악">
+<meta property="og:image" content="https://sabinverse.com/subscribe.png">
+<meta property="og:url" content="https://sabinverse.com/subscribe.html">
+<meta property="og:type" content="website">
 <style>
-  /* ── 채널 링크는 아래 <a> 태그의 href 한 곳만 바꾸면 됩니다 ── */
-  :root{
-    --velvet:#3d1230;      /* 무대 위 벨벳 드레스의 자주색 */
-    --velvet-deep:#1a0716; /* 배경 암전 */
-    --spotlight:#f0b45c;   /* 조명의 앰버 골드 */
-    --ink:#f5ead9;         /* 따뜻한 상아빛 글자 */
-    --yt:#ff0033;
-  }
-  *{margin:0;padding:0;box-sizing:border-box}
-  html,body{height:100%}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
   body{
-    background:radial-gradient(120% 90% at 50% 0%, #2a0d22 0%, var(--velvet-deep) 55%, #0c0309 100%);
-    font-family:'Noto Serif KR','Apple SD Gothic Neo',serif;
-    color:var(--ink);
+    background:radial-gradient(120% 80% at 50% 0%, #2a1030 0%, #14060f 60%, #0b0409 100%);
+    min-height:100vh;
     display:flex;align-items:center;justify-content:center;
     padding:24px 16px;
+    font-family:"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
   }
-  .stage{
-    width:100%;max-width:430px;
-    position:relative;
-  }
+  .stage{width:100%;max-width:520px}
   .frame{
     position:relative;
-    border-radius:14px;
+    border-radius:18px;
     overflow:hidden;
-    box-shadow:0 30px 80px rgba(0,0,0,.75), 0 0 0 1px rgba(240,180,92,.18);
+    box-shadow:0 20px 60px rgba(0,0,0,.6);
   }
   .frame img{display:block;width:100%;height:auto}
-
-  /* 이미지 하단에 조용히 깔리는 그라데이션 — 버튼과 문구의 자리 */
   .veil{
     position:absolute;left:0;right:0;bottom:0;
-    padding:70px 22px 22px;
-    background:linear-gradient(180deg, transparent 0%, rgba(12,3,9,.82) 62%, rgba(12,3,9,.94) 100%);
-    display:flex;flex-direction:column;gap:14px;
+    padding:56px 24px 26px;
+    background:linear-gradient(to top, rgba(8,3,10,.92) 30%, rgba(8,3,10,.55) 65%, rgba(8,3,10,0) 100%);
   }
   .line{
-    font-size:15px;letter-spacing:.02em;line-height:1.7;
-    color:var(--ink);opacity:.92;
+    margin:0 0 16px;
+    font-family:"Nanum Myeongjo",Georgia,"Apple SD Gothic Neo",serif;
     font-style:italic;
+    font-size:clamp(15px,3.6vw,19px);
+    color:#f3ece4;
+    letter-spacing:.2px;
   }
-  .line b{color:var(--spotlight);font-style:normal;font-weight:600}
-
-  .row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-  .subscribe{
+  .line b{color:#e2b872;font-weight:600;font-style:italic}
+  .row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .cta{
     display:inline-flex;align-items:center;gap:9px;
-    background:var(--yt);color:#fff;text-decoration:none;
-    font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
-    font-weight:700;font-size:15px;letter-spacing:.03em;
-    padding:12px 22px;border-radius:999px;
+    background:#ff0033;color:#fff;
+    text-decoration:none;
+    font-size:clamp(15px,3.4vw,17px);font-weight:700;
+    padding:13px 24px;border-radius:999px;
     box-shadow:0 6px 20px rgba(255,0,51,.35);
-    transition:transform .18s ease, box-shadow .18s ease;
+    transition:transform .15s ease, box-shadow .15s ease;
   }
-  .subscribe:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(255,0,51,.5)}
-  .subscribe:focus-visible{outline:3px solid var(--spotlight);outline-offset:3px}
-  .subscribe svg{width:22px;height:16px;flex:none}
-  .handle{
-    font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
-    font-size:13px;color:var(--ink);opacity:.65;letter-spacing:.04em;
-  }
+  .cta:hover{transform:translateY(-1px);box-shadow:0 8px 26px rgba(255,0,51,.55)}
+  .cta:focus-visible{outline:3px solid #ffd9e2;outline-offset:3px}
+  .cta svg{width:26px;height:19px;flex:none}
+  .handle{color:#b9adb8;font-size:clamp(12px,2.9vw,14px)}
   .site{
-    margin-top:14px;text-align:center;
-    font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
-    font-size:12.5px;letter-spacing:.08em;
+    margin:18px 0 0;text-align:center;
+    font-size:14px;letter-spacing:.6px;
   }
-  .site a{color:var(--spotlight);text-decoration:none;opacity:.85}
-  .site a:hover{opacity:1;text-decoration:underline}
+  .site a{color:#e2b872;text-decoration:none}
+  .site a:hover{text-decoration:underline}
 
   @media (prefers-reduced-motion: no-preference){
-    .subscribe{animation:breathe 3.2s ease-in-out infinite}
+    .cta{animation:breathe 3.2s ease-in-out infinite}
     @keyframes breathe{
       0%,100%{box-shadow:0 6px 20px rgba(255,0,51,.35)}
       50%{box-shadow:0 6px 30px rgba(255,0,51,.6)}
@@ -89,13 +78,13 @@
       <div class="veil">
         <p class="line">시가 노래가 되는 순간을 함께해요 — <b>sabin verse</b></p>
         <div class="row">
-          <!-- ▼ 채널 주소가 다르면 아래 href만 바꾸세요 ▼ -->
-          <a class="subscribe" href="https://youtube.com/@sabin-verse-26" target="_blank" rel="noopener">
+          <!-- ▼ 버튼 글자는 아래 '영상 보러가기'만 바꾸면 됩니다 ▼ -->
+          <a class="cta" href="https://youtube.com/@sabin-verse-26" target="_blank" rel="noopener">
             <svg viewBox="0 0 24 17" fill="none" aria-hidden="true">
               <rect width="24" height="17" rx="4" fill="#fff"/>
               <path d="M9.5 4.5v8l7-4-7-4z" fill="#ff0033"/>
             </svg>
-            구독하기
+            영상 보러가기
           </a>
           <span class="handle">@sabinverse · 시인 · 작사가</span>
         </div>
