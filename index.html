@@ -18,10 +18,17 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--paper);color:var(--i
 .subscribe-btn{font-size:12px;letter-spacing:2px;color:#e62117;background:none;border:1px solid rgba(230,33,23,.5);padding:9px 20px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:700;text-decoration:none;transition:color .2s,border-color .2s;white-space:nowrap}
 .subscribe-btn:hover{color:#ff4d44;border-color:#ff4d44}
 
-.hero{position:relative;width:100%;height:350px;overflow:hidden}
+.hero{position:relative;width:100%;height:430px;overflow:hidden}
 .hero-img{width:100%;height:100%;object-fit:cover;object-position:center center;display:block}
-@media (max-width:768px){.hero{height:220px}.hero-img{object-position:58% center}}
-.hero-overlay{position:absolute;inset:0;background:rgba(26,18,8,0.15)}
+@media (max-width:768px){.hero{height:300px}.hero-img{object-position:62% center}}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(18,11,3,.80) 0%,rgba(18,11,3,.60) 32%,rgba(18,11,3,.26) 62%,rgba(18,11,3,.10) 100%)}
+.hero-nav{position:absolute;top:50%;left:clamp(22px,7vw,90px);transform:translateY(-50%);display:flex;flex-direction:column;align-items:flex-start;gap:2px;z-index:5}
+.hero-nav-btn{font-family:'Noto Serif KR',serif;font-size:19px;font-weight:300;letter-spacing:5px;color:rgba(240,229,203,.92);background:none;border:none;cursor:pointer;padding:11px 0 11px 24px;position:relative;text-align:left;white-space:nowrap;transition:color .3s;text-shadow:0 1px 8px rgba(0,0,0,.65)}
+.hero-nav-btn::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:0;height:1px;background:var(--gold);transition:width .3s}
+.hero-nav-btn:hover{color:var(--gold-light)}
+.hero-nav-btn:hover::before{width:13px}
+.hero-nav-btn.active{color:var(--gold);font-weight:400}
+.hero-nav-btn.active::before{width:15px;height:2px}
 
 nav{position:sticky;top:0;z-index:100;background:var(--ink);border-bottom:1px solid rgba(201,168,76,0.2)}
 .nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:center}
@@ -31,15 +38,8 @@ nav{position:sticky;top:0;z-index:100;background:var(--ink);border-bottom:1px so
 .nav-btn.active::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:24px;height:2px;background:var(--gold)}
 .nav-subscribe-btn{font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:#e62117;background:none;border:1px solid rgba(230,33,23,.5);padding:5px 12px;text-decoration:none;margin-left:8px;transition:color .2s,border-color .2s;white-space:nowrap;align-self:center}
 .nav-subscribe-btn:hover{color:#ff4d44;border-color:#ff4d44}
-.nav-contact-btn{font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(232,213,163,.95);background:none;border:1px solid rgba(201,168,76,.55);padding:5px 12px;text-decoration:none;margin-left:8px;transition:color .2s,border-color .2s;white-space:nowrap;align-self:center}
-.nav-contact-btn:hover{color:var(--gold-light);border-color:var(--gold-light)}
 .nav-menu{display:flex;align-items:center}
 .nav-links{display:contents}
-.nav-toggle{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:12px 6px}
-.nav-toggle span{display:block;width:24px;height:2px;background:var(--gold-light);transition:transform .3s,opacity .3s}
-.nav-toggle.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
-.nav-toggle.open span:nth-child(2){opacity:0}
-.nav-toggle.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 
 main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
 .section{display:none;animation:fadeIn .4s ease}
@@ -167,7 +167,9 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
 .img-modal-title{text-align:center;margin-top:12px;font-family:'Noto Serif KR',serif;font-size:14px;color:rgba(232,213,163,.6)}
 
 @media(max-width:700px){
-  .hero{height:150px}
+  .hero{height:270px}
+  .hero-nav{left:20px;gap:0}
+  .hero-nav-btn{font-size:15px;letter-spacing:3px;padding:8px 0 8px 17px}
   .nav-btn{padding:14px 10px;font-size:12px;letter-spacing:0;color:rgba(232,213,163,.95)}
   .top-bar{padding:12px 16px}
   .intro-layout{grid-template-columns:1fr}
@@ -188,16 +190,11 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
   .nangsong-grid{grid-template-columns:1fr 1fr;gap:12px}
   .nangsong-info{padding:10px 12px}
   .nangsong-title{font-size:13px}
-  .nav-inner{justify-content:flex-end;padding:0 14px;position:relative}
-  .nav-toggle{display:flex}
-  .nav-menu{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;background:var(--ink);border-bottom:1px solid rgba(201,168,76,.25);box-shadow:0 10px 24px rgba(0,0,0,.45);z-index:120}
-  .nav-menu.open{display:flex}
-  .nav-menu .nav-btn{width:100%;text-align:left;padding:11px 22px;font-size:14px;letter-spacing:1px;border-bottom:1px solid rgba(201,168,76,.12)}
-  .nav-menu .nav-btn.active::after{left:22px;bottom:4px;transform:none;width:18px}
-  .nav-links{display:flex;align-items:center;gap:2px;order:1}
-  .nav-toggle{order:2;margin-left:4px}
+  .nav-inner{justify-content:center;padding:0 14px}
+  .nav-menu{display:flex;align-items:center}
+  .nav-links{display:flex;align-items:center}
   .nav-links .btn-label{display:none}
-  .nav-subscribe-btn,.nav-contact-btn{border:none;background:none;margin:0;padding:10px 8px;font-size:19px;line-height:1;letter-spacing:0}
+  .nav-subscribe-btn{border:none;background:none;margin-left:6px;padding:10px 8px;font-size:19px;line-height:1;letter-spacing:0}
 }
 </style>
 </head>
@@ -214,25 +211,23 @@ main{max-width:1100px;margin:0 auto;padding:3rem 2rem 5rem}
 <div class="hero">
   <img class="hero-img" src="images/hero.jpg" alt="Sabin Verse Studio">
   <div class="hero-overlay"></div>
+  <div class="hero-nav">
+    <button class="hero-nav-btn active" data-target="music" onclick="showSection('music')">영상음악</button>
+    <button class="hero-nav-btn" data-target="poem" onclick="showSection('poem')">시낭송</button>
+    <button class="hero-nav-btn" data-target="dicasi" onclick="showSection('dicasi')">디카시</button>
+    <button class="hero-nav-btn" data-target="intro" onclick="showSection('intro')">소개글</button>
+    <button class="hero-nav-btn" data-target="guestbook" onclick="showSection('guestbook')">방명록</button>
+  </div>
 </div>
 
 <nav>
   <div class="nav-inner">
-    <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기" aria-expanded="false" onclick="toggleNav()">
-      <span></span><span></span><span></span>
-    </button>
     <div class="nav-menu" id="navMenu">
-    <button class="nav-btn" onclick="showSection('intro',this)">소개글</button>
-    <button class="nav-btn" onclick="showSection('poem',this)">시낭송</button>
-    <button class="nav-btn active" onclick="showSection('music',this)">영상음악</button>
-    <button class="nav-btn" onclick="showSection('dicasi',this)">디카시</button>
-    <button class="nav-btn" onclick="showSection('guestbook',this)">방명록</button>
-    <button class="nav-btn" onclick="showSection('board',this)">게시판</button>
-    <button class="nav-btn" onclick="showSection('notice',this)">공지사항</button>
+    <button class="nav-btn" data-target="board" onclick="showSection('board')">게시판</button>
+    <button class="nav-btn" data-target="notice" onclick="showSection('notice')">공지사항</button>
     </div>
     <div class="nav-links">
     <a class="nav-subscribe-btn" href="https://www.youtube.com/@Sabin-Verse-26?sub_confirmation=1" target="_blank" style="color:#ff0033" title="YouTube 구독" aria-label="YouTube 구독">▶<span class="btn-label"> YouTube</span></a>
-    <a class="nav-contact-btn" href="mailto:master@sabinverse.com?subject=Sabin%20Verse%20문의&body=안녕하세요.%20Sabin%20Verse를%20찾아주셔서%20감사합니다." target="_blank" title="문의하기" aria-label="문의하기">✉️<span class="btn-label"> Contact Us</span></a>
     </div>
   </div>
 </nav>
@@ -814,34 +809,13 @@ async function loadFromSheet() {
   await loadNangsongSheet();
 }
 
-function toggleNav() {
-  const menu = document.getElementById('navMenu');
-  const btn = document.getElementById('navToggle');
-  const open = menu.classList.toggle('open');
-  btn.classList.toggle('open', open);
-  btn.setAttribute('aria-expanded', open);
-}
-
-function closeNav() {
-  const menu = document.getElementById('navMenu');
-  const btn = document.getElementById('navToggle');
-  if (menu) menu.classList.remove('open');
-  if (btn) { btn.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
-}
-
-document.addEventListener('click', function(e){
-  const inner = document.querySelector('.nav-inner');
-  if (inner && !inner.contains(e.target)) closeNav();
-});
-
-function showSection(id, btn) {
-  closeNav();
+function showSection(id) {
   if (id === 'guestbook') loadGuestbook();
   if (id === 'board') loadBoard();
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-btn, .hero-nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  btn.classList.add('active');
+  document.querySelectorAll('[data-target="'+id+'"]').forEach(b=>b.classList.add('active'));
   window.scrollTo({top:document.querySelector('nav').offsetTop, behavior:'smooth'});
 }
 
