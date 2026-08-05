@@ -274,14 +274,9 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
     <div class="chips" id="lookChips"></div>
   </div>
 
-  <div class="field">
-    <label class="lab" for="apikey">Anthropic API 키 · 선택</label>
-    <input type="password" id="apikey" autocomplete="off" spellcheck="false" placeholder="sk-ant-...">
-    <p class="note" id="keyNote">키를 넣으면 <b>가사를 실제로 읽어</b> 구간마다 다른 장면을 씁니다. 없으면 지시문을 복사해 Claude 대화창에 붙여넣는 방식으로 씁니다.</p>
-  </div>
-
   <button class="go" id="go" disabled>지시문 만들기</button>
-  <button class="go alt" id="run" disabled>키로 바로 생성</button>
+  <p class="note" style="margin-top:9px">만들어진 지시문을 복사해 <b>Claude 대화창</b>에 붙여넣으면
+  가사 전체 읽기와 구간별 영상·이미지 프롬프트가 나옵니다.</p>
 
   <div class="saverow">
     <button id="btnSave">작업 저장</button>
@@ -295,9 +290,9 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
 <section id="out">
   <div class="empty">
     <b>가사를 넣고 구성을 잡아주세요.</b>
-    먼저 가사 전체를 두 줄로 읽어주고, 구간마다
-    <em>10초 영상 1컷 + 이미지 2장(첫 프레임·끝 프레임)</em>이 나옵니다.
-    모든 프롬프트에 한국어 설명이 함께 붙습니다.
+    가사와 구성을 넣고 <em>지시문 만들기</em>를 누르면, 감독 지시가 한 덩어리로 묶여 나옵니다.
+    복사해서 Claude 대화창에 붙여넣으면 가사 전체 읽기 두 줄과 함께
+    구간마다 <em>10초 영상 1컷 + 이미지 2장</em>이, 한국어 설명과 함께 나옵니다.
   </div>
 </section>
 
@@ -355,8 +350,6 @@ const LOOKS = [
 /* ═══ 상태 ═══ */
 let BLOCKS = [];   // {type,label,lines}
 let FORM   = [];   // {type, block:index|null}
-let SHOTS  = [];   // 결과
-let OVERVIEW = null; // 가사 전체 읽기
 
 /* ═══ 가사 분리 ═══ */
 const LABEL_MAP = [
@@ -437,7 +430,6 @@ function renderForm(){
 function syncButtons(){
   const ok = FORM.length > 0 && $("lyrics").value.trim().length > 3;
   $("go").disabled = !ok;
-  $("run").disabled = !ok || $("apikey").value.trim().length < 10;
 }
 
 function applyPreset(p){
@@ -567,96 +559,18 @@ ${secs.map(s => `\n【${s.i+1}. ${s.name}】\n${s.lyrics || "(가사 없는 구�
 ──────────────────────`;
 }
 
-function buildSystem(o, secs){
-  return `당신은 가사를 영상 언어로 옮기는 뮤직비디오 감독이자 프롬프트 작가입니다. 한국 대중가요의 어법과 여백을 이해합니다.
-
-${rulesText(o)}
-
-곡 전체 구성
-${secs.map(s => `${s.i+1}. ${s.name} — ${s.role}`).join("\n")}
-
-곡 전체 가사
-${secs.map(s => `【${s.name}】\n${s.lyrics || "(가사 없음)"}`).join("\n\n")}
-
-지금 요청받은 한 구간에 대해서만 아래 JSON을 출력하세요. 서문, 설명, 코드펜스 금지.
-{"moment":"이 구간이 잡는 순간 한국어 한 문장","reading":"이 구간의 가사가 하고 있는 일 한 문장${o.noFigure ? "" : " (첫 구간이면 화자 나이대와 근거 포함)"}","anchor":"이 구간 가사에서 그대로 인용한 기준 한 행 (가사 없으면 빈 문자열)","tags":["장소","계절","시간","감정"],"shift":"A에서 B로 무엇이 달라지는지 한국어 한 문장","video":"영어 10초 영상 프롬프트 — A에서 B로 이어지는 하나의 연속 동작","video_ko":"이 영상 프롬프트가 만들어낼 화면 한국어 두 문장","image_a":"영어 이미지 프롬프트 — 10초가 시작되는 순간","image_a_ko":"이 이미지가 무엇을 담는지 한국어 한두 문장","image_b":"영어 이미지 프롬프트 — 10초가 끝나는 순간, A와 같은 장소·빛·의상","image_b_ko":"이 이미지가 무엇을 담는지, A와 무엇이 다른지 한국어 한두 문장","negative":"영어 쉼표 나열","camera":"이 구간의 카메라 무브 영어 한 구절"}`;
-}
-
-function buildOverviewSystem(o, secs){
-  return `당신은 가사를 읽는 뮤직비디오 감독입니다. 아래 곡 전체를 끝까지 읽고, 오직 JSON만 출력하세요. 서문·설명·코드펜스 금지.
-
-곡 전체 가사
-${secs.map(s => `【${s.name}】\n${s.lyrics || "(가사 없음)"}`).join("\n\n")}
-
-{"summary":"이 곡이 무엇을 하고 있는지 한국어 두 줄. 줄바꿈 없이 두 문장으로.","speaker":"${o.noFigure ? "" : "화자의 나이대와 그렇게 본 근거 한 줄"}","keywords":["곡 전체를 관통하는 심상 단어 4개"]}`;
-}
-
 /* ═══ 렌더 ═══ */
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-function shotCard(s, d, i){
-  const pending = !d;
-  return `<article class="shot${pending ? " pending" : ""}">
-    <div class="sh">
-      <div class="no"><b>${String(i+1).padStart(2,"0")}</b><i>10s</i></div>
-      <div class="ttl">
-        <h3>${esc(s.name)}</h3>
-        <div class="tags">${d && d.tags ? d.tags.map(esc).join(" · ") : esc(TYPES[s.type].ko)}</div>
-      </div>
-      ${d ? `<button class="copy" data-sec="${i}">구간 전체</button>` : ""}
-    </div>
-    ${s.lyrics ? `<div class="lyr">${esc(s.lyrics)}</div>` : ""}
-    ${d && d.anchor ? `<div class="anchor"><span>기준 행</span>${esc(d.anchor)}</div>` : ""}
-    ${d && d.reading ? `<div class="reading">${esc(d.reading)}</div>` : ""}
-    ${!d ? `<div class="reading" style="color:var(--celadon)">대기 중…</div>` : `
-    <div class="tl">
-      <div class="tlbar"><i style="width:100%"></i></div>
-      <div class="tlm"><span>A · 00:00</span><span>${esc(d.camera || "")}</span><span>B · 00:10</span></div>
-    </div>
-    ${d.shift ? `<div class="shift"><span>A → B</span>${esc(d.shift)}</div>` : ""}
-    <div class="pblock">
-      <div class="ph"><span class="v">1 · Video · 10 sec · A → B</span><button class="copy" data-c="v${i}">복사</button></div>
-      <p id="cv${i}">${esc(d.video)}</p>
-      ${d.video_ko ? `<div class="ko"><b>한국어 설명</b>${esc(d.video_ko)}</div>` : ""}
-    </div>
-    <div class="pblock">
-      <div class="ph"><span>2 · Image A · 00:00 first frame</span><button class="copy" data-c="a${i}">복사</button></div>
-      <p id="ca${i}">${esc(d.image_a || d.image || "")}</p>
-      ${d.image_a_ko ? `<div class="ko"><b>한국어 설명</b>${esc(d.image_a_ko)}</div>` : ""}
-    </div>
-    <div class="pblock">
-      <div class="ph"><span>3 · Image B · 00:10 last frame</span><button class="copy" data-c="b${i}">복사</button></div>
-      <p id="cb${i}">${esc(d.image_b || "")}</p>
-      ${d.image_b_ko ? `<div class="ko"><b>한국어 설명</b>${esc(d.image_b_ko)}</div>` : ""}
-    </div>
-    ${d.negative ? `<div class="pblock neg"><div class="ph"><span>negative</span></div><p>${esc(d.negative)}</p></div>` : ""}
-    `}
-  </article>`;
-}
-
-function renderOut(secs, progress){
-  const done = SHOTS.filter(Boolean).length;
-  $("out").innerHTML = `
-    ${progress !== undefined ? `<div class="status">가사를 읽는 중 · ${done} / ${secs.length}</div>
-      <div class="bar"><i style="width:${Math.round(progress*100)}%"></i></div>` : ""}
-    ${OVERVIEW ? `<div class="overview">
-      <div class="oh"><span>가사 전체 읽기</span><button class="copy" data-c="ov">복사</button></div>
-      <p id="cov">${esc(OVERVIEW.summary || "")}</p>
-      ${OVERVIEW.speaker ? `<div class="sp">화자 · ${esc(OVERVIEW.speaker)}</div>` : ""}
-      ${OVERVIEW.keywords && OVERVIEW.keywords.length ? `<div class="sp">${OVERVIEW.keywords.map(esc).join(" · ")}</div>` : ""}
-    </div>` : ""}
-    <div class="outhead">
-      <div class="n">${secs.length} sections · 영상 ${secs.length} · 이미지 ${secs.length*2}</div>
-      <div class="acts">
-        <button data-act="all">전체 복사</button>
-        <button data-act="txt">TXT 저장</button>
-      </div>
-    </div>
-    ${secs.map((s,i) => shotCard(s, SHOTS[i], i)).join("")}`;
-}
-
 function renderBrief(text){
+  const secs = sectionList();
   $("out").innerHTML = `
+    <div class="overview">
+      <div class="oh"><span>다음 순서</span></div>
+      <p style="font-size:14px;line-height:1.9">아래 지시문을 <b>전체 복사</b>해서 Claude 대화창에 그대로 붙여넣으세요.</p>
+      <div class="sp">${secs.length}구간 · 영상 ${secs.length}컷 · 이미지 ${secs.length*2}장이 한국어 설명과 함께 나옵니다.
+      마음에 안 드는 구간이 있으면 "3번 구간만 다시" 처럼 대화로 고치시면 됩니다.</div>
+    </div>
     <div class="outhead">
       <div class="n">Claude 대화창에 붙여넣을 지시문</div>
       <div class="acts"><button data-act="brief">지시문 전체 복사</button></div>
@@ -664,45 +578,8 @@ function renderBrief(text){
     <div class="brief"><pre id="briefText">${esc(text)}</pre></div>`;
 }
 
-function showErr(msg){
-  const prev = $("out").innerHTML;
-  $("out").insertAdjacentHTML("afterbegin",
-    `<div class="err"><h4>막힌 지점</h4><p>${esc(msg)}</p></div>`);
-}
 
 /* ═══ 텍스트 출력 ═══ */
-
-function secText(s, i){
-  const d = SHOTS[i];
-  let t = `[${String(i+1).padStart(2,"0")}] ${s.name}\n`;
-  if (s.lyrics) t += s.lyrics + "\n";
-  if (!d) return t;
-  if (d.moment) t += `\n· ${d.moment}\n`;
-  if (d.shift) t += `· A → B : ${d.shift}\n`;
-  t += `\n[1] VIDEO 10s (A → B)\n${d.video || ""}\n`;
-  if (d.video_ko) t += `설명: ${d.video_ko}\n`;
-  t += `\n[2] IMAGE A — 00:00 first frame\n${d.image_a || d.image || ""}\n`;
-  if (d.image_a_ko) t += `설명: ${d.image_a_ko}\n`;
-  if (d.image_b){
-    t += `\n[3] IMAGE B — 00:10 last frame\n${d.image_b}\n`;
-    if (d.image_b_ko) t += `설명: ${d.image_b_ko}\n`;
-  }
-  if (d.negative) t += `\nnegative\n${d.negative}\n`;
-  return t;
-}
-
-function allText(){
-  const o = opts(), secs = sectionList();
-  let t = `가사를 분석 · 영상 및 이미지 프롬프트\n${secs.length}구간 · 영상 ${secs.length} · 이미지 ${secs.length*2} · ${o.ratio} · ${o.lookKo}\n${"=".repeat(46)}\n`;
-  if (OVERVIEW){
-    t += `\n■ 가사 전체 읽기\n${OVERVIEW.summary || ""}\n`;
-    if (OVERVIEW.speaker) t += `화자 · ${OVERVIEW.speaker}\n`;
-    if (OVERVIEW.keywords && OVERVIEW.keywords.length) t += OVERVIEW.keywords.join(" · ") + "\n";
-    t += "=".repeat(46) + "\n";
-  }
-  secs.forEach((s,i) => { t += "\n" + secText(s,i) + "-".repeat(46) + "\n"; });
-  return t;
-}
 
 async function copyText(text, btn){
   try { await navigator.clipboard.writeText(text); }
@@ -739,7 +616,7 @@ function snapshot(){
     lyrics: $("lyrics").value, form: FORM,
     ethnicity: $("ethnicity").value, age: $("age").value, gender: $("gender").value,
     ratio: $("ratio").value, bg: bgKey, customBg: $("customBg").value, look: lookKey,
-    shots: SHOTS, overview: OVERVIEW, saved: new Date().toISOString()
+    saved: new Date().toISOString()
   };
 }
 
@@ -753,10 +630,8 @@ function restore(s){
   $("customBg").style.display = bgKey === "custom" ? "block" : "none";
   [...$("bgChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.bg === bgKey));
   [...$("lookChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.look === lookKey));
-  SHOTS = s.shots || []; OVERVIEW = s.overview || null;
   $("cnt").textContent = BLOCKS.length ? BLOCKS.length + "개 가사 블록 인식됨" : "라벨을 붙여 넣으면 구성이 자동으로 잡힙니다.";
   renderForm();
-  if (SHOTS.filter(Boolean).length) renderOut(sectionList());
 }
 
 function saveNow(silent){
@@ -807,7 +682,6 @@ $("lyrics").addEventListener("input", e => {
   $("cnt").textContent = BLOCKS.length ? BLOCKS.length + "개 가사 블록 인식됨" : "라벨을 붙여 넣으면 구성이 자동으로 잡힙니다.";
   renderForm();
 });
-$("apikey").addEventListener("input", syncButtons);
 
 $("preset").addEventListener("click", e => {
   const b = e.target.closest("[data-preset]"); if (!b) return;
@@ -839,22 +713,8 @@ $("formList").addEventListener("change", e => {
 });
 
 $("out").addEventListener("click", e => {
-  const c = e.target.closest("[data-c]");
-  if (c){
-    copyText($("c" + c.dataset.c).textContent, c);
-    return;
-  }
-  const sc = e.target.closest("[data-sec]");
-  if (sc){
-    const i = +sc.dataset.sec;
-    copyText(secText(sectionList()[i], i), sc);
-    return;
-  }
   const a = e.target.closest("[data-act]");
-  if (!a) return;
-  if (a.dataset.act === "all") copyText(allText(), a);
-  else if (a.dataset.act === "txt") download("가사분석_프롬프트.txt", allText());
-  else if (a.dataset.act === "brief") copyText($("briefText").textContent, a);
+  if (a && a.dataset.act === "brief") copyText($("briefText").textContent, a);
 });
 
 $("go").addEventListener("click", () => {
@@ -863,80 +723,6 @@ $("go").addEventListener("click", () => {
   window.scrollTo({top:0, behavior:"smooth"});
 });
 
-/* ═══ API 생성 ═══ */
-$("run").addEventListener("click", async () => {
-  const key = $("apikey").value.trim();
-  const o = opts(), secs = sectionList();
-  if (!secs.length || key.length < 10) return;
-
-  $("run").disabled = $("go").disabled = true;
-  SHOTS = new Array(secs.length).fill(null);
-  OVERVIEW = null;
-  renderOut(secs, 0);
-
-  const callAPI = async (system, user, maxTok) => {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "x-api-key": key,
-        "anthropic-version":"2023-06-01",
-        "anthropic-dangerous-direct-browser-access":"true"
-      },
-      body: JSON.stringify({model:"claude-sonnet-4-6", max_tokens:maxTok, system, messages:[{role:"user", content:user}]})
-    });
-    if (!res.ok) throw new Error("응답 상태 " + res.status);
-    const data = await res.json();
-    let txt = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim().replace(/```json|```/g,"").trim();
-    const a = txt.indexOf("{"), b = txt.lastIndexOf("}");
-    if (a === -1 || b === -1) throw new Error("형식 오류");
-    return JSON.parse(txt.slice(a, b + 1));
-  };
-
-  // 0단계 — 가사 전체 읽기
-  try {
-    OVERVIEW = await callAPI(buildOverviewSystem(o, secs), "이 곡 전체를 읽고 JSON을 출력하세요.", 500);
-    renderOut(secs, 0);
-  } catch(err){
-    if (/Failed to fetch|NetworkError|load failed/i.test(err.message)){
-      renderOut(secs);
-      showErr("모델에 닿지 못했습니다. 이 화면에서 외부 호출이 막혀 있을 수 있습니다. 파일을 내려받아 브라우저에서 직접 열거나, 지시문 만들기를 눌러 Claude 대화창에 붙여넣으세요.");
-      $("run").disabled = false; $("go").disabled = false;
-      return;
-    }
-  }
-
-  const system = buildSystem(o, secs);
-  let failed = 0;
-
-  for (let i = 0; i < secs.length; i++){
-    const s = secs[i];
-    const ask = `${i+1}번 구간 【${s.name}】의 프롬프트를 써 주세요.
-이 구간의 연출 문법: ${s.role}
-기본 프레이밍: ${s.frame}
-이 구간의 가사:
-${s.lyrics || "(가사 없는 연주 구간)"}${i > 0 ? `\n\n앞 구간에서 이미 쓴 장면: ${SHOTS.slice(0,i).filter(Boolean).map(d => d.moment).join(" / ")}\n이것들과 겹치지 않는 새 장면을 쓰세요.` : ""}`;
-
-    try {
-      SHOTS[i] = await callAPI(system, ask, 1400);
-    } catch(err){
-      failed++;
-      SHOTS[i] = {moment:"", reading:"이 구간은 생성하지 못했습니다.", image_a:"", image_a_ko:"", image_b:"", image_b_ko:"", shift:"", video:"", video_ko:"", negative:"", camera:"", tags:[]};
-      if (/Failed to fetch|NetworkError|load failed/i.test(err.message)){
-        renderOut(secs);
-        showErr("모델에 닿지 못했습니다. 이 화면에서 외부 호출이 막혀 있을 수 있습니다. 파일을 내려받아 브라우저에서 직접 열거나, 지시문 만들기를 눌러 Claude 대화창에 붙여넣으세요.");
-        $("run").disabled = false; $("go").disabled = false;
-        return;
-      }
-    }
-    renderOut(secs, (i + 1) / secs.length);
-  }
-
-  renderOut(secs);
-  if (failed) showErr(failed + "개 구간을 생성하지 못했습니다. 다시 눌러 주세요.");
-  saveNow(true);
-  syncButtons();
-});
 
 /* ═══ 시작 ═══ */
 $("saveNote").textContent = storageOK
