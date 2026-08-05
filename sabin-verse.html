@@ -55,14 +55,22 @@
 
 #sv-go{width:100%;padding:17px;border-radius:12px;border:none;background:var(--ink);
   color:var(--paper);font-size:16px;font-weight:600;font-family:Pretendard,sans-serif;
-  cursor:pointer;transition:background .2s;margin-top:6px;}
+  cursor:pointer;transition:background .2s;margin-top:8px;}
 #sv-go:disabled{background:var(--muted);cursor:default;}
 
 #sv-error{background:#F7E4E8;color:#8E2A40;padding:12px 14px;border-radius:10px;
   font-size:14px;margin-bottom:12px;display:none;}
 #sv-error.on{display:block;}
 
-#sv-out{margin-top:40px;}
+#sv-out{margin-top:44px;}
+.sv-part{margin-bottom:12px;}
+.sv-part-h{font-family:'Gowun Batang',serif;font-size:22px;font-weight:700;
+  padding-bottom:10px;border-bottom:1px solid var(--veil);margin:0 0 20px;
+  display:flex;align-items:baseline;gap:10px;}
+.sv-part-h small{font-family:'IBM Plex Mono',monospace;font-size:11px;
+  letter-spacing:.14em;color:var(--muted);font-weight:400;}
+.sv-gap{height:46px;}
+
 .sv-block{margin-bottom:22px;animation:sv-rise .45s cubic-bezier(.2,.7,.3,1) both;}
 @keyframes sv-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .sv-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;
@@ -88,7 +96,7 @@
 <div class="sv-wrap">
   <div class="sv-eyebrow">sabin verse</div>
   <h1 class="sv-h1">가사에서 설명란까지</h1>
-  <p class="sv-sub">가사를 붙여넣으면 제목, 설명, 해시태그를 만들어 드립니다.</p>
+  <p class="sv-sub">가사를 붙여넣으면 동영상용과 쇼츠용을 한 번에 만들어 드립니다.</p>
 
   <div class="sv-sheet">
     <div class="sv-gutter" id="sv-gutter">01</div>
@@ -96,10 +104,11 @@
   </div>
 
   <input class="sv-input" id="sv-song" placeholder="곡 제목 (선택)">
+  <input class="sv-input" id="sv-main" placeholder="본 영상 주소 (쇼츠 설명에 들어갑니다 · 선택)">
 
   <div class="sv-chips" id="sv-moods"></div>
 
-  <button class="sv-check on" id="sv-inc"><span class="sv-box">✓</span>설명란에 가사 전문 넣기</button>
+  <button class="sv-check on" id="sv-inc"><span class="sv-box">✓</span>동영상 설명란에 가사 전문 넣기</button>
   <button class="sv-link-toggle" id="sv-linkbtn">키와 링크 설정</button>
   <div id="sv-links">
     <input class="sv-input sv-input-mini" id="sv-key" type="password" placeholder="Anthropic API 키 (sk-ant-...)">
@@ -122,7 +131,6 @@
   var lyricsEl = $("sv-lyrics"), gutter = $("sv-gutter"), out = $("sv-out"),
       errEl = $("sv-error"), goBtn = $("sv-go");
 
-  // line numbers
   function drawGutter(){
     var n = lyricsEl.value.trim() ? lyricsEl.value.split("\n").length : 1;
     var s = "";
@@ -131,7 +139,6 @@
   }
   lyricsEl.addEventListener("input", drawGutter);
 
-  // mood chips
   MOODS.forEach(function(m){
     var b = document.createElement("button");
     b.className = "sv-chip"; b.textContent = m;
@@ -149,8 +156,7 @@
     this.className = "sv-check" + (includeLyrics ? " on" : "");
   };
   $("sv-linkbtn").onclick = function(){
-    var el = $("sv-links");
-    var on = el.classList.toggle("on");
+    var on = $("sv-links").classList.toggle("on");
     this.textContent = on ? "설정 접기" : "키와 링크 설정";
   };
 
@@ -190,7 +196,7 @@
     var l = document.createElement("div"); l.className = "sv-label";
     l.textContent = "제목 후보"; l.style.marginBottom = "10px";
     d.appendChild(l);
-    titles.forEach(function(t){
+    (titles || []).forEach(function(t){
       var row = document.createElement("div"); row.className = "sv-title-row";
       var s = document.createElement("span"); s.textContent = t;
       var c = document.createElement("button"); c.className = "sv-copy"; c.textContent = "복사";
@@ -200,6 +206,14 @@
     return d;
   }
 
+  function heading(title, note){
+    var h = document.createElement("h2"); h.className = "sv-part-h";
+    h.appendChild(document.createTextNode(title));
+    var s = document.createElement("small"); s.textContent = note;
+    h.appendChild(s);
+    return h;
+  }
+
   function showError(msg){ errEl.textContent = msg; errEl.classList.add("on"); }
 
   goBtn.onclick = async function(){
@@ -207,45 +221,55 @@
     errEl.classList.remove("on");
     if (!lyrics) { showError("가사를 먼저 붙여넣어 주세요."); return; }
 
+    var apiKey = $("sv-key").value.trim();
+    if (!apiKey) {
+      showError("API 키를 넣어 주세요. 아래 '키와 링크 설정'을 여시면 입력칸이 있습니다.");
+      $("sv-links").classList.add("on");
+      $("sv-linkbtn").textContent = "설정 접기";
+      return;
+    }
+    try { localStorage.setItem("sv_key", apiKey); } catch(e){}
+
     out.innerHTML = "";
     goBtn.disabled = true; goBtn.textContent = "쓰는 중…";
 
     var song = $("sv-song").value.trim();
+    var mainUrl = $("sv-main").value.trim();
     var site = $("sv-site").value.trim();
     var xurl = $("sv-x").value.trim();
 
     var head =
 "당신은 유튜브 음악 채널 'sabin verse'의 콘텐츠를 정리하는 편집자입니다.\n" +
 "채널 주인 사빈(sabin)은 한국의 시인이자 작사가이며, 가사는 시적이고 절제된 문장을 씁니다.\n" +
-"홍보용 과장, 느낌표 남발, 이모지 도배를 하지 않습니다. 조용하고 담백한 톤을 유지합니다.\n\n" +
-"곡 제목: " + (song || "(미정)") + "\n" +
+"홍보용 과장, 느낌표 남발, 이모지 도배를 하지 않습니다. 조용하고 담백한 톤을 유지합니다.\n" +
+"가사에 [Intro] [Verse] [Chorus] 같은 구조 표기나 제목 줄이 섞여 있으면 곡 구조를 파악하는 데만 쓰고, 결과물에는 그대로 옮기지 마세요.\n\n" +
+"곡 제목: " + (song || "(가사 첫 줄에서 판단)") + "\n" +
 "분위기: " + (mood || "(가사에서 직접 판단)") + "\n" +
 "가사:\n\"\"\"\n" + lyrics + "\n\"\"\"\n\n";
 
-    var promptA = head +
+    var pV1 = head +
 "위 가사를 읽고 아래 두 가지를 한국어로 만드세요.\n" +
 "- titles: 유튜브 제목 후보 3개. 각 40자 이내. 서로 다른 결로 씁니다.\n" +
 "- description: 유튜브 설명란 본문. 곡의 정서를 짚는 첫 문단(2~3문장)과 짧은 노트(2~3문장). 가사를 그대로 옮기지 말고, 링크나 해시태그는 넣지 마세요. 전체 400자 이내.\n\n" +
 "JSON만 출력하세요. 코드펜스나 다른 말은 절대 붙이지 마세요.\n" +
 '{"titles":["","",""],"description":""}';
 
-    var promptB = head +
+    var pV2 = head +
 "위 가사를 읽고 아래 세 가지를 만드세요.\n" +
-"- hashtags: 12~15개. 각 항목은 #으로 시작하고 공백 없이. 한국어와 영어를 섞되 채널명 관련 태그를 포함합니다.\n" +
+"- hashtags: 12~15개. 각 항목은 #으로 시작하고 공백 없이. 한국어와 영어를 섞되 #사빈과 #sabinverse를 포함합니다.\n" +
 "- tags: 유튜브 태그 입력란용 키워드 10~15개. #을 붙이지 않습니다.\n" +
 "- pinnedComment: 고정 댓글용 한국어 한 문장.\n\n" +
 "JSON만 출력하세요. 코드펜스나 다른 말은 절대 붙이지 마세요.\n" +
 '{"hashtags":[""],"tags":[""],"pinnedComment":""}';
 
-    var apiKey = $("sv-key").value.trim();
-    if (!apiKey) {
-      showError("API 키를 넣어 주세요. 아래 '키와 링크 설정'을 여시면 입력칸이 있습니다.");
-      goBtn.disabled = false; goBtn.textContent = "설명 만들기";
-      $("sv-links").classList.add("on");
-      $("sv-linkbtn").textContent = "설정 접기";
-      return;
-    }
-    try { localStorage.setItem("sv_key", apiKey); } catch(e){}
+    var pS = head +
+"위 가사로 유튜브 쇼츠에 쓸 문구를 만드세요. 동영상 설명과는 다른 표현을 쓰세요.\n" +
+"- titles: 쇼츠 제목 후보 3개. 각 25자 이내. 짧고 강한 한 구절을 살립니다.\n" +
+"- description: 쇼츠 설명란. 2~3문장, 전체 120자 이내. 링크나 해시태그는 넣지 마세요.\n" +
+"- hashtags: 8~10개. #Shorts와 #쇼츠를 맨 앞에 넣고, #사빈과 #sabinverse를 포함합니다.\n" +
+"- tags: 유튜브 태그 입력란용 키워드 8~10개. #을 붙이지 않습니다.\n\n" +
+"JSON만 출력하세요. 코드펜스나 다른 말은 절대 붙이지 마세요.\n" +
+'{"titles":["","",""],"description":"","hashtags":[""],"tags":[""]}';
 
     async function ask(p){
       var res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -272,24 +296,41 @@
     }
 
     try {
-      var pair = await Promise.all([ask(promptA), ask(promptB)]);
-      var r = Object.assign({}, pair[0], pair[1]);
+      var got = await Promise.all([ask(pV1), ask(pV2), ask(pS)]);
+      var v = Object.assign({}, got[0], got[1]);
+      var sh = got[2];
 
       var links = [];
       if (site) links.push("홈페이지: " + site);
       if (xurl) links.push("X: " + xurl);
 
-      var parts = [r.description];
-      if (includeLyrics) parts.push("─────────\n가사\n\n" + lyrics);
-      if (links.length) parts.push("─────────\n" + links.join("\n"));
-      parts.push((r.hashtags || []).join(" "));
-      var full = parts.join("\n\n");
+      // 동영상
+      var vParts = [v.description];
+      if (includeLyrics) vParts.push("─────────\n가사\n\n" + lyrics);
+      if (links.length) vParts.push("─────────\n" + links.join("\n"));
+      vParts.push((v.hashtags || []).join(" "));
+      var vFull = vParts.join("\n\n");
 
-      out.appendChild(titleBlock(r.titles || []));
-      out.appendChild(block("설명란 전체", full, true));
-      out.appendChild(block("해시태그", (r.hashtags || []).join(" "), false));
-      out.appendChild(block("유튜브 태그란", (r.tags || []).join(", "), false));
-      if (r.pinnedComment) out.appendChild(block("고정 댓글", r.pinnedComment, true));
+      out.appendChild(heading("동영상", "LONG FORM"));
+      out.appendChild(titleBlock(v.titles));
+      out.appendChild(block("설명란 전체", vFull, true));
+      out.appendChild(block("유튜브 태그란", (v.tags || []).join(", "), false));
+      if (v.pinnedComment) out.appendChild(block("고정 댓글", v.pinnedComment, true));
+
+      var gap = document.createElement("div"); gap.className = "sv-gap";
+      out.appendChild(gap);
+
+      // 쇼츠
+      var sParts = [sh.description];
+      if (mainUrl) sParts.push("전곡 듣기 → " + mainUrl);
+      if (links.length) sParts.push(links.join("\n"));
+      sParts.push((sh.hashtags || []).join(" "));
+      var sFull = sParts.join("\n\n");
+
+      out.appendChild(heading("쇼츠", "SHORTS"));
+      out.appendChild(titleBlock(sh.titles));
+      out.appendChild(block("설명란 전체", sFull, true));
+      out.appendChild(block("유튜브 태그란", (sh.tags || []).join(", "), false));
 
       out.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (e) {
@@ -300,12 +341,21 @@
   };
 
   try {
-    var saved = localStorage.getItem("sv_key");
-    if (saved) $("sv-key").value = saved;
+    var savedKey = localStorage.getItem("sv_key");
+    if (savedKey) $("sv-key").value = savedKey;
+    var savedSite = localStorage.getItem("sv_site");
+    if (savedSite) $("sv-site").value = savedSite;
     var savedX = localStorage.getItem("sv_x");
     if (savedX) $("sv-x").value = savedX;
-    $("sv-x").addEventListener("change", function(){
-      try { localStorage.setItem("sv_x", this.value); } catch(e){}
+
+    $("sv-key").addEventListener("input", function(){
+      try { localStorage.setItem("sv_key", this.value.trim()); } catch(e){}
+    });
+    $("sv-site").addEventListener("input", function(){
+      try { localStorage.setItem("sv_site", this.value.trim()); } catch(e){}
+    });
+    $("sv-x").addEventListener("input", function(){
+      try { localStorage.setItem("sv_x", this.value.trim()); } catch(e){}
     });
   } catch(e){}
 
