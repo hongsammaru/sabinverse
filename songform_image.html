@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>송폼 프롬프트 시트 · sabin verse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gothic+A1:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E7ECE4; --card:#F4F6F1; --ink:#17201C; --soft:#4E5B52;
+  --line:#C6D0C3; --celadon:#8FAE9B; --deep:#4F6D5B; --seal:#B23A2B; --ochre:#B98526;
+  --serif:'Gowun Batang',serif;
+  --sans:'Gothic A1','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--sans); font-weight:300; letter-spacing:-.01em;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1240px;margin:0 auto;padding:32px 22px 90px}
+
+header{
+  display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  border-bottom:1px solid var(--ink);padding-bottom:14px;margin-bottom:24px;
+}
+h1{font-family:var(--serif);font-size:33px;font-weight:700;line-height:1.15;margin:0}
+h1 em{font-style:normal;color:var(--seal)}
+.sub{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--soft);margin:6px 0 0}
+.by{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--deep);text-align:right;line-height:1.9}
+
+.grid{display:grid;grid-template-columns:400px 1fr;gap:28px;align-items:start}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+
+.panel{background:var(--card);border:1px solid var(--line);padding:20px}
+@media(min-width:981px){.panel{position:sticky;top:20px;max-height:calc(100vh - 40px);overflow-y:auto}}
+
+.lab{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);margin-bottom:7px}
+.field{margin-bottom:18px}
+.field.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.note{font-size:11.5px;line-height:1.7;color:var(--soft);margin:7px 0 0}
+.note b{color:var(--deep);font-weight:500}
+
+textarea,input[type=text],input[type=password],select{
+  width:100%;border:1px solid var(--line);background:#fff;color:var(--ink);
+  font-family:var(--sans);font-size:13.5px;padding:9px 10px;border-radius:2px;
+}
+textarea{font-family:var(--serif);font-size:15px;line-height:1.85;min-height:210px;resize:vertical}
+input[type=password]{font-family:var(--mono);font-size:12px}
+select{appearance:none;-webkit-appearance:none;padding-right:26px;cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,var(--soft) 50%),linear-gradient(135deg,var(--soft) 50%,transparent 50%);
+  background-position:calc(100% - 14px) 16px,calc(100% - 9px) 16px;background-size:5px 5px;background-repeat:no-repeat}
+:focus-visible{outline:2px solid var(--deep);outline-offset:2px}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  border:1px solid var(--line);background:#fff;color:var(--soft);
+  font-family:var(--sans);font-size:12px;padding:6px 10px;border-radius:2px;cursor:pointer;transition:.15s;
+}
+.chip:hover{border-color:var(--celadon)}
+.chip[aria-pressed=true]{background:var(--deep);border-color:var(--deep);color:#fff}
+
+.formlist{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
+.frow{display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:center;
+  background:#fff;border:1px solid var(--line);padding:7px 8px}
+.frow .idx{font-family:var(--mono);font-size:10px;color:var(--celadon);text-align:center}
+.frow select{border:0;padding:2px 20px 2px 2px;font-size:12.5px;background-position:calc(100% - 8px) 12px,calc(100% - 3px) 12px}
+.frow .blk{font-size:11px;color:var(--soft);font-family:var(--mono);grid-column:2;margin-top:-2px}
+.frow .btns{display:flex;gap:2px}
+.frow .btns button{border:0;background:transparent;color:var(--soft);cursor:pointer;font-size:13px;padding:2px 5px;line-height:1}
+.frow .btns button:hover{color:var(--seal)}
+
+.go{
+  width:100%;border:0;background:var(--ink);color:var(--paper);
+  font-family:var(--sans);font-weight:500;font-size:14.5px;padding:14px;border-radius:2px;cursor:pointer;
+  transition:background .18s;margin-top:4px;
+}
+.go:hover:not(:disabled){background:#000}
+.go:disabled{opacity:.35;cursor:default}
+.go.alt{background:transparent;color:var(--ink);border:1px solid var(--ink);margin-top:8px}
+.go.alt:hover:not(:disabled){background:rgba(23,32,28,.06)}
+
+.saverow{display:flex;gap:6px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.saverow button{
+  flex:1;border:1px solid var(--line);background:#fff;color:var(--soft);
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  padding:8px 4px;border-radius:2px;cursor:pointer;transition:.15s;
+}
+.saverow button:hover{border-color:var(--deep);color:var(--deep)}
+
+/* ── output ── */
+.outhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.outhead .n{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft)}
+.outhead .acts{display:flex;gap:6px}
+.outhead .acts button{
+  border:1px solid var(--line);background:#fff;color:var(--soft);
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  padding:7px 11px;border-radius:2px;cursor:pointer;transition:.15s;
+}
+.outhead .acts button:hover{border-color:var(--deep);color:var(--deep)}
+
+.empty{border:1px dashed var(--line);padding:44px 30px;color:var(--soft);font-size:13.5px;line-height:2}
+.empty b{display:block;font-family:var(--serif);font-size:17px;color:var(--ink);font-weight:700;margin-bottom:10px}
+.empty em{font-style:normal;color:var(--seal)}
+
+.shot{background:var(--card);border:1px solid var(--line);margin-bottom:16px}
+.shot.pending{opacity:.5}
+.sh{display:flex;align-items:flex-start;gap:14px;padding:16px 18px 12px}
+.sh .no{
+  flex:none;width:34px;height:34px;border:1px solid var(--seal);color:var(--seal);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:2px;
+}
+.sh .no b{font-family:var(--mono);font-size:12px;font-weight:500;line-height:1}
+.sh .no i{font-style:normal;font-family:var(--mono);font-size:7px;letter-spacing:.06em;margin-top:2px;opacity:.7}
+.sh .ttl{flex:1;min-width:0}
+.sh .ttl h3{font-family:var(--serif);font-size:19px;font-weight:700;margin:0 0 4px}
+.sh .ttl .tags{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--soft);text-transform:uppercase}
+
+.lyr{padding:0 18px 12px 66px;font-family:var(--serif);font-size:14.5px;line-height:1.95;color:var(--soft);white-space:pre-wrap}
+.anchor{margin:10px 18px 14px 66px;padding-left:11px;border-left:2px solid var(--ochre);
+  font-family:var(--serif);font-size:14px;color:var(--ink)}
+.anchor span{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ochre);margin-right:8px}
+
+.reading{margin:0 18px 14px 66px;font-size:13px;line-height:1.9;color:var(--soft)}
+.reading b{color:var(--deep);font-weight:500}
+
+.tl{margin:0 18px 16px 66px}
+.tlbar{display:flex;height:5px;background:var(--line)}
+.tlbar i{display:block;height:5px;background:var(--celadon)}
+.tlm{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--soft);margin-top:4px}
+
+.pblock{margin:0 18px 14px;border:1px solid var(--line);background:#fff}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px;border-bottom:1px solid var(--line)}
+.ph span{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--soft)}
+.ph span.v{color:var(--deep)}
+.copy{
+  border:1px solid var(--line);background:transparent;color:var(--soft);
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  padding:4px 9px;border-radius:2px;cursor:pointer;transition:.15s;flex:none;
+}
+.copy:hover{border-color:var(--deep);color:var(--deep)}
+.copy.done{background:var(--deep);border-color:var(--deep);color:#fff}
+.pblock p{margin:0;padding:12px;font-family:var(--mono);font-size:11.5px;line-height:1.85;
+  color:var(--ink);white-space:pre-wrap;word-break:break-word}
+.pblock.neg p{color:var(--soft);font-size:10.5px}
+
+.brief{background:#fff;border:1px solid var(--line);padding:14px;max-height:440px;overflow:auto}
+.brief pre{margin:0;font-family:var(--mono);font-size:11.5px;line-height:1.85;white-space:pre-wrap;word-break:break-word;color:var(--ink)}
+
+.bar{height:2px;background:var(--line);position:relative;overflow:hidden;margin:0 0 16px}
+.bar i{position:absolute;inset:0;background:var(--deep);width:0;transition:width .4s ease}
+.status{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--deep);margin-bottom:10px}
+
+.err{border-color:var(--seal);background:#fff;padding:18px}
+.err h4{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--seal);margin:0 0 10px}
+.err p{margin:0;font-size:13px;line-height:1.9;color:var(--soft)}
+
+footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-size:11.5px;line-height:1.9;color:var(--soft)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <h1>가사를 읽고 <em>송폼</em>을 세다</h1>
+    <p class="sub">lyric reading → song form → 10s shot per section</p>
+  </div>
+  <div class="by">sabin verse<br>sabinverse.com</div>
+</header>
+
+<div class="grid">
+
+<section class="panel">
+
+  <div class="field">
+    <label class="lab" for="title">곡 제목</label>
+    <input type="text" id="title" placeholder="무제">
+  </div>
+
+  <div class="field">
+    <label class="lab" for="lyrics">가사</label>
+    <textarea id="lyrics" spellcheck="false" placeholder="[Verse 1]&#10;아 노을아 노을아&#10;지지마라 지지마라&#10;&#10;[Chorus]&#10;내 이름&#10;바람에 실어 보내는"></textarea>
+    <p class="note" id="cnt">라벨을 붙여 넣으면 구성이 자동으로 잡힙니다.</p>
+  </div>
+
+  <div class="field">
+    <span class="lab">곡 구성</span>
+    <div class="chips" id="preset">
+      <button class="chip" data-preset="lyrics">가사에서 불러오기</button>
+      <button class="chip" data-preset="ballad">클래식 발라드</button>
+      <button class="chip" data-preset="simple">프리코러스 없음</button>
+      <button class="chip" data-preset="mini">미니멀</button>
+    </div>
+    <div class="formlist" id="formList" style="margin-top:10px"></div>
+    <div class="chips" id="addChips">
+      <button class="chip" data-add="intro">+ Intro</button>
+      <button class="chip" data-add="verse">+ Verse</button>
+      <button class="chip" data-add="pre">+ Pre</button>
+      <button class="chip" data-add="chorus">+ Chorus</button>
+      <button class="chip" data-add="bridge">+ Bridge</button>
+      <button class="chip" data-add="inst">+ 간주</button>
+      <button class="chip" data-add="outro">+ Outro</button>
+    </div>
+  </div>
+
+  <div class="field two">
+    <div>
+      <label class="lab" for="ethnicity">국적</label>
+      <select id="ethnicity">
+        <option value="한국인">한국인</option>
+        <option value="한국인 (한복·한옥 등 전통 요소 허용)">한국인 · 전통</option>
+        <option value="동아시아인, 국적 불특정">동아시아인</option>
+        <option value="지정하지 않음">지정 안 함</option>
+      </select>
+    </div>
+    <div>
+      <label class="lab" for="age">나이대</label>
+      <select id="age">
+        <option value="auto">가사가 정함</option>
+        <option value="10대">10대</option>
+        <option value="20대 초반">20대 초반</option>
+        <option value="20대 후반">20대 후반</option>
+        <option value="30대">30대</option>
+        <option value="40대">40대</option>
+        <option value="50–60대">50–60대</option>
+        <option value="70대 이상">70대 이상</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field two">
+    <div>
+      <label class="lab" for="gender">인물</label>
+      <select id="gender">
+        <option value="가사에서 추론">가사에서 추론</option>
+        <option value="여성 1인">여성 1인</option>
+        <option value="남성 1인">남성 1인</option>
+        <option value="두 사람">두 사람</option>
+        <option value="none">인물 없음</option>
+      </select>
+    </div>
+    <div>
+      <label class="lab" for="ratio">화면비</label>
+      <select id="ratio">
+        <option value="16:9">16:9 가로</option>
+        <option value="9:16">9:16 쇼츠</option>
+        <option value="1:1">1:1</option>
+        <option value="2.39:1">2.39:1 시네마</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
+    <span class="lab">배경</span>
+    <div class="chips" id="bgChips"></div>
+    <input type="text" id="customBg" style="margin-top:8px;display:none" placeholder="예: 오래된 목욕탕 탈의실, 타일 바닥, 형광등">
+  </div>
+
+  <div class="field">
+    <span class="lab">화면 톤</span>
+    <div class="chips" id="lookChips"></div>
+  </div>
+
+  <div class="field">
+    <label class="lab" for="apikey">Anthropic API 키 · 선택</label>
+    <input type="password" id="apikey" autocomplete="off" spellcheck="false" placeholder="sk-ant-...">
+    <p class="note" id="keyNote">키를 넣으면 <b>가사를 실제로 읽어</b> 구간마다 다른 장면을 씁니다. 없으면 지시문을 복사해 Claude 대화창에 붙여넣는 방식으로 씁니다.</p>
+  </div>
+
+  <button class="go" id="go" disabled>지시문 만들기</button>
+  <button class="go alt" id="run" disabled>키로 바로 생성</button>
+
+  <div class="saverow">
+    <button id="btnSave">작업 저장</button>
+    <button id="btnLoad">불러오기</button>
+    <button id="btnExport">파일로 내보내기</button>
+  </div>
+  <p class="note" id="saveNote" style="margin-top:8px"></p>
+
+</section>
+
+<section id="out">
+  <div class="empty">
+    <b>가사를 넣고 구성을 잡아주세요.</b>
+    Intro · Verse · Pre-Chorus · Chorus · Bridge · 간주 · Outro —
+    구간마다 <em>이미지 1장 + 10초 영상 1컷</em>이 나옵니다.
+    구간의 가사를 실제로 읽고 쓰기 때문에, 같은 문장이 반복되지 않습니다.
+  </div>
+</section>
+
+</div>
+
+<footer>
+  이 도구는 <b>프롬프트</b>를 씁니다. 완성된 영상이나 이미지가 아니라 Veo · Sora · Midjourney에 붙여넣을 문장입니다.
+  작업 저장은 이 브라우저 안에만 남습니다. 확실히 보관하려면 <b>파일로 내보내기</b>를 쓰세요.
+</footer>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+
+/* ═══ 구성 타입 ═══ */
+const TYPES = {
+  intro:  {ko:"Intro",       num:false, inst:true,  role:"이야기가 시작되기 전의 세계. 인물은 작게 놓이거나 아직 보이지 않는다.", frame:"wide establishing frame"},
+  verse:  {ko:"Verse",       num:true,  inst:false, role:"사건을 서술한다. 배경이 읽히는 화면.", frame:"medium shot, environment readable"},
+  pre:    {ko:"Pre-Chorus",  num:true,  inst:false, role:"감정이 차오르기 직전. 화면이 좁혀 들어간다.", frame:"push-in toward the face or hands"},
+  chorus: {ko:"Chorus",      num:true,  inst:false, role:"감정의 정점. 가장 열린 빛과 넓은 움직임.", frame:"open frame, the widest light of the song"},
+  bridge: {ko:"Bridge",      num:false, inst:false, role:"낯선 각도. 유리 너머, 위에서, 반영 속. 빛의 성격이 바뀐다.", frame:"unfamiliar angle — through glass, from above, or a reflection"},
+  inst:   {ko:"간주",         num:false, inst:true,  role:"얼굴 없이 손, 사물, 빈 자리만.", frame:"no face — hands, objects, or an empty space"},
+  outro:  {ko:"Outro",       num:false, inst:true,  role:"인물이 멀어지고 빈 공간이 남는다. 빛이 빠진다.", frame:"the subject receding, empty space left behind"}
+};
+
+const PRESETS = {
+  ballad: ["intro","verse","pre","chorus","verse","pre","chorus","bridge","chorus","outro"],
+  simple: ["intro","verse","chorus","verse","chorus","bridge","chorus","outro"],
+  mini:   ["verse","chorus","verse","chorus","outro"]
+};
+
+const BG = [
+  ["auto","가사가 정함"],["seoul","서울 야경"],["hanok","한옥"],["sea","바닷가"],
+  ["subway","지하철"],["cafe","카페"],["school","학교"],["country","시골"],
+  ["rooftop","옥상"],["rain","비 오는 밤"],["winter","겨울 골목"],["fog","안개 숲"],
+  ["studio","스튜디오"],["surreal","초현실"],["custom","직접 입력"]
+];
+const BG_EN = {
+  auto:"", seoul:"Seoul city night, neon and streetlights", hanok:"a Korean hanok, wooden beams and paper doors",
+  sea:"a winter seashore", subway:"a late-night subway car and platform", cafe:"a small quiet cafe",
+  school:"a Korean school corridor and empty classroom", country:"a rural Korean village, fields and low roofs",
+  rooftop:"a Seoul apartment rooftop, laundry lines", rain:"a rainy street at night, wet pavement",
+  winter:"a narrow Korean alley in winter", fog:"a fogged forest path", studio:"a bare studio, seamless backdrop",
+  surreal:"a surreal dreamscape, floating objects, an endless sky"
+};
+
+const LOOKS = [
+  ["cinema","시네마틱","cinematic 35mm film still, anamorphic, shallow depth of field, fine grain"],
+  ["mv","뮤직비디오","music video look, rich contrast, controlled color grade, glossy highlights"],
+  ["pastel","파스텔","soft pastel palette, gentle diffusion, low contrast, airy"],
+  ["doc","다큐","documentary realism, natural light only, handheld feel, no styling"],
+  ["bw","흑백","black and white, high silver contrast, deep blacks"],
+  ["vhs","VHS","VHS home-video texture, scan lines, soft bloom, slight chroma bleed"]
+];
+
+/* ═══ 상태 ═══ */
+let BLOCKS = [];   // {type,label,lines}
+let FORM   = [];   // {type, block:index|null}
+let SHOTS  = [];   // 결과
+
+/* ═══ 가사 분리 ═══ */
+const LABEL_MAP = [
+  [/pre[\s\-_]*chorus|프리\s*코러스|프리훅/i,"pre"],
+  [/chorus|hook|후렴|코러스|훅/i,"chorus"],
+  [/bridge|브릿지|브리지/i,"bridge"],
+  [/intro|인트로|전주/i,"intro"],
+  [/outro|아웃트로|후주|엔딩/i,"outro"],
+  [/inst|간주|연주/i,"inst"],
+  [/verse|벌스|절/i,"verse"]
+];
+
+function parseLyrics(raw){
+  const out = [];
+  const lines = raw.replace(/\r/g,"").split("\n");
+  let cur = null;
+  const push = () => { if (cur && cur.lines.length) out.push(cur); };
+
+  for (const ln of lines){
+    const t = ln.trim();
+    const m = t.match(/^[\[\(<【]?\s*([^\]\)>】]{1,24})\s*[\]\)>】]?\s*$/);
+    const isLabel = m && /^[\[\(<【]/.test(t);
+    if (isLabel){
+      let type = "verse";
+      for (const [re,k] of LABEL_MAP){ if (re.test(m[1])){ type = k; break; } }
+      push();
+      cur = {type, label:m[1].trim(), lines:[]};
+      continue;
+    }
+    if (!t){ if (cur && cur.lines.length){ push(); cur = null; } continue; }
+    if (!cur) cur = {type:"verse", label:"", lines:[]};
+    cur.lines.push(t);
+  }
+  push();
+  return out;
+}
+
+/* ═══ 구성 폼 ═══ */
+function autoBlock(type){
+  const used = FORM.filter(f => f.block !== null && f.block !== undefined).map(f => f.block);
+  let i = BLOCKS.findIndex((b,ix) => b.type === type && !used.includes(ix));
+  if (i === -1) i = BLOCKS.findIndex((b,ix) => !used.includes(ix));
+  return i === -1 ? null : i;
+}
+
+function blockPreview(i){
+  if (i === null || i === undefined || !BLOCKS[i]) return "가사 없음";
+  const l = BLOCKS[i].lines;
+  return l[0].slice(0,22) + (l[0].length > 22 || l.length > 1 ? "…" : "");
+}
+
+function renderForm(){
+  const nums = {};
+  $("formList").innerHTML = FORM.map((f,i) => {
+    const T = TYPES[f.type];
+    let name = T.ko;
+    if (T.num){ nums[f.type] = (nums[f.type] || 0) + 1; name += " " + nums[f.type]; }
+    const opts = Object.keys(TYPES).map(k =>
+      `<option value="${k}"${k===f.type?" selected":""}>${TYPES[k].ko}</option>`).join("");
+    const blks = BLOCKS.map((b,ix) =>
+      `<option value="${ix}"${f.block===ix?" selected":""}>${ix+1}. ${b.lines[0].slice(0,16)}</option>`).join("");
+    return `<div class="frow">
+      <div class="idx">${String(i+1).padStart(2,"0")}</div>
+      <select data-type="${i}">${opts}</select>
+      <div class="btns">
+        <button data-mv="${i},-1" title="위로">↑</button>
+        <button data-mv="${i},1" title="아래로">↓</button>
+        <button data-del="${i}" title="삭제">✕</button>
+      </div>
+      <select class="blk" data-blk="${i}" style="grid-column:2/4;font-size:11px;color:var(--soft)">
+        <option value="">— 가사 없음 —</option>${blks}
+      </select>
+    </div>`;
+  }).join("");
+  syncButtons();
+}
+
+function syncButtons(){
+  const ok = FORM.length > 0 && $("lyrics").value.trim().length > 3;
+  $("go").disabled = !ok;
+  $("run").disabled = !ok || $("apikey").value.trim().length < 10;
+}
+
+function applyPreset(p){
+  if (p === "lyrics"){
+    if (!BLOCKS.length){ alert("먼저 가사를 넣어주세요."); return; }
+    FORM = [{type:"intro",block:null}];
+    BLOCKS.forEach((b,ix) => FORM.push({type:b.type, block:ix}));
+    FORM.push({type:"outro",block:null});
+  } else {
+    FORM = PRESETS[p].map(t => ({type:t, block:TYPES[t].inst ? null : null}));
+    FORM.forEach(f => { if (!TYPES[f.type].inst) f.block = autoBlock(f.type); });
+  }
+  renderForm();
+}
+
+/* ═══ 옵션 ═══ */
+let bgKey = "auto", lookKey = "cinema";
+
+$("bgChips").innerHTML = BG.map(([k,ko]) =>
+  `<button class="chip" data-bg="${k}" aria-pressed="${k===bgKey}">${ko}</button>`).join("");
+$("lookChips").innerHTML = LOOKS.map(([k,ko]) =>
+  `<button class="chip" data-look="${k}" aria-pressed="${k===lookKey}">${ko}</button>`).join("");
+
+$("bgChips").addEventListener("click", e => {
+  const b = e.target.closest("[data-bg]"); if (!b) return;
+  bgKey = b.dataset.bg;
+  [...$("bgChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.bg === bgKey));
+  $("customBg").style.display = bgKey === "custom" ? "block" : "none";
+});
+$("lookChips").addEventListener("click", e => {
+  const b = e.target.closest("[data-look]"); if (!b) return;
+  lookKey = b.dataset.look;
+  [...$("lookChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.look === lookKey));
+});
+
+function opts(){
+  const look = LOOKS.find(l => l[0] === lookKey);
+  const bgEn = bgKey === "custom" ? $("customBg").value.trim()
+             : bgKey === "auto"   ? "" : BG_EN[bgKey];
+  return {
+    title: $("title").value.trim() || "무제",
+    ethnicity: $("ethnicity").value,
+    age: $("age").value,
+    gender: $("gender").value,
+    ratio: $("ratio").value,
+    bg: bgEn,
+    bgAuto: bgKey === "auto",
+    look: look[2],
+    lookKo: look[1],
+    noFigure: $("gender").value === "none"
+  };
+}
+
+/* ═══ 지시문 ═══ */
+function sectionList(){
+  const nums = {};
+  return FORM.map((f,i) => {
+    const T = TYPES[f.type];
+    let name = T.ko;
+    if (T.num){ nums[f.type] = (nums[f.type] || 0) + 1; name += " " + nums[f.type]; }
+    const lyr = (f.block !== null && f.block !== undefined && BLOCKS[f.block])
+      ? BLOCKS[f.block].lines.join("\n") : "";
+    return {i, type:f.type, name, role:T.role, frame:T.frame, lyrics:lyr};
+  });
+}
+
+function rulesText(o){
+  const figure = o.noFigure
+    ? "사람은 등장시키지 않는다. 사물, 빈 공간, 풍경으로만 쓴다."
+    : `인물은 ${o.gender === "가사에서 추론" ? "가사에서 추론해 정한다" : o.gender}.
+- 영어 프롬프트에서 사람이 처음 등장하는 자리에 국적과 나이대를 반드시 함께 적는다. 예: "a Korean woman in her late 30s". 생략하면 생성 모델은 백인 20대를 기본값으로 그린다.
+- 손, 목덜미, 뒷모습, 발끝만 보일 때도 똑같이 명시한다. 예: "the hands of a Korean man in his 60s, sun-worn knuckles".
+- 국적: ${o.ethnicity}
+- 나이대: ${o.age === "auto"
+  ? "가사 전체에서 추론한다. 시어의 결, 말투와 어미, 회상하는 시간의 폭, 몸을 감각하는 방식, 가사가 놓인 생활의 자리를 근거로 정하고 그 이유를 한 줄로 밝힌다."
+  : o.age + "로 고정한다."}
+- 나이대는 얼굴만이 아니라 옷의 낡음, 자세, 손의 상태, 공간의 살림살이로도 드러낸다.`;
+
+  return `원칙
+- 각 구간의 가사를 실제로 읽고, 그 구간에서만 나올 수 있는 장면을 쓴다. 구간마다 피사체·동작·사물이 서로 달라야 한다. 프레이밍만 바꾸고 같은 문장을 돌려쓰지 않는다.
+- 가사 문장을 그대로 옮겨 적지 않는다. 보이는 것으로 번역한다. 슬픔이 아니라 슬픔이 놓인 자리를 쓴다.
+- 곡 전체가 한 편의 영상이므로 장소·의상·계절·빛의 성격은 이어진다. 바뀌는 것은 그 안에서 무엇을 보느냐다.
+- Chorus가 두 번 이상 나오면 앞선 Chorus와 같은 장소·같은 의상을 쓰되 감정만 한 단계 올린다.
+- 피, 상처, 폭력처럼 생성 모델이 거부하는 직접 묘사는 대체 심상으로 옮긴다. 시의 붉음은 살리고 검열은 피한다.
+- 화면에 글자, 자막, 로고가 나오지 않게 한다.
+- 영상은 컷 없는 10초 단일 샷. 카메라 무브는 하나만. 구간마다 무브가 겹치지 않게 한다.
+- 영상 프롬프트 영어 60–90단어, 이미지 프롬프트 영어 45–70단어. 피사체 → 동작 → 카메라 → 렌즈와 빛 → 질감 순서로.
+- 화면비 ${o.ratio}. 화면 톤: ${o.look}
+${o.bg ? "- 배경: " + o.bg : "- 배경은 가사에서 읽어 정한다."}
+
+${figure}`;
+}
+
+function buildBrief(){
+  const o = opts(), secs = sectionList();
+  return `당신은 가사를 영상 언어로 옮기는 뮤직비디오 감독이자 프롬프트 작가입니다.
+아래 곡의 구성 ${secs.length}칸 각각에 대해 이미지 프롬프트 1개와 10초 영상 프롬프트 1개를 써 주세요.
+
+곡: ${o.title}
+
+${rulesText(o)}
+
+구성별 연출 문법
+${secs.map(s => `${s.i+1}. ${s.name} — ${s.role}`).join("\n")}
+
+출력 형식 (구간마다)
+· 번호와 구간 이름
+· 이 구간이 잡는 순간 한국어 한 문장
+· 화자의 나이대 (첫 구간에서만, 근거 한 줄과 함께)
+· IMAGE — 영어 이미지 프롬프트
+· VIDEO — 영어 10초 영상 프롬프트
+· negative — 영어 쉼표 나열
+
+────── 가사와 구성 ──────
+${secs.map(s => `\n【${s.i+1}. ${s.name}】\n${s.lyrics || "(가사 없는 구간)"}`).join("\n")}
+──────────────────────`;
+}
+
+function buildSystem(o, secs){
+  return `당신은 가사를 영상 언어로 옮기는 뮤직비디오 감독이자 프롬프트 작가입니다. 한국 대중가요의 어법과 여백을 이해합니다.
+
+곡: ${o.title}
+
+${rulesText(o)}
+
+곡 전체 구성
+${secs.map(s => `${s.i+1}. ${s.name} — ${s.role}`).join("\n")}
+
+곡 전체 가사
+${secs.map(s => `【${s.name}】\n${s.lyrics || "(가사 없음)"}`).join("\n\n")}
+
+지금 요청받은 한 구간에 대해서만 아래 JSON을 출력하세요. 서문, 설명, 코드펜스 금지.
+{"moment":"이 구간이 잡는 순간 한국어 한 문장","reading":"이 구간의 가사가 하고 있는 일 한 문장${o.noFigure ? "" : " (첫 구간이면 화자 나이대와 근거 포함)"}","anchor":"이 구간 가사에서 그대로 인용한 기준 한 행 (가사 없으면 빈 문자열)","tags":["장소","계절","시간","감정"],"image":"영어 이미지 프롬프트","video":"영어 10초 영상 프롬프트","negative":"영어 쉼표 나열","camera":"이 구간의 카메라 무브 영어 한 구절"}`;
+}
+
+/* ═══ 렌더 ═══ */
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function shotCard(s, d, i){
+  const pending = !d;
+  return `<article class="shot${pending ? " pending" : ""}">
+    <div class="sh">
+      <div class="no"><b>${String(i+1).padStart(2,"0")}</b><i>10s</i></div>
+      <div class="ttl">
+        <h3>${esc(s.name)}</h3>
+        <div class="tags">${d && d.tags ? d.tags.map(esc).join(" · ") : esc(TYPES[s.type].ko)}</div>
+      </div>
+    </div>
+    ${s.lyrics ? `<div class="lyr">${esc(s.lyrics)}</div>` : ""}
+    ${d && d.anchor ? `<div class="anchor"><span>기준 행</span>${esc(d.anchor)}</div>` : ""}
+    ${d && d.reading ? `<div class="reading">${esc(d.reading)}</div>` : ""}
+    ${!d ? `<div class="reading" style="color:var(--celadon)">대기 중…</div>` : `
+    <div class="tl">
+      <div class="tlbar"><i style="width:100%"></i></div>
+      <div class="tlm"><span>00:00</span><span>${esc(d.camera || "")}</span><span>00:10</span></div>
+    </div>
+    <div class="pblock">
+      <div class="ph"><span>Image · Still</span><button class="copy" data-c="i${i}">복사</button></div>
+      <p id="ci${i}">${esc(d.image)}</p>
+    </div>
+    <div class="pblock">
+      <div class="ph"><span class="v">Video · 10 sec</span><button class="copy" data-c="v${i}">복사</button></div>
+      <p id="cv${i}">${esc(d.video)}</p>
+    </div>
+    ${d.negative ? `<div class="pblock neg"><div class="ph"><span>negative</span></div><p>${esc(d.negative)}</p></div>` : ""}
+    `}
+  </article>`;
+}
+
+function renderOut(secs, progress){
+  const done = SHOTS.filter(Boolean).length;
+  $("out").innerHTML = `
+    ${progress !== undefined ? `<div class="status">가사를 읽는 중 · ${done} / ${secs.length}</div>
+      <div class="bar"><i style="width:${Math.round(progress*100)}%"></i></div>` : ""}
+    <div class="outhead">
+      <div class="n">${secs.length} shots · ${esc(opts().title)}</div>
+      <div class="acts">
+        <button data-act="all">전체 복사</button>
+        <button data-act="txt">TXT 저장</button>
+      </div>
+    </div>
+    ${secs.map((s,i) => shotCard(s, SHOTS[i], i)).join("")}`;
+}
+
+function renderBrief(text){
+  $("out").innerHTML = `
+    <div class="outhead">
+      <div class="n">Claude 대화창에 붙여넣을 지시문</div>
+      <div class="acts"><button data-act="brief">지시문 전체 복사</button></div>
+    </div>
+    <div class="brief"><pre id="briefText">${esc(text)}</pre></div>`;
+}
+
+function showErr(msg){
+  const prev = $("out").innerHTML;
+  $("out").insertAdjacentHTML("afterbegin",
+    `<div class="err"><h4>막힌 지점</h4><p>${esc(msg)}</p></div>`);
+}
+
+/* ═══ 텍스트 출력 ═══ */
+function allText(){
+  const o = opts(), secs = sectionList();
+  let t = `${o.title}\n${secs.length} shots · ${o.ratio} · ${o.lookKo}\n${"=".repeat(46)}\n`;
+  secs.forEach((s,i) => {
+    const d = SHOTS[i];
+    t += `\n[${String(i+1).padStart(2,"0")}] ${s.name}\n`;
+    if (s.lyrics) t += s.lyrics + "\n";
+    if (d){
+      if (d.moment) t += `\n· ${d.moment}\n`;
+      t += `\nIMAGE\n${d.image}\n\nVIDEO 10s\n${d.video}\n`;
+      if (d.negative) t += `\nnegative\n${d.negative}\n`;
+    }
+    t += "-".repeat(46) + "\n";
+  });
+  return t;
+}
+
+async function copyText(text, btn){
+  try { await navigator.clipboard.writeText(text); }
+  catch {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); } catch(e){}
+    document.body.removeChild(ta);
+  }
+  if (btn){
+    const old = btn.textContent;
+    btn.textContent = "복사됨"; btn.classList.add("done");
+    setTimeout(() => { btn.textContent = old; btn.classList.remove("done"); }, 1600);
+  }
+}
+
+function download(name, text){
+  const blob = new Blob(["\ufeff" + text], {type:"text/plain;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ═══ 저장 ═══ */
+const KEY = "sabin.songform.v1";
+let storageOK = true;
+try { localStorage.setItem(KEY + ".t", "1"); localStorage.removeItem(KEY + ".t"); }
+catch(e){ storageOK = false; }
+
+function snapshot(){
+  return {
+    title: $("title").value, lyrics: $("lyrics").value, form: FORM,
+    ethnicity: $("ethnicity").value, age: $("age").value, gender: $("gender").value,
+    ratio: $("ratio").value, bg: bgKey, customBg: $("customBg").value, look: lookKey,
+    shots: SHOTS, saved: new Date().toISOString()
+  };
+}
+
+function restore(s){
+  $("title").value = s.title || "";
+  $("lyrics").value = s.lyrics || "";
+  BLOCKS = s.lyrics ? parseLyrics(s.lyrics) : [];
+  FORM = s.form || [];
+  ["ethnicity","age","gender","ratio"].forEach(k => { if (s[k]) $(k).value = s[k]; });
+  bgKey = s.bg || "auto"; lookKey = s.look || "cinema";
+  $("customBg").value = s.customBg || "";
+  $("customBg").style.display = bgKey === "custom" ? "block" : "none";
+  [...$("bgChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.bg === bgKey));
+  [...$("lookChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.look === lookKey));
+  SHOTS = s.shots || [];
+  $("cnt").textContent = BLOCKS.length ? BLOCKS.length + "개 가사 블록 인식됨" : "라벨을 붙여 넣으면 구성이 자동으로 잡힙니다.";
+  renderForm();
+  if (SHOTS.filter(Boolean).length) renderOut(sectionList());
+}
+
+function saveNow(silent){
+  if (!storageOK){
+    if (!silent) $("saveNote").textContent = "이 화면에서는 브라우저 저장이 막혀 있습니다. 파일로 내보내기를 쓰세요.";
+    return;
+  }
+  try {
+    localStorage.setItem(KEY, JSON.stringify(snapshot()));
+    if (!silent) $("saveNote").textContent = "저장했습니다. 다음에 열면 그대로 복원됩니다.";
+  } catch(e){
+    if (!silent) $("saveNote").textContent = "저장하지 못했습니다. 파일로 내보내기를 쓰세요.";
+  }
+}
+
+$("btnSave").addEventListener("click", () => saveNow(false));
+
+$("btnLoad").addEventListener("click", () => {
+  const inp = document.createElement("input");
+  inp.type = "file"; inp.accept = ".json,application/json";
+  inp.addEventListener("change", () => {
+    const f = inp.files[0];
+    if (!f){ 
+      return;
+    }
+    const r = new FileReader();
+    r.onload = () => {
+      try { restore(JSON.parse(r.result)); $("saveNote").textContent = "파일에서 불러왔습니다."; }
+      catch(e){ $("saveNote").textContent = "파일을 읽지 못했습니다."; }
+    };
+    r.readAsText(f);
+  });
+  inp.click();
+});
+
+$("btnExport").addEventListener("click", () => {
+  const o = opts();
+  const blob = new Blob([JSON.stringify(snapshot(), null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = (o.title || "songform") + ".json"; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  $("saveNote").textContent = "파일로 내보냈습니다.";
+});
+
+/* ═══ 이벤트 ═══ */
+$("lyrics").addEventListener("input", e => {
+  BLOCKS = e.target.value.trim() ? parseLyrics(e.target.value) : [];
+  $("cnt").textContent = BLOCKS.length ? BLOCKS.length + "개 가사 블록 인식됨" : "라벨을 붙여 넣으면 구성이 자동으로 잡힙니다.";
+  renderForm();
+});
+$("apikey").addEventListener("input", syncButtons);
+$("title").addEventListener("input", () => saveNow(true));
+
+$("preset").addEventListener("click", e => {
+  const b = e.target.closest("[data-preset]"); if (!b) return;
+  applyPreset(b.dataset.preset);
+});
+$("addChips").addEventListener("click", e => {
+  const b = e.target.closest("[data-add]"); if (!b) return;
+  const t = b.dataset.add;
+  FORM.push({type:t, block: TYPES[t].inst ? null : autoBlock(t)});
+  renderForm();
+});
+$("formList").addEventListener("click", e => {
+  const d = e.target.closest("[data-del]");
+  if (d){ FORM.splice(+d.dataset.del, 1); renderForm(); return; }
+  const m = e.target.closest("[data-mv]");
+  if (m){
+    const [i,dir] = m.dataset.mv.split(",").map(Number);
+    const j = i + dir;
+    if (j < 0 || j >= FORM.length) return;
+    [FORM[i],FORM[j]] = [FORM[j],FORM[i]];
+    renderForm();
+  }
+});
+$("formList").addEventListener("change", e => {
+  const b = e.target.closest("[data-blk]");
+  if (b){ FORM[+b.dataset.blk].block = b.value === "" ? null : +b.value; renderForm(); return; }
+  const t = e.target.closest("[data-type]");
+  if (t){ FORM[+t.dataset.type].type = t.value; renderForm(); }
+});
+
+$("out").addEventListener("click", e => {
+  const c = e.target.closest("[data-c]");
+  if (c){
+    const k = c.dataset.c;
+    copyText($("c" + k).textContent, c);
+    return;
+  }
+  const a = e.target.closest("[data-act]");
+  if (!a) return;
+  if (a.dataset.act === "all") copyText(allText(), a);
+  else if (a.dataset.act === "txt") download((opts().title || "songform") + "_프롬프트.txt", allText());
+  else if (a.dataset.act === "brief") copyText($("briefText").textContent, a);
+});
+
+$("go").addEventListener("click", () => {
+  renderBrief(buildBrief());
+  saveNow(true);
+  window.scrollTo({top:0, behavior:"smooth"});
+});
+
+/* ═══ API 생성 ═══ */
+$("run").addEventListener("click", async () => {
+  const key = $("apikey").value.trim();
+  const o = opts(), secs = sectionList();
+  if (!secs.length || key.length < 10) return;
+
+  $("run").disabled = $("go").disabled = true;
+  SHOTS = new Array(secs.length).fill(null);
+  renderOut(secs, 0);
+
+  const system = buildSystem(o, secs);
+  let failed = 0;
+
+  for (let i = 0; i < secs.length; i++){
+    const s = secs[i];
+    const ask = `${i+1}번 구간 【${s.name}】의 프롬프트를 써 주세요.
+이 구간의 연출 문법: ${s.role}
+기본 프레이밍: ${s.frame}
+이 구간의 가사:
+${s.lyrics || "(가사 없는 연주 구간)"}${i > 0 ? `\n\n앞 구간에서 이미 쓴 장면: ${SHOTS.slice(0,i).filter(Boolean).map(d => d.moment).join(" / ")}\n이것들과 겹치지 않는 새 장면을 쓰세요.` : ""}`;
+
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "x-api-key": key,
+          "anthropic-version":"2023-06-01",
+          "anthropic-dangerous-direct-browser-access":"true"
+        },
+        body: JSON.stringify({
+          model:"claude-sonnet-4-6",
+          max_tokens:900,
+          system,
+          messages:[{role:"user", content:ask}]
+        })
+      });
+      if (!res.ok) throw new Error("응답 상태 " + res.status);
+      const data = await res.json();
+      let txt = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim().replace(/```json|```/g,"").trim();
+      const a = txt.indexOf("{"), b = txt.lastIndexOf("}");
+      if (a === -1 || b === -1) throw new Error("형식 오류");
+      SHOTS[i] = JSON.parse(txt.slice(a, b + 1));
+    } catch(err){
+      failed++;
+      SHOTS[i] = {moment:"", reading:"이 구간은 생성하지 못했습니다.", image:"", video:"", negative:"", camera:"", tags:[]};
+      if (/Failed to fetch|NetworkError|load failed/i.test(err.message)){
+        renderOut(secs);
+        showErr("모델에 닿지 못했습니다. 이 화면에서 외부 호출이 막혀 있을 수 있습니다. 파일을 내려받아 브라우저에서 직접 열거나, 지시문 만들기를 눌러 Claude 대화창에 붙여넣으세요.");
+        $("run").disabled = false; $("go").disabled = false;
+        return;
+      }
+    }
+    renderOut(secs, (i + 1) / secs.length);
+  }
+
+  renderOut(secs);
+  if (failed) showErr(failed + "개 구간을 생성하지 못했습니다. 다시 눌러 주세요.");
+  saveNow(true);
+  syncButtons();
+});
+
+/* ═══ 시작 ═══ */
+$("saveNote").textContent = storageOK
+  ? "작업 저장은 이 브라우저 안에만 남습니다."
+  : "이 화면에서는 브라우저 저장이 막혀 있습니다. 파일로 내보내기를 쓰세요.";
+
+if (storageOK){
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) restore(JSON.parse(raw));
+  } catch(e){}
+}
+renderForm();
+</script>
+</body>
+</html>
