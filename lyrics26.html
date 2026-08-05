@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>AI 가사 생성기</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f12;
+    --bg2: #17171c;
+    --bg3: #1e1e26;
+    --border: #2a2a35;
+    --border2: #35353f;
+    --text: #e8e8f0;
+    --text2: #9898b0;
+    --text3: #55556a;
+    --accent: #7c6fff;
+    --accent2: #a594ff;
+    --danger: #ff5f7a;
+    --danger-bg: #2a1520;
+    --poetry: #ff9f6b;
+    --poetry2: #ffb892;
+    --poetry-bg: #1e1510;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .container { max-width: 780px; margin: 0 auto; }
+
+  /* API Key 배너 */
+  .api-banner {
+    background: linear-gradient(135deg, #1a1530, #1e1e26);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .api-banner label { font-size: 13px; color: var(--text2); white-space: nowrap; }
+  .api-banner input {
+    flex: 1; min-width: 200px;
+    background: var(--bg); border: 1px solid var(--border2);
+    border-radius: var(--radius-sm); color: var(--text);
+    padding: 8px 12px; font-size: 13px; font-family: monospace;
+  }
+  .api-banner input:focus { outline: none; border-color: var(--accent); }
+  .api-save-btn {
+    background: var(--accent); color: #fff; border: none;
+    border-radius: var(--radius-sm); padding: 8px 16px;
+    font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap;
+  }
+  .api-save-btn:hover { background: var(--accent2); }
+
+  /* 헤더 */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-title { font-size: 20px; font-weight: 700; color: var(--text); }
+  .header-badge {
+    font-size: 11px; background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 99px; padding: 3px 10px; color: var(--text2);
+  }
+
+  /* 탭 */
+  .tabs {
+    display: flex; border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; margin-bottom: 20px;
+  }
+  .tab-btn {
+    flex: 1; padding: 10px 6px; font-size: 12px; font-weight: 500;
+    cursor: pointer; border: none; border-radius: 0;
+    background: transparent; color: var(--text2);
+    font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
+  }
+  .tab-btn + .tab-btn { border-left: 1px solid var(--border); }
+  .tab-btn.active { background: var(--accent); color: #fff; }
+  .tab-btn.poetry-tab.active { background: linear-gradient(135deg, #c4622a, #e8863a); color: #fff; }
+
+  /* 공통 입력 */
+  input[type="text"], input[type="password"], select, textarea {
+    width: 100%;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text);
+    padding: 9px 12px; font-size: 13px;
+    font-family: 'Noto Sans KR', sans-serif; transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  select option { background: var(--bg2); }
+  textarea { resize: vertical; line-height: 1.7; }
+
+  label.field-label {
+    font-size: 12px; color: var(--text2); display: block; margin-bottom: 6px;
+  }
+
+  .grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+
+  /* 버튼 */
+  .btn-primary {
+    width: 100%; padding: 11px; font-size: 15px; font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), #5b4ddb);
+    color: #fff; border: none; border-radius: var(--radius);
+    cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: opacity 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-poetry-primary {
+    width: 100%; padding: 11px; font-size: 15px; font-weight: 700;
+    background: linear-gradient(135deg, #c4622a, #e8863a);
+    color: #fff; border: none; border-radius: var(--radius);
+    cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: opacity 0.15s;
+  }
+  .btn-poetry-primary:hover { opacity: 0.88; }
+
+  .btn-sm {
+    font-size: 12px; padding: 5px 12px; cursor: pointer;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text2);
+    font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-sm.accent { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-sm.poetry { border-color: var(--poetry); color: var(--poetry); }
+  .btn-sm.poetry:hover { background: var(--poetry-bg); }
+
+  .btn-tag {
+    font-size: 12px; padding: 4px 10px; cursor: pointer;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 99px; color: var(--text2);
+    font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
+  }
+  .btn-tag:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* 섹션 박스 */
+  .box {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem; margin-bottom: 16px;
+  }
+
+  /* 결과 출력 */
+  .output {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem;
+    font-size: 14px; line-height: 2.1; color: var(--text);
+    white-space: pre-wrap; min-height: 160px;
+  }
+
+  .result-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; flex-wrap: wrap; gap: 8px;
+  }
+  .result-label { font-size: 12px; color: var(--text2); }
+  .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* 개사 섹션 */
+  .adapt-section {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem; margin-bottom: 16px;
+  }
+  .adapt-section-title { font-size: 13px; font-weight: 700; color: var(--text2); margin-bottom: 4px; }
+  .adapt-section-desc { font-size: 12px; color: var(--text3); margin-bottom: 14px; }
+  .adapt-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .adapt-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px; font-size: 13px; font-weight: 700; cursor: pointer;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: var(--radius); color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif; transition: all 0.18s;
+  }
+  .adapt-btn:hover { border-color: var(--accent); background: #1a1530; color: var(--accent2); }
+  .adapt-btn .flag { font-size: 20px; }
+  .adapt-btn .lang-name { font-size: 13px; }
+  .adapt-btn .lang-sub { font-size: 11px; color: var(--text3); font-weight: 400; }
+
+  /* ===== 시 낭송 패널 ===== */
+  .poetry-panel {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.5rem; margin-bottom: 16px;
+  }
+
+  .poetry-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+  }
+  .poetry-icon { font-size: 22px; }
+  .poetry-title { font-size: 16px; font-weight: 700; color: var(--poetry); }
+  .poetry-desc { font-size: 12px; color: var(--text3); margin-bottom: 18px; line-height: 1.7; }
+
+  .poetry-input-area {
+    background: var(--bg); border: 1px solid var(--border2);
+    border-radius: var(--radius); padding: 0; margin-bottom: 14px; overflow: hidden;
+  }
+  .poetry-input-label {
+    background: var(--bg3); padding: 8px 14px;
+    font-size: 12px; color: var(--text2); font-weight: 700;
+    border-bottom: 1px solid var(--border);
+  }
+  .poetry-input-area textarea {
+    border: none; background: transparent; border-radius: 0;
+    padding: 14px; min-height: 200px; font-size: 14px; line-height: 2;
+  }
+  .poetry-input-area textarea:focus { outline: none; border: none; }
+
+  .poetry-result-box {
+    background: var(--bg); border: 1px solid var(--border2);
+    border-radius: var(--radius); overflow: hidden; margin-bottom: 14px;
+  }
+  .poetry-result-label {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px; background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px; color: var(--text2); font-weight: 700;
+  }
+  .poetry-result-label.style-label { color: var(--poetry2); }
+  .poetry-result-content {
+    padding: 14px; font-size: 13px; line-height: 2;
+    white-space: pre-wrap; color: var(--text);
+    font-family: monospace; min-height: 48px;
+  }
+  .poetry-result-content.style-content {
+    color: var(--poetry); font-size: 13px;
+  }
+  .poetry-result-content.lyrics-content {
+    font-family: 'Noto Sans KR', sans-serif; font-size: 14px; color: var(--text);
+  }
+
+  .poetry-tip {
+    background: linear-gradient(135deg, #1e1510, #17171c);
+    border: 1px solid #3a2a1a;
+    border-radius: var(--radius-sm); padding: 12px 14px;
+    font-size: 12px; color: #c8a070; line-height: 1.8; margin-bottom: 14px;
+  }
+  .poetry-tip strong { color: var(--poetry); }
+
+  .poetry-step-row {
+    display: flex; gap: 8px; margin-bottom: 14px; align-items: stretch;
+  }
+  .poetry-step {
+    flex: 1; background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: var(--radius-sm); padding: 10px 12px; text-align: center;
+  }
+  .poetry-step-num { font-size: 18px; margin-bottom: 4px; }
+  .poetry-step-text { font-size: 11px; color: var(--text3); line-height: 1.5; }
+
+  /* Suno 결과 */
+  .suno-section { margin-bottom: 14px; }
+  .suno-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .suno-section-label { font-size: 12px; color: var(--text2); }
+  .suno-output {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 14px;
+    font-size: 13px; color: var(--text); white-space: pre-wrap; line-height: 1.8;
+  }
+
+  /* 채팅형 수정 */
+  .chat-wrap { display: flex; flex-direction: column; gap: 0; }
+  .chat-messages {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 14px; min-height: 220px; max-height: 420px;
+    overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+  }
+  .chat-empty { text-align: center; color: var(--text3); font-size: 13px; margin: auto; line-height: 2; }
+  .chat-bubble {
+    max-width: 85%; padding: 10px 14px; border-radius: 12px;
+    font-size: 13px; line-height: 1.7; white-space: pre-wrap;
+  }
+  .chat-bubble.user { background: var(--accent); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+  .chat-bubble.ai {
+    background: var(--bg3); color: var(--text);
+    align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border2);
+  }
+  .chat-bubble.ai.preview { border-color: var(--accent); background: #1a1530; }
+  .chat-bubble-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+  .chat-apply-btn {
+    margin-top: 8px; font-size: 12px; padding: 5px 14px;
+    background: var(--accent); color: #fff; border: none;
+    border-radius: var(--radius-sm); cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif; font-weight: 700;
+  }
+  .chat-apply-btn:hover { opacity: 0.85; }
+  .chat-input-row {
+    display: flex; gap: 0;
+    border: 1px solid var(--border); border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius); overflow: hidden;
+  }
+  .chat-input-row input {
+    flex: 1; border: none; border-radius: 0;
+    background: var(--bg2); padding: 11px 14px; font-size: 13px;
+  }
+  .chat-input-row input:focus { outline: none; }
+  .chat-send-btn {
+    background: var(--accent); color: #fff; border: none;
+    padding: 0 20px; font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: 'Noto Sans KR', sans-serif; white-space: nowrap;
+  }
+  .chat-send-btn:hover { background: var(--accent2); }
+  .chat-toolbar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px; flex-wrap: wrap; gap: 6px;
+  }
+  .chat-toolbar-label { font-size: 12px; color: var(--text2); font-weight: 700; }
+
+  /* 송폼 */
+  .songform-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .songform-option {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 14px; cursor: pointer; transition: all 0.15s;
+  }
+  .songform-option:hover { border-color: var(--accent); background: #1a1530; }
+  .songform-option.selected { border-color: var(--accent); background: #1a1530; box-shadow: 0 0 0 1px var(--accent); }
+  .songform-option-num { font-size: 11px; color: var(--accent2); font-weight: 700; margin-bottom: 5px; }
+  .songform-option-flow {
+    font-size: 12px; color: var(--text); font-family: monospace; line-height: 1.6;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+  }
+  .songform-option-flow .seg {
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 4px; padding: 2px 7px; font-size: 11px; color: var(--text2);
+  }
+  .songform-option-flow .arr { color: var(--text3); font-size: 11px; }
+  .songform-option-desc { font-size: 11px; color: var(--text3); margin-top: 5px; }
+
+  /* Suno 편집기 */
+  .suno-editor {
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: var(--radius); padding: 16px; margin-top: 14px;
+  }
+  .suno-editor-title {
+    font-size: 13px; font-weight: 700; color: var(--accent2);
+    margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .suno-field { margin-bottom: 12px; }
+  .suno-field-label {
+    font-size: 11px; color: var(--text3); margin-bottom: 5px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .suno-field-label span { color: var(--text2); font-weight: 700; font-size: 12px; }
+  .suno-field input {
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text);
+    padding: 8px 12px; font-size: 13px; font-family: monospace;
+  }
+  .suno-field input:focus { outline: none; border-color: var(--accent); }
+  .suno-field-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+  .suno-tag {
+    font-size: 11px; padding: 3px 9px; cursor: pointer;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 99px; color: var(--text3);
+    font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
+  }
+  .suno-tag:hover { border-color: var(--accent); color: var(--accent2); }
+  .suno-final-output {
+    background: var(--bg); border: 1px solid var(--accent);
+    border-radius: var(--radius-sm); padding: 12px 14px;
+    font-size: 13px; color: var(--accent2); font-family: monospace;
+    line-height: 1.8; white-space: pre-wrap; min-height: 48px; margin-bottom: 8px;
+  }
+
+  /* 히스토리 카드 */
+  .history-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+  }
+  .history-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .history-card-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .history-card-artist { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .history-card-meta { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .history-card-preview { font-size: 12px; color: var(--text2); margin-bottom: 10px; white-space: pre-wrap; max-height: 54px; overflow: hidden; }
+  .history-card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* 로딩 */
+  .loading { display: none; text-align: center; padding: 2.5rem; color: var(--text2); font-size: 14px; }
+  .loading-dot {
+    display: inline-block; width: 8px; height: 8px;
+    background: var(--accent); border-radius: 50%; margin: 0 3px;
+    animation: bounce 1.2s infinite ease-in-out;
+  }
+  .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-8px)} }
+
+  /* 에러 */
+  .error {
+    display: none; background: var(--danger-bg); border: 1px solid var(--danger);
+    border-radius: var(--radius-sm); padding: 12px 16px;
+    color: var(--danger); font-size: 13px; margin-top: 12px;
+  }
+
+  .meta-bar { display: flex; gap: 10px; margin-bottom: 16px; }
+  .quick-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; align-items: center; }
+
+  .subtitle-view {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem;
+    font-size: 14px; line-height: 2.2;
+  }
+  .subtitle-line { margin-bottom: 10px; }
+  .subtitle-original { color: var(--text); font-size: 14px; }
+  .subtitle-translation { color: #b0b8d0; font-size: 12px; padding-left: 8px; border-left: 2px solid var(--accent); margin-top: 2px; }
+  .subtitle-section-tag { color: var(--accent2); font-size: 12px; font-weight: 700; margin: 14px 0 6px; font-family: monospace; }
+
+  .adapt-suno-box {
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: var(--radius); padding: 14px; margin-top: 14px;
+  }
+  .adapt-suno-title { font-size: 12px; color: var(--accent2); font-weight: 700; margin-bottom: 10px; }
+
+  /* 입력 가사 기반 표시 */
+  .songform-source {
+    display: none; align-items: center; justify-content: space-between; gap: 8px;
+    background: #1a1530; border: 1px solid var(--accent);
+    border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 12px;
+  }
+  .songform-source-text { font-size: 12px; color: var(--accent2); line-height: 1.5; }
+
+  @media (max-width: 580px) {
+    .adapt-btn-row { grid-template-columns: 1fr; }
+    .meta-bar { flex-direction: column; }
+    .poetry-step-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- API Key 배너 -->
+  <div class="api-banner">
+    <label>🔑 Anthropic API Key</label>
+    <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." />
+    <button class="api-save-btn" onclick="saveApiKey()">저장</button>
+  </div>
+
+  <!-- 헤더 -->
+  <div class="header">
+    <div class="header-left">
+      <span style="font-size:24px;">🎵</span>
+      <span class="header-title">AI 가사 생성기</span>
+      <span class="header-badge">Claude API</span>
+    </div>
+  </div>
+
+  <!-- 탭 -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+    <div class="tabs" style="flex:1;margin-bottom:0;">
+      <button class="tab-btn active" id="tab-generate" onclick="switchTab('generate')">🎵 가사 자동생성</button>
+      <button class="tab-btn" id="tab-edit" onclick="switchTab('edit')">✏️ 가사 입력</button>
+      <button class="tab-btn poetry-tab" id="tab-poetry" onclick="switchTab('poetry')">🎙️ 시 낭송</button>
+      <button class="tab-btn" id="tab-history" onclick="switchTab('history')">📂 히스토리 <span id="history-badge" class="badge-count" style="display:none;background:var(--accent);color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;">0</span></button>
+    </div>
+    <button class="btn-sm" onclick="resetAll()" style="white-space:nowrap;padding:10px 14px;color:var(--danger);border-color:var(--danger);">🔄 초기화</button>
+  </div>
+
+  <!-- 자동 생성 패널 -->
+  <div id="panel-generate">
+    <div class="grid4">
+      <div>
+        <label class="field-label">장르</label>
+        <select id="genre">
+          <option>발라드</option><option>K-POP 댄스</option><option>힙합</option>
+          <option>R&B</option><option>인디 / Bedroom Pop</option><option>록 / 밴드</option>
+          <option>트로트</option><option>Dark Pop</option><option>City Pop</option>
+          <option>Lo-fi</option><option>Afrobeats</option><option>Latin Pop</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">주제</label>
+        <select id="theme">
+          <option>이별</option><option>사랑</option><option>그리움</option>
+          <option>설렘</option><option>자유</option><option>성장</option>
+          <option>우정</option><option>SNS 피로 / 현실도피</option>
+          <option>20대의 불안</option><option>번아웃</option><option>Flex / 자신감</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">분위기</label>
+        <select id="mood">
+          <option value="emotional and lyrical">감성적</option>
+          <option value="bright and upbeat">밝고 경쾌</option>
+          <option value="dark and dreamy">어둡고 몽환</option>
+          <option value="intense and energetic">강렬한</option>
+          <option value="calm and warm">잔잔하고 따뜻</option>
+          <option value="uptempo and exciting">업비트</option>
+          <option value="chill and moody">Chill / 무드있는</option>
+          <option value="dark and edgy">Dark &amp; Edgy</option>
+          <option value="groovy and rhythmic">Groovy / 리드미컬</option>
+          <option value="dreamy and ethereal">Dreamy / 몽환적</option>
+          <option value="raw and honest">Raw / 날것의</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <label class="field-label">키워드 / 추가 요청 (선택)</label>
+      <input type="text" id="keywords" placeholder="예: 비, 카페, 첫사랑, 겨울..." />
+    </div>
+
+    <!-- 다국어 개사 -->
+    <div class="adapt-section" id="adapt-section">
+      <p class="adapt-section-title">🌏 다국어 개사</p>
+      <p class="adapt-section-desc">생성된 가사 또는 직접 입력한 가사를 개사합니다.</p>
+      <div class="adapt-btn-row">
+        <button class="adapt-btn" onclick="adaptLyrics('ja')">
+          <span class="flag">🇯🇵</span>
+          <div><div class="lang-name">일본어 개사</div><div class="lang-sub">히라가나·가타카나·한자</div></div>
+        </button>
+        <button class="adapt-btn" onclick="adaptLyrics('en')">
+          <span class="flag">🇺🇸</span>
+          <div><div class="lang-name">영어 개사</div><div class="lang-sub">Poetic English lyrics</div></div>
+        </button>
+      </div>
+      <div style="margin-top:12px;">
+        <label class="field-label">개사할 가사 직접 입력 <span style="color:var(--text3);">(선택)</span></label>
+        <textarea id="adapt-custom-input" rows="5" placeholder="여기에 개사할 가사를 붙여넣으세요..."></textarea>
+      </div>
+    </div>
+
+    <!-- 송폼 박스 -->
+    <div id="songform-box" style="display:none;margin-top:16px;">
+      <div style="background:var(--bg3);border:1px solid var(--accent);border-radius:var(--radius);padding:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+          <span style="font-size:13px;font-weight:700;color:var(--accent2);">🎼 AI 추천 송폼</span>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-sm" onclick="suggestSongForm()" style="font-size:11px;">🔄 다시 제안</button>
+            <button class="btn-sm" onclick="goBack('songform')" style="font-size:11px;">← Back</button>
+          </div>
+        </div>
+        <div class="songform-source" id="songform-source">
+          <span class="songform-source-text" id="songform-source-text"></span>
+          <button class="btn-sm" onclick="clearBaseLyrics()" style="font-size:11px;">✕ 해제</button>
+        </div>
+        <div id="songform-reason" style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.7;"></div>
+        <div class="songform-options" id="songform-options"></div>
+        <button id="btn-more-options" class="btn-sm" style="display:none;width:100%;padding:8px;margin-bottom:12px;" onclick="showMoreOptions()">＋ 다른 옵션 보기</button>
+        <div id="songform-edit-area" style="display:none;margin-bottom:12px;">
+          <label class="field-label">선택된 송폼 <span style="color:var(--text3);">— 직접 수정 가능해요</span></label>
+          <textarea id="songform-structure" rows="3" style="font-size:13px;line-height:1.8;font-family:monospace;"></textarea>
+        </div>
+        <button class="btn-primary" id="btn-generate-lyrics" onclick="generateLyrics()" disabled style="opacity:0.4;">✨ 선택한 구성으로 가사 생성</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 가사 수정 패널 -->
+  <div id="panel-edit" style="display:none;">
+    <div style="margin-bottom:12px;">
+      <div class="chat-toolbar">
+        <label class="field-label" style="margin:0;">가사 입력</label>
+        <button class="btn-sm" onclick="loadGeneratedToEdit()">↓ 생성된 가사 불러오기</button>
+      </div>
+      <textarea id="edit-input" rows="7" placeholder="여기에 가사를 붙여넣거나, 위 버튼으로 생성된 가사를 불러오세요..."></textarea>
+    </div>
+    <div style="margin-bottom:6px;">
+      <div class="chat-toolbar">
+        <span class="chat-toolbar-label">💬 AI와 수정 방향 대화하기</span>
+        <button class="btn-sm" onclick="clearChat()">🗑 대화 초기화</button>
+      </div>
+      <div class="chat-wrap">
+        <div class="chat-messages" id="chat-messages">
+          <div class="chat-empty" id="chat-empty">
+            가사를 입력하고 AI에게 수정 방향을 물어보세요.<br>
+            예: "후렴이 너무 약한 것 같아" · "어떻게 고치면 좋을까?"
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <input type="text" id="chat-input" placeholder="수정 방향을 자유롭게 얘기해보세요..." onkeydown="if(event.key==='Enter')sendChat()" />
+          <button class="chat-send-btn" onclick="sendChat()">전송</button>
+        </div>
+      </div>
+    </div>
+    <div class="quick-row" style="margin-top:10px;">
+      <span style="font-size:12px;color:var(--text3);">빠른 시작:</span>
+      <button class="btn-tag" onclick="quickChat('후렴이 너무 약한 것 같아, 어떻게 강화하면 좋을까?')">후렴 강화</button>
+      <button class="btn-tag" onclick="quickChat('전체적으로 감성이 부족한 것 같아, 어떻게 다듬을까?')">감성 강화</button>
+      <button class="btn-tag" onclick="quickChat('2절을 추가하고 싶어, 어떤 내용이 좋을까?')">2절 추가</button>
+      <button class="btn-tag" onclick="quickChat('브릿지를 넣고 싶어, 어떤 분위기로 쓰면 좋을까?')">브릿지 추가</button>
+      <button class="btn-tag" onclick="quickChat('운율이 어색한 부분이 있어, 어디가 문제일까?')">운율 점검</button>
+      <button class="btn-tag" onclick="quickChat('이 가사 전체적으로 분석해줘, 개선점이 뭐야?')">전체 분석</button>
+    </div>
+    <button class="btn-primary" onclick="completeEdit()" style="margin-top:12px;">✅ 이 가사 사용 → 송폼 선택으로</button>
+  </div>
+
+  <!-- ===== 시 낭송 패널 ===== -->
+  <div id="panel-poetry" style="display:none;">
+    <div class="poetry-panel">
+      <div class="poetry-header">
+        <span class="poetry-icon">🎙️</span>
+        <span class="poetry-title">시 낭송 프롬프트 생성기</span>
+      </div>
+      <p class="poetry-desc">시를 입력하면 수노(Suno)에서 낭송이 나오도록 검증된 프롬프트를 자동 생성합니다.<br>2~3행마다 낭송 태그가 자동 삽입되어 노래가 아닌 순수 낭송으로 출력됩니다.</p>
+
+      <!-- 사용 순서 안내 -->
+      <div class="poetry-step-row">
+        <div class="poetry-step">
+          <div class="poetry-step-num">①</div>
+          <div class="poetry-step-text">아래에<br>시 입력</div>
+        </div>
+        <div class="poetry-step">
+          <div class="poetry-step-num">②</div>
+          <div class="poetry-step-text">프롬프트<br>자동 생성</div>
+        </div>
+        <div class="poetry-step">
+          <div class="poetry-step-num">③</div>
+          <div class="poetry-step-text">Style 칸<br>복사</div>
+        </div>
+        <div class="poetry-step">
+          <div class="poetry-step-num">④</div>
+          <div class="poetry-step-text">Lyrics 칸<br>복사</div>
+        </div>
+        <div class="poetry-step">
+          <div class="poetry-step-num">⑤</div>
+          <div class="poetry-step-text">수노에<br>붙여넣기</div>
+        </div>
+      </div>
+
+      <!-- 시 입력 -->
+      <div class="poetry-input-area">
+        <div class="poetry-input-label">📝 시 입력</div>
+        <textarea id="poetry-input" placeholder="여기에 시를 입력하세요...
+
+예시:
+태산 골짜기 음혈을 찾아
+수침을 꽂으니
+산새를 놀라 자지러지고
+산을 휘감던 섬광..."></textarea>
+      </div>
+
+      <!-- 목소리 설정 -->
+      <div style="margin-bottom:14px;">
+        <label class="field-label">🎙️ 목소리 선택 <span style="color:var(--text3);font-size:11px;">— male / female은 선택 후 직접 변경 가능</span></label>
+        <select id="poetry-voice" style="font-size:13px;line-height:1.6;">
+          <optgroup label="── 여성 목소리 ──">
+            <option value="weathered female voice, husky and gravelly, calm and measured, world-weary tone, soft rasp">여성 ① 허스키 긁힌듯 차분한 목소리 (세월이 담긴 쉰 목소리)</option>
+            <option value="mature female voice, deep and resonant, slow deliberate pacing, dignified and sorrowful">여성 ② 굵고 낮은 목소리 (묵직하고 품격 있는)</option>
+            <option value="tearful female voice, trembling with grief, achingly sorrowful, barely holding back tears">여성 ③ 눈물 맺힌 애절한 목소리 (금방이라도 울 것 같은)</option>
+            <option value="gentle warm female voice, soft and intimate, whispering tenderness, motherly warmth">여성 ④ 따뜻하고 부드러운 목소리 (어머니 같은 온기)</option>
+            <option value="strong mature female voice, clear and commanding, emotionally restrained, powerful undercurrent">여성 ⑤ 강인하고 또렷한 목소리 (감정을 억누른 힘)</option>
+          </optgroup>
+          <optgroup label="── 남성 목소리 ──">
+            <option value="weathered male voice, husky and gravelly, calm and measured, world-weary tone, soft rasp">남성 ① 허스키 긁힌듯 차분한 목소리 (세월이 담긴 쉰 목소리)</option>
+            <option value="mature male voice, deep baritone, slow deliberate pacing, dignified and sorrowful">남성 ② 굵고 낮은 바리톤 목소리 (묵직하고 진중한)</option>
+            <option value="tearful male voice, trembling with grief, achingly sorrowful, voice cracking with emotion">남성 ③ 눈물 맺힌 애절한 목소리 (목이 메이는 듯한)</option>
+            <option value="deep resonant male voice, slow and contemplative, rich texture, melancholic undertone">남성 ④ 깊고 사색적인 목소리 (철학적이고 그윽한)</option>
+            <option value="strong mature male voice, clear and commanding, emotionally restrained, quiet intensity">남성 ⑤ 강인하고 절제된 목소리 (감정을 꾹 누른 강함)</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label class="field-label">🎵 배경 분위기</label>
+        <select id="poetry-bg">
+          <option value="gentle piano, atmospheric">잔잔한 피아노</option>
+          <option value="cinematic orchestral, ambient">시네마틱 오케스트라</option>
+          <option value="ambient nature sounds">자연 소리</option>
+          <option value="minimal ambient, sparse">미니멀 앰비언트</option>
+          <option value="Korean traditional instruments, haegeum">국악풍 (해금)</option>
+        </select>
+      </div>
+
+      <!-- 생성 버튼 -->
+      <button class="btn-poetry-primary" onclick="generatePoetryPrompt()">🎙️ 낭송 프롬프트 생성</button>
+    </div>
+
+    <!-- 결과 영역 -->
+    <div id="poetry-result" style="display:none;">
+
+      <div class="poetry-tip">
+        <strong>💡 수노 사용 방법</strong><br>
+        아래 <strong>Style 칸 내용</strong>을 수노의 "Style of Music" 칸에 붙여넣고,<br>
+        <strong>Lyrics 칸 내용</strong>을 수노의 "Lyrics" 칸에 붙여넣으세요.<br>
+        낭송이 아닌 경우 <strong>몇 번 재생성</strong>하면 낭송 버전이 나옵니다.
+      </div>
+
+      <!-- Style 출력 -->
+      <div class="poetry-result-box">
+        <div class="poetry-result-label style-label">
+          <span>🎵 Style of Music 칸에 붙여넣기</span>
+          <button class="btn-sm poetry" onclick="copyPoetry('poetry-style-output')">📋 복사</button>
+        </div>
+        <div class="poetry-result-content style-content" id="poetry-style-output"></div>
+      </div>
+
+      <!-- Lyrics 출력 -->
+      <div class="poetry-result-box">
+        <div class="poetry-result-label">
+          <span>📝 Lyrics 칸에 붙여넣기</span>
+          <button class="btn-sm poetry" onclick="copyPoetry('poetry-lyrics-output')">📋 복사</button>
+        </div>
+        <div class="poetry-result-content lyrics-content" id="poetry-lyrics-output"></div>
+      </div>
+
+      <!-- 전체 복사 -->
+      <button class="btn-sm" style="width:100%;padding:10px;margin-top:4px;font-size:13px;" onclick="copyAllPoetry()">📋 전체 복사 (Style + Lyrics)</button>
+    </div>
+  </div>
+
+  <!-- 히스토리 패널 -->
+  <div id="panel-history" style="display:none;">
+    <div class="result-header" style="margin-bottom:14px;">
+      <span style="font-size:13px;color:var(--text2);">저장된 가사</span>
+      <button class="btn-sm" onclick="clearHistory()" style="color:var(--danger);">🗑 전체 삭제</button>
+    </div>
+    <div id="history-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+    <p id="history-empty" style="font-size:13px;color:var(--text3);text-align:center;padding:3rem 0;">
+      아직 저장된 가사가 없어요.<br>가사를 생성하고 저장해 보세요!
+    </p>
+  </div>
+
+  <!-- 로딩 -->
+  <div class="loading" id="loading">
+    <div style="margin-bottom:12px;">
+      <span class="loading-dot"></span>
+      <span class="loading-dot"></span>
+      <span class="loading-dot"></span>
+    </div>
+    <span id="loading-msg">처리 중...</span>
+  </div>
+
+  <!-- 결과 -->
+  <div id="result" style="display:none;margin-top:20px;">
+    <div class="meta-bar" style="margin-bottom:12px;">
+      <input type="text" id="meta-title" placeholder="🎵 곡 제목 (저장 시 사용)" />
+      <input type="text" id="meta-artist" placeholder="🎤 아티스트명 (저장 시 사용)" />
+    </div>
+    <div class="result-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn-sm" onclick="goBack('result')" style="font-size:11px;">← Back</button>
+        <span class="result-label" id="result-label">결과</span>
+      </div>
+      <div class="btn-group">
+        <button class="btn-sm accent" onclick="saveCurrent()">🔖 저장</button>
+        <button class="btn-sm" onclick="sendToEdit()">✏️ 가사 입력으로</button>
+        <button class="btn-sm" onclick="copyText('lyrics-output')">📋 복사</button>
+      </div>
+    </div>
+    <div class="output" id="lyrics-output"></div>
+
+    <div class="suno-editor" id="suno-editor" style="display:none;">
+      <div class="suno-editor-title">🎵 Suno / Udio 프롬프트 편집</div>
+      <div class="suno-field">
+        <div class="suno-field-label">🎤 <span>Vocal</span></div>
+        <input type="text" id="sp-vocal" placeholder="e.g. emotional female vocal" />
+        <div class="suno-field-tags">
+          <button class="suno-tag" onclick="setField('sp-vocal','male vocal')">male vocal</button>
+          <button class="suno-tag" onclick="setField('sp-vocal','female vocal')">female vocal</button>
+          <button class="suno-tag" onclick="setField('sp-vocal','duet vocal')">duet vocal</button>
+          <button class="suno-tag" onclick="setField('sp-vocal','emotional female vocal')">emotional female</button>
+          <button class="suno-tag" onclick="setField('sp-vocal','husky male vocal')">husky male</button>
+          <button class="suno-tag" onclick="setField('sp-vocal','no vocal, instrumental')">instrumental</button>
+        </div>
+      </div>
+      <div class="suno-field">
+        <div class="suno-field-label">🎸 <span>Instruments</span></div>
+        <input type="text" id="sp-instruments" placeholder="e.g. piano, acoustic guitar, strings" />
+        <div class="suno-field-tags">
+          <button class="suno-tag" onclick="appendField('sp-instruments','piano')">piano</button>
+          <button class="suno-tag" onclick="appendField('sp-instruments','acoustic guitar')">acoustic guitar</button>
+          <button class="suno-tag" onclick="appendField('sp-instruments','strings')">strings</button>
+          <button class="suno-tag" onclick="appendField('sp-instruments','orchestra')">orchestra</button>
+          <button class="suno-tag" onclick="appendField('sp-instruments','synthesizer')">synthesizer</button>
+          <button class="suno-tag" onclick="appendField('sp-instruments','drums')">drums</button>
+        </div>
+      </div>
+      <div class="suno-field">
+        <div class="suno-field-label">🌡 <span>Mood</span></div>
+        <input type="text" id="sp-mood" placeholder="e.g. emotional, cinematic" />
+        <div class="suno-field-tags">
+          <button class="suno-tag" onclick="appendField('sp-mood','emotional')">emotional</button>
+          <button class="suno-tag" onclick="appendField('sp-mood','melancholic')">melancholic</button>
+          <button class="suno-tag" onclick="appendField('sp-mood','cinematic')">cinematic</button>
+          <button class="suno-tag" onclick="appendField('sp-mood','dreamy')">dreamy</button>
+          <button class="suno-tag" onclick="appendField('sp-mood','uplifting')">uplifting</button>
+          <button class="suno-tag" onclick="appendField('sp-mood','dark')">dark</button>
+        </div>
+      </div>
+      <div class="suno-field">
+        <div class="suno-field-label">🥁 <span>Tempo</span></div>
+        <input type="text" id="sp-tempo" placeholder="e.g. slow, 70 BPM" />
+        <div class="suno-field-tags">
+          <button class="suno-tag" onclick="setField('sp-tempo','slow, 60 BPM')">slow 60</button>
+          <button class="suno-tag" onclick="setField('sp-tempo','slow, 75 BPM')">slow 75</button>
+          <button class="suno-tag" onclick="setField('sp-tempo','mid-tempo, 90 BPM')">mid 90</button>
+          <button class="suno-tag" onclick="setField('sp-tempo','uptempo, 120 BPM')">uptempo 120</button>
+        </div>
+      </div>
+      <div class="suno-field">
+        <div class="suno-field-label">🎼 <span>Genre Tags</span></div>
+        <input type="text" id="sp-genre" placeholder="e.g. K-pop ballad" />
+        <div class="suno-field-tags">
+          <button class="suno-tag" onclick="setField('sp-genre','K-pop ballad')">K-pop ballad</button>
+          <button class="suno-tag" onclick="setField('sp-genre','K-pop dance')">K-pop dance</button>
+          <button class="suno-tag" onclick="setField('sp-genre','Korean R&B')">Korean R&B</button>
+          <button class="suno-tag" onclick="setField('sp-genre','indie folk')">indie folk</button>
+          <button class="suno-tag" onclick="setField('sp-genre','J-pop')">J-pop</button>
+        </div>
+      </div>
+      <div class="suno-field">
+        <div class="suno-field-label">➕ <span>Extra Tags</span></div>
+        <input type="text" id="sp-extra" placeholder="e.g. reverb, layered vocals" />
+      </div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+          <span style="font-size:12px;color:var(--text2);font-weight:700;">✅ 최종 Style Prompt</span>
+          <button class="btn-sm" onclick="copyText('suno-final-preview')">📋 복사</button>
+        </div>
+        <div class="suno-final-output" id="suno-final-preview">—</div>
+        <button class="btn-primary" onclick="buildFinalPrompt()" style="margin-bottom:8px;">🎵 최종 프롬프트 확정 생성</button>
+        <button class="btn-sm" style="width:100%;padding:8px;" onclick="regenSunoFields()">🔄 AI 초안 다시 생성</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 개사 결과 -->
+  <div id="adapted-result" style="display:none;margin-top:20px;">
+    <div class="result-header">
+      <span class="result-label" id="adapted-label">개사 결과</span>
+      <div class="btn-group">
+        <button class="btn-sm" id="subtitle-toggle" onclick="toggleSubtitle()">🎬 자막 확인</button>
+        <button class="btn-sm" onclick="copyText('adapted-output')">📋 복사</button>
+      </div>
+    </div>
+    <div id="adapted-single">
+      <div class="output" id="adapted-output"></div>
+    </div>
+    <div id="adapted-subtitle" style="display:none;">
+      <div class="subtitle-view" id="subtitle-content"></div>
+    </div>
+    <div class="adapt-suno-box" id="adapt-suno-box" style="display:none;">
+      <div class="adapt-suno-title" id="adapt-suno-title">🎵 Suno 프롬프트</div>
+      <div class="suno-section">
+        <div class="suno-section-header">
+          <span class="suno-section-label">Style of Music</span>
+          <button class="btn-sm" onclick="copyText('adapt-suno-style')">📋 복사</button>
+        </div>
+        <div class="suno-output" id="adapt-suno-style" style="color:var(--accent2);font-family:monospace;"></div>
+      </div>
+      <div class="suno-section" style="margin-top:10px;">
+        <div class="suno-section-header">
+          <span class="suno-section-label">Lyrics</span>
+          <button class="btn-sm" onclick="copyText('adapt-suno-lyrics')">📋 복사</button>
+        </div>
+        <div class="suno-output" id="adapt-suno-lyrics" style="line-height:1.9;"></div>
+      </div>
+      <div class="suno-section" style="margin-top:10px;">
+        <div class="suno-section-header">
+          <span class="suno-section-label">🎵 Title suggestion</span>
+          <button class="btn-sm" onclick="copyText('adapt-suno-title-text')">📋 복사</button>
+        </div>
+        <div class="suno-output" id="adapt-suno-title-text"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Suno 결과 -->
+  <div id="suno-result" style="display:none;margin-top:20px;">
+    <div class="result-header" style="margin-bottom:14px;">
+      <span style="font-size:15px;font-weight:700;">🎵 Suno / Udio 완성 프롬프트</span>
+      <div class="btn-group">
+        <button class="btn-sm" onclick="document.getElementById('suno-editor').style.display='block';">✏️ 편집기</button>
+        <button class="btn-sm accent" onclick="saveSuno()">🔖 저장</button>
+      </div>
+    </div>
+    <div class="suno-section">
+      <div class="suno-section-header">
+        <span class="suno-section-label">📋 Style of Music</span>
+        <button class="btn-sm" onclick="copyText('suno-style')">📋 복사</button>
+      </div>
+      <div class="suno-output" id="suno-style" style="color:var(--accent2);font-family:monospace;"></div>
+    </div>
+    <div class="suno-section">
+      <div class="suno-section-header">
+        <span class="suno-section-label">📝 Lyrics</span>
+        <button class="btn-sm" onclick="copyText('suno-output')">📋 복사</button>
+      </div>
+      <div class="suno-output" id="suno-output" style="min-height:120px;line-height:1.9;"></div>
+    </div>
+    <div class="suno-section">
+      <div class="suno-section-header">
+        <span class="suno-section-label">🎵 Title suggestion</span>
+        <button class="btn-sm" onclick="copyText('suno-title')">📋 복사</button>
+      </div>
+      <div class="suno-output" id="suno-title"></div>
+    </div>
+  </div>
+
+  <div class="error" id="error"></div>
+
+</div>
+
+<script>
+let history = JSON.parse(localStorage.getItem('lyrics_history') || '[]');
+let currentAdaptLang = '';
+let subtitleMode = false;
+
+// ===== 입력 가사 기반 모드 =====
+// 가사 입력 탭에서 "이 가사 사용"을 누르면 이후 송폼 제안/가사 생성이
+// 이 가사를 기준으로 동작합니다. (기존 버그: 입력 가사가 무시되고 새 가사가 생성됨)
+let baseLyrics = '';
+let baseLyricsLang = 'ko';
+
+function detectLang(text) {
+  const ja = (text.match(/[\u3040-\u30FF]/g) || []).length;
+  const ko = (text.match(/[\uAC00-\uD7AF]/g) || []).length;
+  if (ja > 0 && ja >= ko) return 'ja';
+  if (ko > 0) return 'ko';
+  if (/[A-Za-z]/.test(text)) return 'en';
+  return 'ko';
+}
+
+function langKoreanName(code) {
+  return { ko: '한국어', ja: '일본어', en: '영어' }[code] || code;
+}
+
+function updateSongformSourceUI() {
+  const src = document.getElementById('songform-source');
+  const txt = document.getElementById('songform-source-text');
+  const btn = document.getElementById('btn-generate-lyrics');
+  if (baseLyrics) {
+    txt.textContent = '📝 입력된 ' + langKoreanName(baseLyricsLang) + ' 가사 기반 — 이 가사를 유지하면서 송폼에 맞게 재구성합니다';
+    src.style.display = 'flex';
+    btn.textContent = '✨ 입력한 가사를 선택한 구성으로 재구성';
+  } else {
+    src.style.display = 'none';
+    btn.textContent = '✨ 선택한 구성으로 가사 생성';
+  }
+}
+
+function clearBaseLyrics() {
+  baseLyrics = '';
+  updateSongformSourceUI();
+}
+
+function saveHistory() { localStorage.setItem('lyrics_history', JSON.stringify(history)); }
+
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key) return alert('API Key를 입력해주세요.');
+  localStorage.setItem('anthropic_key', key);
+  const btn = document.querySelector('.api-save-btn');
+  btn.textContent = '✅ 저장됨';
+  setTimeout(() => btn.textContent = '저장', 2000);
+}
+function getApiKey() {
+  return localStorage.getItem('anthropic_key') || document.getElementById('api-key-input').value.trim();
+}
+
+function switchTab(tab) {
+  ['generate','edit','poetry','history'].forEach(t => {
+    const panel = document.getElementById('panel-' + t);
+    const btn = document.getElementById('tab-' + t);
+    if (panel) panel.style.display = t === tab ? 'block' : 'none';
+    if (btn) btn.className = 'tab-btn' + (t === tab ? ' active' : '') + (t === 'poetry' ? ' poetry-tab' : '');
+  });
+  if (tab === 'history') renderHistory();
+  // (수정) 가사 입력 탭 전환 시 입력창을 지우지 않음 — 붙여넣은 가사가 사라지던 버그 해결
+  if (tab === 'generate') {
+    const songformBox = document.getElementById('songform-box');
+    const resultBox = document.getElementById('result');
+    if (!window._skipAutoSuggest && songformBox.style.display === 'none' && resultBox.style.display === 'none') {
+      suggestSongForm();
+    }
+  }
+}
+
+// ===== 시 낭송 핵심 기능 =====
+function generatePoetryPrompt() {
+  const poem = document.getElementById('poetry-input').value.trim();
+  if (!poem) { showError('시를 입력해주세요.'); return; }
+
+  const voice = document.getElementById('poetry-voice').value;
+  const bg = document.getElementById('poetry-bg').value;
+
+  // Style 칸 프롬프트 (검증된 공식)
+  const stylePrompt = `korean spoken word poetry, soft narration, ${voice}, ambient background music, ${bg}, no singing`;
+
+  // Lyrics 칸: 2~3행마다 태그 삽입
+  const lyricsWithTags = insertPoetryTags(poem);
+
+  document.getElementById('poetry-style-output').textContent = stylePrompt;
+  document.getElementById('poetry-lyrics-output').textContent = lyricsWithTags;
+  document.getElementById('poetry-result').style.display = 'block';
+  document.getElementById('poetry-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  document.getElementById('error').style.display = 'none';
+}
+
+function insertPoetryTags(poem) {
+  const TAGS = '[spoken word]\n[no singing]\n[narration only]\n';
+  const lines = poem.split('\n');
+  const result = [];
+  let lineCount = 0;
+  let blockSize = 0; // 현재 블록에 담긴 실제 행 수
+
+  // 첫 태그는 항상 맨 위에
+  result.push(TAGS);
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    if (line === '') {
+      // 빈 줄 — 그냥 추가 (태그 트리거 안 함)
+      result.push('');
+      continue;
+    }
+
+    result.push(line);
+    blockSize++;
+    lineCount++;
+
+    // 2~3행마다 태그 삽입 (마지막 행 뒤 제외)
+    if (blockSize >= 2 && i < lines.length - 1) {
+      // 다음에 실제 내용 행이 있는지 확인
+      const hasMore = lines.slice(i + 1).some(l => l.trim() !== '');
+      if (hasMore) {
+        result.push('');
+        result.push(TAGS);
+        blockSize = 0;
+      }
+    }
+  }
+
+  return result.join('\n');
+}
+
+function copyPoetry(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btns = document.querySelectorAll(`[onclick="copyPoetry('${id}')"]`);
+    btns.forEach(btn => {
+      const orig = btn.textContent;
+      btn.textContent = '✅ 복사됨';
+      setTimeout(() => btn.textContent = orig, 2000);
+    });
+  });
+}
+
+function copyAllPoetry() {
+  const style = document.getElementById('poetry-style-output').textContent;
+  const lyrics = document.getElementById('poetry-lyrics-output').textContent;
+  const all = `[Style of Music]\n${style}\n\n[Lyrics]\n${lyrics}`;
+  navigator.clipboard.writeText(all).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✅ 전체 복사됨!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+// ===========================
+
+async function callClaude(prompt, loadingMsg) {
+  const key = getApiKey();
+  if (!key) throw new Error('API Key를 먼저 입력해주세요.');
+  document.getElementById('loading-msg').textContent = loadingMsg;
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('error').style.display = 'none';
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-5',
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const data = await res.json();
+  document.getElementById('loading').style.display = 'none';
+  if (!res.ok) throw new Error(data.error?.message || '오류가 발생했습니다');
+  return data.content[0].text;
+}
+
+let selectedSongForm = '';
+let allSongFormOptions = [];
+
+function renderSongFormCard(opt, i, autoSelect) {
+  const container = document.getElementById('songform-options');
+  const card = document.createElement('div');
+  card.className = 'songform-option';
+  const label = i === 0 ? '✨ AI 추천' : '다른 옵션 ' + i;
+  const segs = opt.sections.map(s => '<span class="seg">' + s + '</span>').join('<span class="arr">→</span>');
+  card.innerHTML = '<div class="songform-option-num">' + label + '</div>'
+    + '<div class="songform-option-flow">' + segs + '</div>'
+    + (opt.desc ? '<div class="songform-option-desc">' + opt.desc + '</div>' : '');
+  card.onclick = () => selectSongForm(card, opt);
+  container.appendChild(card);
+  if (autoSelect) selectSongForm(card, opt);
+}
+
+function selectSongForm(card, opt) {
+  document.querySelectorAll('.songform-option').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedSongForm = opt.sections.join('\n');
+  document.getElementById('songform-structure').value = selectedSongForm;
+  document.getElementById('songform-edit-area').style.display = 'block';
+  document.getElementById('btn-generate-lyrics').disabled = false;
+  document.getElementById('btn-generate-lyrics').style.opacity = '1';
+}
+
+function showMoreOptions() {
+  document.getElementById('btn-more-options').style.display = 'none';
+  allSongFormOptions.slice(1).forEach((opt, i) => renderSongFormCard(opt, i + 1, false));
+}
+
+async function suggestSongForm() {
+  const genre = document.getElementById('genre').value;
+  const theme = document.getElementById('theme').value;
+  const mood = document.getElementById('mood').value;
+  const keywords = document.getElementById('keywords').value;
+  ['result','adapted-result','suno-result'].forEach(id => document.getElementById(id).style.display = 'none');
+  let prompt;
+  if (baseLyrics) {
+    // (수정) 입력된 가사가 있으면 그 가사를 분석해서 송폼을 제안
+    prompt = 'You are a music producer. Analyze the EXISTING lyrics below and design the BEST song form FOR THESE LYRICS, plus 2 alternatives.'
+      + '\nGenre: ' + genre + ' / Mood: ' + mood
+      + '\n\nExisting lyrics:\n' + baseLyrics
+      + '\n\nOutput ONLY JSON (desc in Korean):'
+      + '\n{"reason":"이 가사 분석 기반 최적 송폼 이유 2문장","options":['
+      + '{"sections":["Intro","Verse 1","..."],"desc":"특징"},'
+      + '{"sections":[...],"desc":"..."},'
+      + '{"sections":[...],"desc":"..."}'
+      + ']}'
+      + '\nUse English section names only.';
+  } else {
+    prompt = 'You are a music producer. Analyze this track and design the BEST song form, plus 2 alternatives.'
+      + '\nGenre: ' + genre + ' / Theme: ' + theme + ' / Mood: ' + mood
+      + (keywords ? '\nKeywords: ' + keywords : '')
+      + '\n\nOutput ONLY JSON (desc in Korean):'
+      + '\n{"reason":"이 곡 분석 기반 최적 송폼 이유 2문장","options":['
+      + '{"sections":["Intro","Verse 1","..."],"desc":"특징"},'
+      + '{"sections":[...],"desc":"..."},'
+      + '{"sections":[...],"desc":"..."}'
+      + ']}'
+      + '\nUse English section names only.';
+  }
+  try {
+    document.getElementById('songform-options').innerHTML = '';
+    const raw = await callClaude(prompt, baseLyrics ? '입력한 가사를 분석해 송폼을 설계하고 있어요...' : 'AI가 송폼을 설계하고 있어요...');
+    const parsed = extractJson(raw);
+    allSongFormOptions = parsed.options || [];
+    document.getElementById('songform-reason').textContent = parsed.reason || '';
+    renderSongFormCard(allSongFormOptions[0], 0, true);
+    const btn = document.getElementById('btn-more-options');
+    btn.style.display = allSongFormOptions.length > 1 ? 'block' : 'none';
+    updateSongformSourceUI();
+    document.getElementById('songform-box').style.display = 'block';
+    document.getElementById('songform-box').scrollIntoView({behavior:'smooth', block:'nearest'});
+  } catch(err) { showError('송폼 분석 오류: ' + err.message); }
+}
+
+async function generateLyrics() {
+  const genre = document.getElementById('genre').value;
+  const theme = document.getElementById('theme').value;
+  const mood = document.getElementById('mood').value;
+  const keywords = document.getElementById('keywords').value;
+  const structure = document.getElementById('songform-structure').value.trim();
+  if (!structure) { showError('먼저 송폼을 선택해주세요.'); return; }
+  ['result','adapted-result','suno-result'].forEach(id => document.getElementById(id).style.display = 'none');
+  let prompt;
+  if (baseLyrics) {
+    // (수정) 핵심 버그 해결: 입력된 가사를 프롬프트에 포함하고 언어를 유지하며 재구성
+    const langNameEn = { ko: 'Korean', ja: 'Japanese', en: 'English' }[baseLyricsLang] || 'the original language';
+    prompt = `You are a professional lyricist. Restructure the EXISTING lyrics below to fit the selected song form.
+STRICT RULES:
+- Keep ALL lyrics in ${langNameEn}. NEVER translate or rewrite them into any other language.
+- Preserve the original lines, imagery, and expressions as much as possible. Only rearrange, trim, or minimally extend to fit the song form. Do NOT write a new song.
+- Use English section tags matching the song form, with instrument/mood info in each tag (e.g. [Chorus - Full Strings, Emotional]).
+- Output the restructured lyrics only, nothing else.
+
+Song form:
+${structure}
+
+Existing lyrics:
+${baseLyrics}`;
+  } else {
+    prompt = `당신은 한국의 전문 작사가입니다.
+장르: ${genre} / 주제: ${theme} / 분위기: ${mood}
+${keywords ? `키워드: ${keywords}` : ''}
+송폼: ${structure}
+출력 규칙: Suno 영어 섹션 태그 사용, 각 태그에 악기/분위기 정보 포함, 한국어 가사, 가사만 출력`;
+  }
+  try {
+    const lyrics = await callClaude(prompt, baseLyrics ? '입력한 가사를 송폼에 맞게 재구성하고 있어요...' : '가사를 작성하고 있어요...');
+    document.getElementById('lyrics-output').textContent = lyrics;
+    document.getElementById('result-label').textContent = baseLyrics
+      ? `입력 가사 재구성 (${langKoreanName(baseLyricsLang)})`
+      : `${genre} · ${theme} · ${mood}`;
+    document.getElementById('result').style.display = 'block';
+    await autoGenerateSunoPrompt(lyrics, genre, mood);
+  } catch(err) { showError(err.message); }
+}
+
+function extractJson(raw) {
+  // 코드펜스 제거 후 첫 { 부터 마지막 } 까지만 추출 — 앞뒤 잡담/잘림에 강함
+  const cleaned = raw.replace(/```json|```/g, '').trim();
+  const s = cleaned.indexOf('{');
+  const e = cleaned.lastIndexOf('}');
+  if (s === -1 || e === -1 || e <= s) throw new Error('JSON 형식을 찾을 수 없음');
+  return JSON.parse(cleaned.slice(s, e + 1));
+}
+
+async function autoGenerateSunoPrompt(lyrics, genre, mood) {
+  // (수정) 가사 전체를 JSON으로 되돌려받지 않음 — 긴 가사에서 응답이 잘려
+  // 파싱이 실패하고 Suno 편집기/제목이 조용히 안 뜨던 버그의 원인이었음.
+  // 가사는 이미 앱이 가지고 있으므로 짧은 메타데이터 JSON만 요청.
+  const prompt = `You are a Suno AI prompt expert. Analyze the lyrics below and output a SHORT JSON only.
+Genre hint: ${genre}. Mood hint: ${mood}.
+Output ONLY this JSON, nothing else (all values in English except title):
+{"vocal":"...","instruments":"...","mood":"...","tempo":"...","genre":"...","title":"title in the same language as the lyrics"}
+Do NOT include the lyrics in your output.
+
+Lyrics:
+${lyrics}`;
+  try {
+    document.getElementById('loading-msg').textContent = 'Suno 프롬프트 초안 생성 중...';
+    document.getElementById('loading').style.display = 'block';
+    const raw = await callClaude(prompt, '');
+    const parsed = extractJson(raw);
+    document.getElementById('sp-vocal').value = parsed.vocal || '';
+    document.getElementById('sp-instruments').value = parsed.instruments || '';
+    document.getElementById('sp-mood').value = parsed.mood || '';
+    document.getElementById('sp-tempo').value = parsed.tempo || '';
+    document.getElementById('sp-genre').value = parsed.genre || '';
+    document.getElementById('sp-extra').value = '';
+    document.getElementById('suno-output').textContent = lyrics;
+    document.getElementById('suno-title').textContent = parsed.title || '';
+    document.getElementById('suno-editor').style.display = 'block';
+    buildFinalPrompt();
+  } catch(err) {
+    // (수정) 실패해도 조용히 넘어가지 않고 편집기를 띄우고 안내 표시
+    document.getElementById('suno-output').textContent = lyrics;
+    document.getElementById('sp-genre').value = genre;
+    document.getElementById('sp-mood').value = mood;
+    document.getElementById('suno-editor').style.display = 'block';
+    showError('Suno 프롬프트 자동 초안 생성에 실패했어요 (' + err.message + '). 아래 편집기에서 "🔄 AI 초안 다시 생성"을 눌러주세요.');
+  }
+  finally { document.getElementById('loading').style.display = 'none'; }
+}
+
+let chatHistory = [];
+
+function loadGeneratedToEdit() {
+  const lyrics = document.getElementById('lyrics-output').textContent.trim();
+  if (!lyrics) { showError('먼저 가사를 생성해주세요.'); return; }
+  document.getElementById('edit-input').value = lyrics;
+  addChatBubble('ai', '가사를 불러왔어요! 어떤 부분을 수정하고 싶으신가요? 😊');
+}
+
+function clearChat() {
+  chatHistory = [];
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML = '<div class="chat-empty" id="chat-empty">가사를 입력하고 AI에게 수정 방향을 물어보세요.</div>';
+}
+
+function addChatBubble(role, text, isPreview = false, previewLyrics = '') {
+  const empty = document.getElementById('chat-empty');
+  if (empty) empty.remove();
+  const msgs = document.getElementById('chat-messages');
+  const wrap = document.createElement('div');
+  wrap.style.display = 'flex';
+  wrap.style.flexDirection = 'column';
+  wrap.style.alignItems = role === 'user' ? 'flex-end' : 'flex-start';
+  const label = document.createElement('div');
+  label.className = 'chat-bubble-label';
+  label.textContent = role === 'user' ? '나' : 'AI 작사가';
+  label.style.textAlign = role === 'user' ? 'right' : 'left';
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble ' + role + (isPreview ? ' preview' : '');
+  bubble.textContent = text;
+  wrap.appendChild(label);
+  wrap.appendChild(bubble);
+  if (isPreview && previewLyrics) {
+    const applyBtn = document.createElement('button');
+    applyBtn.className = 'chat-apply-btn';
+    applyBtn.textContent = '✅ 이 가사로 확정 반영';
+    applyBtn.onclick = () => applyPreview(previewLyrics);
+    wrap.appendChild(applyBtn);
+  }
+  msgs.appendChild(wrap);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function applyPreview(lyrics) {
+  document.getElementById('lyrics-output').textContent = lyrics;
+  document.getElementById('result-label').textContent = '채팅 수정 완료';
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('edit-input').value = lyrics;
+  addChatBubble('ai', '✅ 가사에 반영했어요! Suno 프롬프트도 자동 생성할게요...');
+  ['adapted-result','suno-result'].forEach(id => document.getElementById(id).style.display = 'none');
+  window._skipAutoSuggest = true;
+  switchTab('generate');
+  window._skipAutoSuggest = false;
+  document.getElementById('result').scrollIntoView({behavior:'smooth'});
+  await autoGenerateSunoPrompt(lyrics, document.getElementById('genre').value, document.getElementById('mood').value);
+}
+
+function quickChat(msg) { document.getElementById('chat-input').value = msg; sendChat(); }
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  const lyrics = document.getElementById('edit-input').value.trim();
+  if (!lyrics) { showError('먼저 수정할 가사를 입력하거나 불러와주세요.'); return; }
+  input.value = '';
+  addChatBubble('user', msg);
+  chatHistory.push({ role: 'user', content: msg });
+  const systemCtx = `당신은 전문 작사가입니다. 현재 가사:\n${lyrics}\n중요: 가사의 원래 언어를 그대로 유지하세요 (한국어면 한국어, 일본어면 일본어, 영어면 영어). 수정된 가사 출력 시 맨 앞에 "##PREVIEW##" 태그를 붙이세요.`;
+  const messages = chatHistory.map(m => ({ role: m.role, content: m.content }));
+  try {
+    const key = getApiKey();
+    if (!key) throw new Error('API Key를 먼저 입력해주세요.');
+    document.getElementById('loading-msg').textContent = 'AI가 답변하고 있어요...';
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('error').style.display = 'none';
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 2000, system: systemCtx, messages })
+    });
+    const data = await res.json();
+    document.getElementById('loading').style.display = 'none';
+    if (!res.ok) throw new Error(data.error?.message || '오류가 발생했습니다');
+    const reply = data.content[0].text;
+    chatHistory.push({ role: 'assistant', content: reply });
+    if (reply.includes('##PREVIEW##')) {
+      const parts = reply.split('##PREVIEW##');
+      if (parts[0].trim()) addChatBubble('ai', parts[0].trim());
+      addChatBubble('ai', parts[1].trim(), true, parts[1].trim());
+    } else { addChatBubble('ai', reply); }
+  } catch(err) { document.getElementById('loading').style.display = 'none'; showError(err.message); }
+}
+
+function completeEdit() {
+  const lyrics = document.getElementById('edit-input').value.trim();
+  if (!lyrics) { showError('가사를 입력해주세요.'); return; }
+  // (수정) 입력한 가사를 기준 가사로 등록 — 이후 송폼 제안/가사 생성이 이 가사를 사용
+  baseLyrics = lyrics;
+  baseLyricsLang = detectLang(lyrics);
+  document.getElementById('lyrics-output').textContent = lyrics;
+  document.getElementById('result-label').textContent = '가사 입력 (' + langKoreanName(baseLyricsLang) + ')';
+  // (수정) 탭 전환 시 자동 송폼 제안이 중복 호출되지 않도록 차단 (API 이중 호출 버그 해결)
+  window._skipAutoSuggest = true;
+  switchTab('generate');
+  window._skipAutoSuggest = false;
+  suggestSongForm();
+}
+
+function toggleSubtitle() {
+  subtitleMode = !subtitleMode;
+  document.getElementById('adapted-single').style.display = subtitleMode ? 'none' : 'block';
+  document.getElementById('adapted-subtitle').style.display = subtitleMode ? 'block' : 'none';
+  document.getElementById('subtitle-toggle').textContent = subtitleMode ? '📄 가사 보기' : '🎬 자막 확인';
+}
+
+function buildSubtitleView(adaptedLyrics, koreanLyrics) {
+  const adaptedLines = adaptedLyrics.split('\n');
+  const koreanLines = koreanLyrics.split('\n');
+  const container = document.getElementById('subtitle-content');
+  container.innerHTML = '';
+  let koIdx = 0;
+  adaptedLines.forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    if (trimmed.startsWith('[')) {
+      const tag = document.createElement('div');
+      tag.className = 'subtitle-section-tag';
+      tag.textContent = trimmed;
+      container.appendChild(tag);
+      while (koIdx < koreanLines.length && koreanLines[koIdx].trim().startsWith('[')) koIdx++;
+      return;
+    }
+    const block = document.createElement('div');
+    block.className = 'subtitle-line';
+    const orig = document.createElement('div');
+    orig.className = 'subtitle-original';
+    orig.textContent = trimmed;
+    block.appendChild(orig);
+    while (koIdx < koreanLines.length && (!koreanLines[koIdx].trim() || koreanLines[koIdx].trim().startsWith('['))) koIdx++;
+    if (koIdx < koreanLines.length) {
+      const trans = document.createElement('div');
+      trans.className = 'subtitle-translation';
+      trans.textContent = '(' + koreanLines[koIdx].trim() + ')';
+      block.appendChild(trans);
+      koIdx++;
+    }
+    container.appendChild(block);
+  });
+}
+
+async function adaptLyrics(lang) {
+  const customInput = document.getElementById('adapt-custom-input').value.trim();
+  const generatedLyrics = document.getElementById('lyrics-output').textContent.trim();
+  const koreanLyrics = customInput || generatedLyrics;
+  if (!koreanLyrics) { showError('개사할 가사가 없어요.'); return; }
+  currentAdaptLang = lang;
+  subtitleMode = false;
+  document.getElementById('adapted-result').style.display = 'none';
+  document.getElementById('adapted-single').style.display = 'block';
+  document.getElementById('adapted-subtitle').style.display = 'none';
+  document.getElementById('adapt-suno-box').style.display = 'none';
+  document.getElementById('subtitle-toggle').textContent = '🎬 자막 확인';
+  const isJa = lang === 'ja';
+  const prompt = isJa
+    ? 'Adapt Korean lyrics to Japanese for Suno. Natural J-pop lyrics, keep English section tags with J-pop mood info. Output adapted lyrics only.\n\nOriginal:\n' + koreanLyrics
+    : 'Adapt Korean lyrics to English for Suno. Natural poetic English, keep English section tags with Western mood info. Output adapted lyrics only.\n\nOriginal:\n' + koreanLyrics;
+  try {
+    const adapted = await callClaude(prompt, isJa ? '일본어로 개사하고 있어요...' : '영어로 개사하고 있어요...');
+    document.getElementById('adapted-output').textContent = adapted;
+    document.getElementById('adapted-label').textContent = isJa ? '🇯🇵 일본어 개사' : '🇺🇸 영어 개사';
+    buildSubtitleView(adapted, koreanLyrics);
+    document.getElementById('adapted-result').style.display = 'block';
+    await generateAdaptSunoPrompt(adapted, lang);
+  } catch(err) { showError(err.message); }
+}
+
+async function generateAdaptSunoPrompt(adaptedLyrics, lang) {
+  const isJa = lang === 'ja';
+  const prompt = isJa
+    ? 'Suno J-pop expert. Output ONLY JSON: {"style":"J-pop style tags","title":"Japanese title"} Lyrics: ' + adaptedLyrics
+    : 'Suno Western pop expert. Output ONLY JSON: {"style":"pop style tags","title":"English title"} Lyrics: ' + adaptedLyrics;
+  try {
+    document.getElementById('loading-msg').textContent = 'Suno 프롬프트 생성 중...';
+    document.getElementById('loading').style.display = 'block';
+    const raw = await callClaude(prompt, '');
+    const parsed = extractJson(raw);
+    document.getElementById('adapt-suno-style').textContent = parsed.style || '';
+    document.getElementById('adapt-suno-lyrics').textContent = adaptedLyrics;
+    document.getElementById('adapt-suno-title-text').textContent = parsed.title || '';
+    document.getElementById('adapt-suno-title').textContent = isJa ? '🎵 J-pop Suno 프롬프트' : '🎵 Pop Suno 프롬프트';
+    document.getElementById('adapt-suno-box').style.display = 'block';
+  } catch(err) {
+    document.getElementById('adapt-suno-lyrics').textContent = adaptedLyrics;
+    document.getElementById('adapt-suno-box').style.display = 'block';
+    showError('개사 Suno 프롬프트 생성에 실패했어요 (' + err.message + '). 개사 버튼을 다시 눌러주세요.');
+  }
+  finally { document.getElementById('loading').style.display = 'none'; }
+}
+
+async function regenSunoFields() {
+  const lyrics = document.getElementById('lyrics-output').textContent.trim();
+  if (!lyrics) { showError('가사가 없어요.'); return; }
+  await autoGenerateSunoPrompt(lyrics, document.getElementById('genre').value, document.getElementById('mood').value);
+}
+
+function setField(id, val) { document.getElementById(id).value = val; updateFinalPreview(); }
+function appendField(id, val) {
+  const el = document.getElementById(id);
+  el.value = el.value.trim() ? el.value.trim() + ', ' + val : val;
+  updateFinalPreview();
+}
+
+function updateFinalPreview() {
+  const parts = [
+    document.getElementById('sp-genre').value.trim(),
+    document.getElementById('sp-vocal').value.trim(),
+    document.getElementById('sp-instruments').value.trim(),
+    document.getElementById('sp-mood').value.trim(),
+    document.getElementById('sp-tempo').value.trim(),
+    document.getElementById('sp-extra').value.trim(),
+  ].filter(Boolean);
+  const preview = document.getElementById('suno-final-preview');
+  if (preview) preview.textContent = parts.join(', ') || '—';
+}
+
+function buildFinalPrompt() {
+  updateFinalPreview();
+  const final = document.getElementById('suno-final-preview').textContent;
+  if (!final || final === '—') { showError('편집기 필드를 먼저 채워주세요.'); return; }
+  document.getElementById('suno-style').textContent = final;
+  document.getElementById('suno-result').style.display = 'block';
+  document.getElementById('suno-result').scrollIntoView({behavior:'smooth', block:'nearest'});
+  document.getElementById('suno-editor').style.display = 'none';
+}
+
+function saveCurrent() {
+  const lyrics = document.getElementById('lyrics-output').textContent.trim();
+  if (!lyrics) return;
+  const entry = {
+    id: Date.now(),
+    title: document.getElementById('meta-title').value || '제목 없음',
+    artist: document.getElementById('meta-artist').value || '',
+    label: document.getElementById('result-label').textContent,
+    lyrics, suno: null,
+    date: new Date().toLocaleDateString('ko-KR')
+  };
+  history.unshift(entry); saveHistory(); updateBadge();
+  const btn = event.target;
+  btn.textContent = '✅ 저장됨';
+  setTimeout(() => btn.textContent = '🔖 저장', 2000);
+}
+
+function saveSuno() {
+  if (!history.length) { showError('먼저 가사를 저장해주세요.'); return; }
+  history[0].suno = {
+    style: document.getElementById('suno-style').textContent,
+    lyrics: document.getElementById('suno-output').textContent,
+    title: document.getElementById('suno-title').textContent
+  };
+  saveHistory();
+  const btn = event.target;
+  btn.textContent = '✅ 저장됨';
+  setTimeout(() => btn.textContent = '🔖 저장', 2000);
+}
+
+function updateBadge() {
+  const b = document.getElementById('history-badge');
+  b.style.display = history.length ? 'inline' : 'none';
+  b.textContent = history.length;
+}
+
+function clearHistory() {
+  if (!history.length) return;
+  if (!confirm('전체 히스토리를 삭제할까요?')) return;
+  history = []; saveHistory(); updateBadge(); renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const empty = document.getElementById('history-empty');
+  list.innerHTML = '';
+  empty.style.display = history.length ? 'none' : 'block';
+  history.forEach(e => {
+    const card = document.createElement('div');
+    card.className = 'history-card';
+    card.innerHTML = `
+      <div class="history-card-header">
+        <div>
+          <div class="history-card-title">${e.title}</div>
+          ${e.artist ? `<div class="history-card-artist">${e.artist}</div>` : ''}
+          <div class="history-card-meta">${e.label} · ${e.date}</div>
+        </div>
+        <button class="btn-sm" onclick="deleteEntry(${e.id})" style="color:var(--danger);">✕</button>
+      </div>
+      <div class="history-card-preview">${e.lyrics.slice(0,120)}...</div>
+      <div class="history-card-actions">
+        <button class="btn-sm" onclick="loadEntry(${e.id})">↑ 불러오기</button>
+        <button class="btn-sm" onclick="copyEntryLyrics(${e.id})">📋 가사 복사</button>
+        ${e.suno ? `<button class="btn-sm" onclick="copyEntrySuno(${e.id})">🎵 Suno 복사</button>` : '<span style="font-size:12px;color:var(--text3);">Suno 미저장</span>'}
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+function deleteEntry(id) { history = history.filter(e => e.id !== id); saveHistory(); updateBadge(); renderHistory(); }
+function loadEntry(id) {
+  const e = history.find(x => x.id === id);
+  if (!e) return;
+  document.getElementById('meta-title').value = e.title;
+  document.getElementById('meta-artist').value = e.artist;
+  document.getElementById('lyrics-output').textContent = e.lyrics;
+  document.getElementById('result-label').textContent = e.label;
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('adapted-result').style.display = 'none';
+  document.getElementById('suno-result').style.display = 'none';
+  window._skipAutoSuggest = true;
+  switchTab('generate');
+  window._skipAutoSuggest = false;
+}
+function copyEntryLyrics(id) {
+  const e = history.find(x => x.id === id);
+  if (e) navigator.clipboard.writeText(e.lyrics);
+}
+function copyEntrySuno(id) {
+  const e = history.find(x => x.id === id);
+  if (e && e.suno) navigator.clipboard.writeText(`[Style]\n${e.suno.style}\n\n[Lyrics]\n${e.suno.lyrics}\n\n[Title]\n${e.suno.title}`);
+}
+
+function sendToEdit() {
+  // (수정) 탭 전환 후 값을 넣도록 순서 변경 — 기존에는 값이 지워지던 버그
+  switchTab('edit');
+  document.getElementById('edit-input').value = document.getElementById('lyrics-output').textContent;
+}
+
+function resetAll() {
+  if (!confirm('모든 내용을 초기화할까요?')) return;
+  document.getElementById('keywords').value = '';
+  document.getElementById('edit-input').value = '';
+  document.getElementById('chat-input').value = '';
+  document.getElementById('poetry-input').value = '';
+  document.getElementById('songform-structure').value = '';
+  document.getElementById('adapt-custom-input').value = '';
+  ['result','adapted-result','suno-result','suno-editor','poetry-result'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  document.getElementById('songform-box').style.display = 'none';
+  clearChat();
+  baseLyrics = '';
+  updateSongformSourceUI();
+  window._skipAutoSuggest = true;
+  switchTab('generate');
+  window._skipAutoSuggest = false;
+}
+
+function goBack(from) {
+  if (from === 'songform') {
+    document.getElementById('songform-box').style.display = 'none';
+  } else if (from === 'result') {
+    document.getElementById('result').style.display = 'none';
+    document.getElementById('suno-editor').style.display = 'none';
+    document.getElementById('suno-result').style.display = 'none';
+    document.getElementById('songform-box').style.display = 'block';
+    document.getElementById('songform-box').scrollIntoView({behavior:'smooth'});
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('error');
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = 'block';
+}
+
+function copyText(id) {
+  navigator.clipboard.writeText(document.getElementById(id).textContent).then(() => {
+    document.querySelectorAll('[onclick]').forEach(b => {
+      const oc = b.getAttribute('onclick') || '';
+      if (oc.includes("copyText") && oc.includes(id)) {
+        const orig = b.textContent;
+        b.textContent = '✅ 복사됨';
+        setTimeout(() => b.textContent = orig, 2000);
+      }
+    });
+  });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('anthropic_key');
+  if (saved) {
+    document.getElementById('api-key-input').value = saved;
+    document.querySelector('.api-save-btn').textContent = '✅ 저장됨';
+  }
+  updateBadge();
+  ['sp-vocal','sp-instruments','sp-mood','sp-tempo','sp-genre','sp-extra'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateFinalPreview);
+  });
+});
+</script>
+</body>
+</html>
