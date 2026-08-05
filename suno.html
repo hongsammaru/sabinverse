@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SUNO PROMPT STUDIO — Sabin Verse</title>
+<style>
+  :root{
+    --bg:#0a0a0f; --panel:#13131a; --panel2:#1a1a24; --border:#2a2a38;
+    --primary:#22d3ee; --primary-dim:rgba(34,211,238,.15); --accent:#f472b6;
+    --text:#e5e5eb; --muted:#8a8a9a; --green:#4ade80;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Segoe UI',-apple-system,'Malgun Gothic',sans-serif;}
+  header{position:sticky;top:0;z-index:50;background:rgba(19,19,26,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:12px 20px;}
+  .header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-icon{width:36px;height:36px;border-radius:8px;background:var(--primary-dim);border:1px solid rgba(34,211,238,.3);display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .brand h1{font-size:13px;letter-spacing:2px;margin:0;font-weight:700;}
+  .brand p{font-size:9px;letter-spacing:3px;margin:0;color:var(--muted);font-family:monospace;}
+  .header-actions{display:flex;gap:8px;align-items:center;}
+  a.yt-btn{display:inline-flex;align-items:center;gap:6px;background:#FF0000;color:#fff;padding:7px 16px;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;transition:.2s;}
+  a.yt-btn:hover{filter:brightness(.9);transform:scale(1.03);}
+  .preset-btn{background:linear-gradient(135deg,#f472b6,#a855f7);color:#fff;border:none;padding:7px 16px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.2s;}
+  .preset-btn:hover{transform:scale(1.03);}
+  main{max-width:1100px;margin:0 auto;padding:30px 20px;}
+  .title-section{text-align:center;padding:20px 0 30px;}
+  .eyebrow{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid var(--border);padding:5px 12px;border-radius:6px;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:14px;}
+  h2{font-size:26px;font-weight:800;margin:0 0 8px;text-shadow:0 0 20px rgba(34,211,238,.3);}
+  .title-section p{color:var(--muted);font-size:13px;max-width:480px;margin:0 auto;}
+  .counter{margin-top:14px;display:inline-flex;align-items:center;gap:6px;background:var(--primary-dim);border:1px solid rgba(34,211,238,.25);padding:6px 14px;border-radius:6px;font-size:12px;color:var(--primary);font-weight:600;}
+  .cat-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;}
+  .cat-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .cat-head-left{display:flex;align-items:center;gap:8px;}
+  .cat-bar{width:4px;height:16px;border-radius:2px;background:var(--primary);}
+  .cat-label{font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--primary);}
+  .cat-label-ko{font-size:11px;color:var(--muted);}
+  .cat-badge{font-size:10px;background:var(--primary-dim);color:var(--primary);padding:2px 7px;border-radius:4px;font-family:monospace;font-weight:700;}
+  .options{display:flex;flex-wrap:wrap;gap:6px;}
+  .opt-btn{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:500;border:1px solid var(--border);background:var(--panel2);color:var(--muted);cursor:pointer;transition:.12s;}
+  .opt-btn:hover{color:var(--text);border-color:#3a3a4a;}
+  .opt-btn.active{background:var(--primary);color:#0a0a0f;border-color:var(--primary);font-weight:700;}
+  .output-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:22px;}
+  .output-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .output-bar{background:var(--accent);}
+  .output-label{color:var(--accent);}
+  .status{display:flex;align-items:center;gap:10px;}
+  .charcount{font-size:10px;color:var(--muted);font-family:monospace;}
+  .ready{display:flex;align-items:center;gap:5px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);}
+  .ready span{font-size:10px;color:var(--muted);font-family:monospace;}
+  .prompt-box{min-height:60px;background:rgba(0,0,0,.35);border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:14px;font-family:monospace;font-size:12px;line-height:1.7;color:var(--text);word-break:break-word;}
+  .prompt-box.empty{color:var(--muted);}
+  .actions{display:flex;flex-wrap:wrap;gap:8px;}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--panel2);color:var(--text);transition:.15s;}
+  .btn:hover{border-color:#3a3a4a;}
+  .btn:disabled{opacity:.3;cursor:not-allowed;}
+  .btn-primary{background:var(--primary);color:#0a0a0f;border-color:var(--primary);}
+  .btn-primary:hover{filter:brightness(1.08);}
+  .btn.copied{background:var(--green);color:#0a0a0f;border-color:var(--green);}
+  footer{text-align:center;padding:26px 0;}
+  footer p{font-size:10px;letter-spacing:3px;color:var(--muted);font-family:monospace;margin:0 0 6px;}
+  footer .sub{display:flex;justify-content:center;gap:10px;font-size:10px;color:#5a5a6a;}
+  @media (max-width:640px){ .header-actions{width:100%;justify-content:flex-end;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">💿</div>
+      <div>
+        <h1>SUNO PROMPT</h1>
+        <p>STUDIO v1.1</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a class="yt-btn" href="https://www.youtube.com/@Sabin-Verse-26?sub_confirmation=1" target="_blank" rel="noopener noreferrer">▶ 구독하기</a>
+      <button class="preset-btn" id="presetBtn">★ Sabin Verse</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="title-section">
+    <div class="eyebrow">🎵 AI MUSIC PROMPT BUILDER</div>
+    <h2>프롬프트 생성기</h2>
+    <p>카테고리에서 옵션을 선택하여 Suno AI 음악 생성에 최적화된 프롬프트를 만드세요</p>
+    <div class="counter" id="counter" style="display:none;">🔊 <span id="counterText">0개 선택됨</span></div>
+  </div>
+
+  <div id="categories"></div>
+
+  <div class="output-card">
+    <div class="output-head">
+      <div class="cat-head-left">
+        <div class="cat-bar output-bar"></div>
+        <span class="cat-label output-label">OUTPUT</span>
+        <span class="cat-label-ko">생성된 프롬프트</span>
+      </div>
+      <div class="status">
+        <span class="charcount" id="charcount"></span>
+        <div class="ready"><div class="dot"></div><span>READY</span></div>
+      </div>
+    </div>
+    <div class="prompt-box empty" id="promptBox">// 생성된 프롬프트가 여기에 표시됩니다...</div>
+    <div class="actions">
+      <button class="btn btn-primary" id="genBtn">✨ Generate</button>
+      <button class="btn" id="copyBtn" disabled>📋 Copy</button>
+      <button class="btn" id="resetBtn">↺ Reset</button>
+    </div>
+  </div>
+
+  <footer>
+    <p>OPTIMIZED FOR SUNO AI</p>
+    <div class="sub"><span>v1.1.0</span><span>·</span><span>Sabin Studio</span></div>
+  </footer>
+</main>
+
+<script>
+const categories = {
+  vocal: {
+    label: "VOCAL",
+    labelKo: "보컬 스타일",
+    options: [
+      { label: "남성 보컬", en: "male vocal" },
+      { label: "여성 보컬", en: "female vocal" },
+      { label: "듀엣", en: "male-female duet" },
+      { label: "합창", en: "choir" },
+      { label: "랩", en: "rap verse" },
+      { label: "나레이션", en: "spoken narration" },
+      { label: "하모니", en: "layered vocal harmonies" },
+      { label: "팔세토", en: "falsetto" },
+      { label: "보컬 없음", en: "no vocals, instrumental only" },
+      { label: "감성 보컬", en: "emotive expressive vocal" },
+      { label: "허스키 보이스", en: "husky raspy voice" },
+      { label: "트로트 창법", en: "traditional Korean trot vocal style" },
+      { label: "비브라토", en: "warm natural vibrato" },
+      { label: "꺾기 창법", en: "kkeokgi, Korean trot melodic bending ornamentation" },
+      { label: "애절한 목소리", en: "plaintive aching voice" },
+      { label: "중후한 목소리", en: "deep resonant mature voice" },
+    ],
+  },
+  genre: {
+    label: "GENRE",
+    labelKo: "장르",
+    options: [
+      { label: "Korean Ballad", en: "Korean ballad" },
+      { label: "Korean Trot Ballad", en: "Korean trot ballad" },
+      { label: "Korean Emotional Ballad", en: "Korean emotional ballad" },
+      { label: "90s Korean Ballad", en: "1990s Korean ballad" },
+      { label: "Trot", en: "Korean trot" },
+      { label: "신트로트", en: "modern Korean trot" },
+      { label: "K-Pop", en: "K-pop" },
+      { label: "K-R&B", en: "Korean R&B" },
+      { label: "Pop", en: "pop" },
+      { label: "Rock", en: "rock" },
+      { label: "Hip Hop", en: "hip hop" },
+      { label: "Electronic", en: "electronic" },
+      { label: "Jazz", en: "jazz" },
+      { label: "Classical", en: "classical" },
+      { label: "R&B", en: "R&B" },
+      { label: "Indie", en: "indie" },
+      { label: "Folk", en: "folk" },
+      { label: "Soul", en: "soul" },
+      { label: "Lo-Fi", en: "lo-fi" },
+      { label: "Ambient", en: "ambient" },
+    ],
+  },
+  era: {
+    label: "ERA",
+    labelKo: "시대",
+    options: [
+      { label: "1980s", en: "1980s" },
+      { label: "1990s", en: "1990s" },
+      { label: "2000s", en: "2000s" },
+      { label: "2010s", en: "2010s" },
+      { label: "Modern", en: "modern" },
+      { label: "Retro Korean Emotion", en: "retro Korean sentiment" },
+      { label: "Vinyl Nostalgia", en: "vinyl-era nostalgia, analog tape warmth" },
+      { label: "Futuristic", en: "futuristic" },
+      { label: "80년대 한국", en: "1980s Korean pop" },
+      { label: "90년대 한국", en: "1990s Korean pop" },
+      { label: "트로트 황금기", en: "golden age of Korean trot" },
+      { label: "발라드 전성기", en: "peak-era Korean ballad" },
+    ],
+  },
+  mood: {
+    label: "MOOD",
+    labelKo: "분위기",
+    options: [
+      { label: "Rainy Seoul Night", en: "rainy Seoul night" },
+      { label: "행복한", en: "happy" },
+      { label: "슬픈", en: "sad" },
+      { label: "에너지틱", en: "energetic" },
+      { label: "차분한", en: "calm" },
+      { label: "어두운", en: "dark" },
+      { label: "희망찬", en: "hopeful" },
+      { label: "로맨틱", en: "romantic" },
+      { label: "몽환적", en: "dreamy" },
+      { label: "신비로운", en: "mysterious" },
+      { label: "향수적인", en: "nostalgic" },
+      { label: "감동적인", en: "heartfelt, moving" },
+      { label: "고독한", en: "lonely" },
+      { label: "새벽 감성", en: "pre-dawn stillness" },
+      { label: "한강 야경", en: "Han River night skyline" },
+      { label: "겨울밤", en: "winter night" },
+      { label: "소주 한잔", en: "drinking alone late at night" },
+      { label: "빗소리 카페", en: "rainy cafe ambience" },
+      { label: "눈 오는 거리", en: "snowy street" },
+    ],
+  },
+  instruments: {
+    label: "INSTRUMENTS",
+    labelKo: "악기",
+    options: [
+      { label: "Emotional Piano", en: "emotional piano" },
+      { label: "Cinematic Chorus", en: "cinematic chorus" },
+      { label: "Piano", en: "piano" },
+      { label: "Guitar", en: "guitar" },
+      { label: "Strings", en: "strings" },
+      { label: "Synth", en: "synth" },
+      { label: "Orchestra", en: "orchestra" },
+      { label: "Acoustic Guitar", en: "acoustic guitar" },
+      { label: "Violin", en: "violin" },
+      { label: "Cello", en: "cello" },
+      { label: "Saxophone", en: "saxophone" },
+      { label: "Brass", en: "brass" },
+      { label: "Soft Drums", en: "soft drums" },
+      { label: "Ambient Pads", en: "ambient pads" },
+      { label: "Harp", en: "harp" },
+      { label: "가야금", en: "gayageum, Korean zither" },
+      { label: "해금", en: "haegeum, Korean two-string fiddle" },
+      { label: "대금", en: "daegeum, Korean bamboo flute" },
+      { label: "트로트 신디", en: "retro trot synthesizer" },
+      { label: "발라드 피아노", en: "ballad piano" },
+      { label: "국악 퓨전", en: "Korean traditional fusion instrumentation" },
+    ],
+  },
+  tempo: {
+    label: "TEMPO",
+    labelKo: "템포",
+    options: [
+      { label: "느린", en: "slow" },
+      { label: "중간", en: "mid" },
+      { label: "빠른", en: "fast" },
+      { label: "발라드", en: "ballad" },
+      { label: "그루비", en: "groovy" },
+      { label: "드라이빙", en: "driving" },
+      { label: "여유로운", en: "relaxed" },
+      { label: "드라마틱", en: "dramatic" },
+    ],
+  },
+  emotion: {
+    label: "EMOTION",
+    labelKo: "감정",
+    options: [
+      { label: "기쁨", en: "joy" },
+      { label: "멜랑콜리", en: "melancholy" },
+      { label: "평화로운", en: "peaceful" },
+      { label: "희망적인", en: "hopeful" },
+      { label: "씁쓸한", en: "bittersweet" },
+      { label: "황홀한", en: "euphoric" },
+      { label: "사색적인", en: "contemplative" },
+      { label: "열정적인", en: "passionate" },
+      { label: "그리움", en: "longing" },
+      { label: "이별", en: "heartbreak, parting" },
+      { label: "첫사랑", en: "first love" },
+      { label: "위로", en: "consoling" },
+      { label: "치유", en: "healing" },
+      { label: "눈물", en: "tearful" },
+      { label: "후회", en: "regret" },
+      { label: "추억", en: "reminiscence" },
+      { label: "애잔함", en: "aching tenderness" },
+      { label: "서러움", en: "sorrowful" },
+      { label: "한스러움", en: "han, deep unresolved sorrow" },
+      { label: "정", en: "jeong, deep affectionate bond" },
+      { label: "효도", en: "filial devotion" },
+      { label: "고향 그리움", en: "homesickness for one's hometown" },
+    ],
+  },
+};
+
+const EMPTY_MSG = "위의 옵션을 선택하여 프롬프트를 생성하세요";
+let selections = {};
+Object.keys(categories).forEach(k => selections[k] = []);
+let generatedPrompt = "";
+
+const sabinVersePreset = {
+  vocal: ["감성 보컬", "허스키 보이스", "팔세토"],
+  genre: ["Korean Emotional Ballad", "Korean Ballad"],
+  era: ["Retro Korean Emotion", "90년대 한국", "발라드 전성기"],
+  mood: ["고독한", "새벽 감성", "빗소리 카페", "겨울밤"],
+  instruments: ["Emotional Piano", "Acoustic Guitar", "Violin", "Ambient Pads"],
+  tempo: ["느린", "여유로운"],
+  emotion: ["그리움", "이별", "추억", "서러움", "첫사랑"]
+};
+
+function toEnglish(cat, labels){
+  return labels.map(l => {
+    const found = categories[cat].options.find(o => o.label === l);
+    return found ? found.en : l;
+  });
+}
+
+function renderCategories(){
+  const wrap = document.getElementById('categories');
+  wrap.innerHTML = '';
+  Object.keys(categories).forEach(catKey => {
+    const cat = categories[catKey];
+    const card = document.createElement('div');
+    card.className = 'cat-card';
+    const count = selections[catKey].length;
+    card.innerHTML = `
+      <div class="cat-head">
+        <div class="cat-head-left">
+          <div class="cat-bar"></div>
+          <span class="cat-label">${cat.label}</span>
+          <span class="cat-label-ko">${cat.labelKo}</span>
+        </div>
+        ${count > 0 ? `<span class="cat-badge">${count}</span>` : ''}
+      </div>
+      <div class="options"></div>
+    `;
+    const optsWrap = card.querySelector('.options');
+    cat.options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'opt-btn' + (selections[catKey].includes(opt.label) ? ' active' : '');
+      btn.textContent = opt.label;
+      btn.title = opt.en;
+      btn.onclick = () => toggleSelection(catKey, opt.label);
+      optsWrap.appendChild(btn);
+    });
+    wrap.appendChild(card);
+  });
+
+  const total = Object.values(selections).flat().length;
+  const counter = document.getElementById('counter');
+  if(total > 0){
+    counter.style.display = 'inline-flex';
+    document.getElementById('counterText').textContent = total + '개 선택됨';
+  } else {
+    counter.style.display = 'none';
+  }
+}
+
+function toggleSelection(catKey, label){
+  const idx = selections[catKey].indexOf(label);
+  if(idx > -1) selections[catKey].splice(idx, 1);
+  else selections[catKey].push(label);
+  renderCategories();
+}
+
+function generatePrompt(){
+  const parts = [];
+  if(selections.genre.length) parts.push(toEnglish('genre', selections.genre).join(', '));
+  if(selections.era.length) parts.push(toEnglish('era', selections.era).join(', ') + ' style');
+  if(selections.mood.length) parts.push(toEnglish('mood', selections.mood).join(', ') + ' mood');
+  if(selections.emotion.length) parts.push(toEnglish('emotion', selections.emotion).join(', ') + ' feeling');
+  if(selections.vocal.length) parts.push('with ' + toEnglish('vocal', selections.vocal).join(', '));
+  if(selections.instruments.length) parts.push('featuring ' + toEnglish('instruments', selections.instruments).join(', '));
+  if(selections.tempo.length) parts.push(toEnglish('tempo', selections.tempo).join(', ') + ' tempo');
+
+  generatedPrompt = parts.length > 0 ? parts.join(', ') : EMPTY_MSG;
+
+  const box = document.getElementById('promptBox');
+  const charcount = document.getElementById('charcount');
+  const copyBtn = document.getElementById('copyBtn');
+
+  if(generatedPrompt === EMPTY_MSG){
+    box.textContent = generatedPrompt;
+    box.classList.add('empty');
+    charcount.textContent = '';
+    copyBtn.disabled = true;
+  } else {
+    box.textContent = generatedPrompt;
+    box.classList.remove('empty');
+    charcount.textContent = generatedPrompt.length + ' chars';
+    copyBtn.disabled = false;
+  }
+}
+
+function copyToClipboard(){
+  if(!generatedPrompt || generatedPrompt === EMPTY_MSG) return;
+  const btn = document.getElementById('copyBtn');
+  const doneUI = () => {
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('copied'); }, 2000);
+  };
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(generatedPrompt).then(doneUI).catch(fallbackCopy);
+  } else {
+    fallbackCopy();
+  }
+  function fallbackCopy(){
+    const ta = document.createElement('textarea');
+    ta.value = generatedPrompt;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); doneUI(); } catch(e){ alert('복사에 실패했습니다. 직접 선택해서 복사해주세요.'); }
+    document.body.removeChild(ta);
+  }
+}
+
+function resetAll(){
+  Object.keys(categories).forEach(k => selections[k] = []);
+  generatedPrompt = "";
+  const box = document.getElementById('promptBox');
+  box.textContent = '// 생성된 프롬프트가 여기에 표시됩니다...';
+  box.classList.add('empty');
+  document.getElementById('charcount').textContent = '';
+  document.getElementById('copyBtn').disabled = true;
+  renderCategories();
+}
+
+function applyPreset(){
+  selections = JSON.parse(JSON.stringify(sabinVersePreset));
+  const btn = document.getElementById('presetBtn');
+  btn.style.transform = 'scale(1.1)';
+  setTimeout(() => { btn.style.transform = ''; }, 1000);
+  renderCategories();
+}
+
+document.getElementById('genBtn').onclick = generatePrompt;
+document.getElementById('copyBtn').onclick = copyToClipboard;
+document.getElementById('resetBtn').onclick = resetAll;
+document.getElementById('presetBtn').onclick = applyPreset;
+
+renderCategories();
+</script>
+</body>
+</html>
