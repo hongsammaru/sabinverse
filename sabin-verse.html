@@ -145,7 +145,7 @@
 <script>
 (function(){
   var GENRES = ["발라드","트롯","세미트롯"];
-  var genre = "", includeLyrics = true;
+  var genre = "발라드", includeLyrics = true;
 
   var $ = function(id){ return document.getElementById(id); };
   var lyricsEl = $("sv-lyrics"), gutter = $("sv-gutter"), out = $("sv-out"),
@@ -161,7 +161,7 @@
 
   GENRES.forEach(function(m){
     var b = document.createElement("button");
-    b.className = "sv-chip"; b.textContent = m;
+    b.className = "sv-chip" + (m === genre ? " on" : ""); b.textContent = m;
     b.onclick = function(){
       genre = (genre === m) ? "" : m;
       Array.prototype.forEach.call($("sv-genres").children, function(c){
