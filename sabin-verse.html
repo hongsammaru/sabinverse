@@ -33,6 +33,8 @@
   background:var(--sheet);font-size:15px;font-family:Pretendard,sans-serif;
   color:var(--ink);margin-bottom:14px;}
 .sv-input-mini{padding:11px 13px;border-radius:10px;font-size:14px;margin-bottom:8px;}
+.sv-ta{min-height:150px;resize:vertical;line-height:1.7;font-family:Pretendard,sans-serif;}
+.sv-fixed-label{font-size:12px;color:var(--muted);margin:10px 0 6px;}
 #sv-root ::placeholder{color:var(--muted);opacity:.55;}
 
 .sv-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
@@ -114,6 +116,10 @@
     <input class="sv-input sv-input-mini" id="sv-key" type="password" placeholder="Anthropic API 키 (sk-ant-...)">
     <input class="sv-input sv-input-mini" id="sv-site" value="https://sabinverse.com" placeholder="홈페이지 주소">
     <input class="sv-input sv-input-mini" id="sv-x" placeholder="X 프로필 주소">
+    <div class="sv-fixed-label">고정 문구 · 동영상 설명 아래에 항상 붙습니다</div>
+    <textarea class="sv-input sv-input-mini sv-ta" id="sv-fixed"></textarea>
+    <div class="sv-fixed-label">고정 해시태그 · 곡마다 나오는 태그 앞에 붙습니다</div>
+    <input class="sv-input sv-input-mini" id="sv-fixtags">
   </div>
 
   <div id="sv-error"></div>
@@ -302,11 +308,24 @@
       if (site) links.push("홈페이지: " + site);
       if (xurl) links.push("X: " + xurl);
 
+      var fixed = $("sv-fixed").value.trim();
+      var fixTags = $("sv-fixtags").value.trim().split(/\s+/).filter(Boolean);
+
+      function mergeTags(gen){
+        var seen = {}, outArr = [];
+        fixTags.concat(gen || []).forEach(function(t){
+          var k = t.toLowerCase();
+          if (t && !seen[k]) { seen[k] = 1; outArr.push(t); }
+        });
+        return outArr.join(" ");
+      }
+
       // 동영상
-      var vParts = [v.description];
+      var vParts = ["[곡 설명]\n" + v.description];
       if (includeLyrics) vParts.push("─────────\n가사\n\n" + lyrics);
-      if (links.length) vParts.push("─────────\n" + links.join("\n"));
-      vParts.push((v.hashtags || []).join(" "));
+      if (fixed) vParts.push("─────────\n" + fixed);
+      if (links.length) vParts.push(links.join("\n"));
+      vParts.push(mergeTags(v.hashtags));
       var vFull = vParts.join("\n\n");
 
       out.appendChild(heading("동영상", "LONG FORM"));
@@ -322,7 +341,8 @@
       var sParts = [sh.description];
       if (mainUrl) sParts.push("전곡 듣기 → " + mainUrl);
       if (links.length) sParts.push(links.join("\n"));
-      sParts.push((sh.hashtags || []).join(" "));
+      sParts.push("작사 사빈(SABIN) · 음원과 영상은 생성형 AI로 제작했습니다.");
+      sParts.push(mergeTags(sh.hashtags));
       var sFull = sParts.join("\n\n");
 
       out.appendChild(heading("쇼츠", "SHORTS"));
@@ -338,7 +358,33 @@
     }
   };
 
+  var DEFAULT_FIXED = [
+"📋 곡 제작 정보",
+"📌 작사: 사빈 (SABIN)",
+"🎼 작곡·편곡: AI 협업 (생성형 AI 기술 활용)",
+"🎨 이미지: AI 생성 콘텐츠",
+"🎤 보컬: 감성 보이스 (AI 협업) · 감성 발라드 & 트롯 스타일",
+"",
+"📢 AI 콘텐츠 표기",
+"본 영상의 오디오 및 시각 자료는 작사가 사빈의 가사를 바탕으로 생성형 AI 기술을 활용하여 제작되었습니다. 관련 법규를 준수하여 투명하게 공개합니다.",
+"",
+"매주 신곡을 올립니다."
+].join("\n");
+
+  var DEFAULT_FIXTAGS = "#사빈 #SABIN #sabinverse #작사가사빈 #중년감성 #AI음악 #AI제작 #AI콘텐츠";
+
   try {
+    var savedFixed = localStorage.getItem("sv_fixed");
+    $("sv-fixed").value = (savedFixed !== null) ? savedFixed : DEFAULT_FIXED;
+    var savedFixTags = localStorage.getItem("sv_fixtags");
+    $("sv-fixtags").value = (savedFixTags !== null) ? savedFixTags : DEFAULT_FIXTAGS;
+    $("sv-fixed").addEventListener("input", function(){
+      try { localStorage.setItem("sv_fixed", this.value); } catch(e){}
+    });
+    $("sv-fixtags").addEventListener("input", function(){
+      try { localStorage.setItem("sv_fixtags", this.value); } catch(e){}
+    });
+
     var savedKey = localStorage.getItem("sv_key");
     if (savedKey) $("sv-key").value = savedKey;
     var savedSite = localStorage.getItem("sv_site");
