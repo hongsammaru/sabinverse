@@ -106,7 +106,6 @@
   </div>
 
   <input class="sv-input" id="sv-song" placeholder="곡 제목 (선택)">
-  <input class="sv-input" id="sv-main" placeholder="본 영상 주소 (쇼츠 설명에 들어갑니다 · 선택)">
 
   <div class="sv-chips" id="sv-moods"></div>
 
@@ -197,16 +196,18 @@
     return d;
   }
 
-  function titleOne(t){
+  function titleList(titles){
     var d = document.createElement("div"); d.className = "sv-block";
     var l = document.createElement("div"); l.className = "sv-label";
-    l.textContent = "제목"; l.style.marginBottom = "10px";
+    l.textContent = "제목 후보"; l.style.marginBottom = "10px";
     d.appendChild(l);
-    var row = document.createElement("div"); row.className = "sv-title-row";
-    var s = document.createElement("span"); s.textContent = t || "";
-    var c = document.createElement("button"); c.className = "sv-copy"; c.textContent = "복사";
-    c.onclick = function(){ copyText(t || "", c); };
-    row.appendChild(s); row.appendChild(c); d.appendChild(row);
+    (titles || []).forEach(function(t){
+      var row = document.createElement("div"); row.className = "sv-title-row";
+      var sp = document.createElement("span"); sp.textContent = t;
+      var c = document.createElement("button"); c.className = "sv-copy"; c.textContent = "복사";
+      c.onclick = function(){ copyText(t, c); };
+      row.appendChild(sp); row.appendChild(c); d.appendChild(row);
+    });
     return d;
   }
 
@@ -238,7 +239,6 @@
     goBtn.disabled = true; goBtn.textContent = "쓰는 중…";
 
     var song = $("sv-song").value.trim();
-    var mainUrl = $("sv-main").value.trim();
     var site = $("sv-site").value.trim();
     var xurl = $("sv-x").value.trim();
 
@@ -253,10 +253,14 @@
 
     var pV1 = head +
 "위 가사를 읽고 아래 두 가지를 한국어로 만드세요.\n" +
-"- title: 유튜브 제목 1개. 가사 맨 위에 있는 제목을 그대로 살려 씁니다. 형식은 '제목 — 사빈' 또는 '제목 / 사빈'. 40자 이내.\n" +
+"- titles: 유튜브 제목 후보 3개. 반드시 이 형식을 지키세요: 👉곡명/구절/#태그 #태그\n" +
+"  · 곡명은 가사 맨 위 제목을 그대로 씁니다.\n" +
+"  · 구절은 2~5글자로 짧게. 곡의 간절함을 한마디로 압축한 말이거나 가사에서 가져온 말. 예: 제발, 한번만, 눈감아줘요\n" +
+"  · 태그는 2개. #으로 시작하고 공백 없이. 검색에 걸릴 만한 말로.\n" +
+"  · 세 후보는 구절과 태그를 서로 다르게 씁니다. 각 40자 이내.\n" +
 "- description: 유튜브 설명란 본문. 곡의 정서를 짚는 첫 문단(2~3문장)과 짧은 노트(2~3문장). 가사를 그대로 옮기지 말고, 링크나 해시태그는 넣지 마세요. 전체 400자 이내.\n\n" +
 "JSON만 출력하세요. 코드펜스나 다른 말은 절대 붙이지 마세요.\n" +
-'{"title":"","description":""}';
+'{"titles":["","",""],"description":""}';
 
     var pV2 = head +
 "위 가사를 읽고 아래 세 가지를 만드세요.\n" +
@@ -268,12 +272,16 @@
 
     var pS = head +
 "위 가사로 유튜브 쇼츠에 쓸 문구를 만드세요. 동영상 설명과는 다른 표현을 쓰세요.\n" +
-"- title: 쇼츠 제목 1개. 25자 이내. 가사에서 가장 강한 한 구절을 골라 씁니다.\n" +
+"- titles: 쇼츠 제목 후보 3개. 반드시 이 형식을 지키세요: 곡명/구절 #태그\n" +
+"  · 맨 앞에 이모지를 넣지 마세요.\n" +
+"  · 곡명은 가사 맨 위 제목을 띄어쓰기 없이 붙여 씁니다. 예: 허락해주세요\n" +
+"  · 구절은 2~5글자로 짧게. 동영상 제목과 다른 말을 고릅니다.\n" +
+"  · 태그는 1개. 각 25자 이내.\n" +
 "- description: 쇼츠 설명란. 2~3문장, 전체 120자 이내. 링크나 해시태그는 넣지 마세요.\n" +
 "- hashtags: 8~10개. #Shorts와 #쇼츠를 맨 앞에 넣고, #사빈과 #sabinverse를 포함합니다.\n" +
 "- tags: 유튜브 태그 입력란용 키워드 8~10개. #을 붙이지 않습니다.\n\n" +
 "JSON만 출력하세요. 코드펜스나 다른 말은 절대 붙이지 마세요.\n" +
-'{"title":"","description":"","hashtags":[""],"tags":[""]}';
+'{"titles":["","",""],"description":"","hashtags":[""],"tags":[""]}';
 
     async function ask(p){
       var res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -329,7 +337,7 @@
       var vFull = vParts.join("\n\n");
 
       out.appendChild(heading("동영상", "LONG FORM"));
-      out.appendChild(titleOne(v.title));
+      out.appendChild(titleList(v.titles));
       out.appendChild(block("설명란 전체", vFull, true));
       out.appendChild(block("유튜브 태그란", (v.tags || []).join(", "), false));
       if (v.pinnedComment) out.appendChild(block("고정 댓글", v.pinnedComment, true));
@@ -339,14 +347,13 @@
 
       // 쇼츠
       var sParts = [sh.description];
-      if (mainUrl) sParts.push("전곡 듣기 → " + mainUrl);
       if (links.length) sParts.push(links.join("\n"));
       sParts.push("작사 사빈(SABIN) · 음원과 영상은 생성형 AI로 제작했습니다.");
       sParts.push(mergeTags(sh.hashtags));
       var sFull = sParts.join("\n\n");
 
       out.appendChild(heading("쇼츠", "SHORTS"));
-      out.appendChild(titleOne(sh.title));
+      out.appendChild(titleList(sh.titles));
       out.appendChild(block("설명란 전체", sFull, true));
       out.appendChild(block("유튜브 태그란", (sh.tags || []).join(", "), false));
 
