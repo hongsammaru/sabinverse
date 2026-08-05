@@ -1,3 +1,13 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>가사에서 설명란까지 · sabin verse</title>
+<style>html,body{margin:0;padding:0;background:#F0EDF4;}</style>
+</head>
+<body>
 <div id="sv-root">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
@@ -18,40 +28,40 @@
   text-transform:uppercase;color:var(--muted);}
 .sv-h1{font-family:'Gowun Batang',serif;font-size:30px;font-weight:700;
   margin:8px 0 0;line-height:1.25;letter-spacing:-.01em;}
-.sv-sub{color:var(--muted);font-size:14px;margin:8px 0 26px;line-height:1.6;}
+.sv-sub{color:var(--muted);font-size:15px;margin:8px 0 26px;line-height:1.6;}
 
 .sv-sheet{background:var(--sheet);border:1px solid var(--veil);border-radius:14px;
   overflow:hidden;margin-bottom:14px;display:flex;}
 .sv-gutter{width:40px;flex-shrink:0;border-right:1px solid var(--veil);padding:18px 0;
   text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;
   color:var(--muted);line-height:1.9;user-select:none;}
-#sv-lyrics{flex:1;min-height:220px;border:none;background:transparent;resize:vertical;
-  padding:18px 16px;font-family:'Gowun Batang',serif;font-size:16px;line-height:1.9;
+#sv-lyrics{flex:1;min-height:260px;border:none;background:transparent;resize:vertical;
+  padding:18px 16px;font-family:'Gowun Batang',serif;font-size:17px;line-height:1.95;
   color:var(--ink);outline:none;width:100%;}
 
-.sv-input{width:100%;padding:14px 16px;border-radius:12px;border:1px solid var(--veil);
-  background:var(--sheet);font-size:15px;font-family:Pretendard,sans-serif;
+.sv-input{width:100%;padding:15px 16px;border-radius:12px;border:1px solid var(--veil);
+  background:var(--sheet);font-size:16px;font-family:Pretendard,sans-serif;
   color:var(--ink);margin-bottom:14px;}
-.sv-input-mini{padding:11px 13px;border-radius:10px;font-size:14px;margin-bottom:8px;}
+.sv-input-mini{padding:13px;border-radius:10px;font-size:15px;margin-bottom:8px;}
 .sv-ta{min-height:150px;resize:vertical;line-height:1.7;font-family:Pretendard,sans-serif;}
-.sv-fixed-label{font-size:12px;color:var(--muted);margin:10px 0 6px;}
+.sv-fixed-label{font-size:13px;color:var(--muted);margin:10px 0 6px;}
 #sv-root ::placeholder{color:var(--muted);opacity:.55;}
 
 .sv-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
-.sv-chip{padding:9px 14px;border-radius:999px;border:1px solid var(--veil);
-  background:transparent;color:var(--muted);font-size:13px;
+.sv-chip{padding:10px 15px;border-radius:999px;border:1px solid var(--veil);
+  background:transparent;color:var(--muted);font-size:14px;
   font-family:Pretendard,sans-serif;cursor:pointer;transition:all .15s;}
 .sv-chip.on{border-color:var(--rose);background:var(--rose);color:var(--sheet);}
 
 .sv-check{display:flex;align-items:center;gap:10px;background:none;border:none;
-  padding:6px 0;cursor:pointer;color:var(--ink);font-size:14px;
+  padding:8px 0;cursor:pointer;color:var(--ink);font-size:15px;
   font-family:Pretendard,sans-serif;}
 .sv-box{width:20px;height:20px;border-radius:6px;border:1px solid var(--muted);
   display:grid;place-items:center;font-size:13px;color:transparent;flex-shrink:0;}
 .sv-check.on .sv-box{border-color:var(--rose);background:var(--rose);color:var(--sheet);}
 
-.sv-link-toggle{background:none;border:none;padding:6px 0;cursor:pointer;
-  color:var(--muted);font-size:14px;font-family:Pretendard,sans-serif;display:block;}
+.sv-link-toggle{background:none;border:none;padding:10px 0;cursor:pointer;
+  color:var(--muted);font-size:15px;text-decoration:underline;font-family:Pretendard,sans-serif;display:block;}
 #sv-links{display:none;margin-top:8px;}
 #sv-links.on{display:block;}
 
@@ -79,20 +89,26 @@
   text-transform:uppercase;color:var(--muted);}
 .sv-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
 .sv-body{background:var(--sheet);border:1px solid var(--veil);border-radius:12px;
-  padding:16px;white-space:pre-wrap;word-break:break-word;font-size:15px;line-height:1.85;}
+  padding:16px;white-space:pre-wrap;word-break:break-word;font-size:16px;line-height:1.9;}
 .sv-body.serif{font-family:'Gowun Batang',serif;}
 .sv-title-row{display:flex;align-items:center;gap:12px;background:var(--sheet);
   border:1px solid var(--veil);border-radius:12px;padding:13px 14px;margin-bottom:8px;}
-.sv-title-row span{font-family:'Gowun Batang',serif;font-size:15px;line-height:1.55;flex:1;}
+.sv-title-row span{font-family:'Gowun Batang',serif;font-size:16px;line-height:1.6;flex:1;}
 
 .sv-copy{border:1px solid var(--veil);background:transparent;color:var(--muted);
-  border-radius:999px;padding:6px 13px;font-size:12px;font-family:Pretendard,sans-serif;
+  border-radius:999px;padding:8px 15px;font-size:13px;font-family:Pretendard,sans-serif;
   cursor:pointer;flex-shrink:0;transition:all .15s;}
 .sv-copy.done{border-color:var(--rose);background:var(--rose);color:var(--sheet);}
 
 #sv-root button:active{transform:scale(.98);}
 #sv-root *:focus-visible{outline:2px solid var(--rose);outline-offset:2px;}
 @media (prefers-reduced-motion:reduce){.sv-block{animation:none;}}
+@media (max-width:480px){
+  #sv-root{padding:22px 14px 60px;}
+  .sv-h1{font-size:26px;}
+  .sv-gutter{width:34px;font-size:10px;}
+  #sv-lyrics{padding:18px 12px;font-size:16px;}
+}
 </style>
 
 <div class="sv-wrap">
@@ -107,7 +123,7 @@
 
   <input class="sv-input" id="sv-song" placeholder="곡 제목 (선택)">
 
-  <div class="sv-chips" id="sv-moods"></div>
+  <div class="sv-chips" id="sv-genres"></div>
 
   <button class="sv-check on" id="sv-inc"><span class="sv-box">✓</span>동영상 설명란에 가사 전문 넣기</button>
   <button class="sv-link-toggle" id="sv-linkbtn">키와 링크 설정</button>
@@ -129,8 +145,8 @@
 
 <script>
 (function(){
-  var MOODS = ["잔잔한","쓸쓸한","따뜻한","격정적인","몽환적인","담담한"];
-  var mood = "", includeLyrics = true;
+  var GENRES = ["발라드","트롯","세미트롯"];
+  var genre = "", includeLyrics = true;
 
   var $ = function(id){ return document.getElementById(id); };
   var lyricsEl = $("sv-lyrics"), gutter = $("sv-gutter"), out = $("sv-out"),
@@ -144,16 +160,16 @@
   }
   lyricsEl.addEventListener("input", drawGutter);
 
-  MOODS.forEach(function(m){
+  GENRES.forEach(function(m){
     var b = document.createElement("button");
     b.className = "sv-chip"; b.textContent = m;
     b.onclick = function(){
-      mood = (mood === m) ? "" : m;
-      Array.prototype.forEach.call($("sv-moods").children, function(c){
-        c.className = "sv-chip" + (c.textContent === mood ? " on" : "");
+      genre = (genre === m) ? "" : m;
+      Array.prototype.forEach.call($("sv-genres").children, function(c){
+        c.className = "sv-chip" + (c.textContent === genre ? " on" : "");
       });
     };
-    $("sv-moods").appendChild(b);
+    $("sv-genres").appendChild(b);
   });
 
   $("sv-inc").onclick = function(){
@@ -248,7 +264,8 @@
 "홍보용 과장, 느낌표 남발, 이모지 도배를 하지 않습니다. 조용하고 담백한 톤을 유지합니다.\n" +
 "가사에 [Intro] [Verse] [Chorus] 같은 구조 표기나 제목 줄이 섞여 있으면 곡 구조를 파악하는 데만 쓰고, 결과물에는 그대로 옮기지 마세요.\n\n" +
 "곡 제목: " + (song || "(가사 첫 줄에서 판단)") + "\n" +
-"분위기: " + (mood || "(가사에서 직접 판단)") + "\n" +
+"장르: " + (genre || "(가사에서 직접 판단)") + "\n" +
+"장르에 맞춰 해시태그와 어투를 정하세요. 발라드는 조용하고 절제된 문장으로, 트롯과 세미트롯은 좀 더 정감 있고 직설적인 문장으로 씁니다. 해시태그도 장르에 맞는 것을 넣으세요. 트롯 계열이면 발라드 관련 태그를 넣지 마세요.\n" +
 "가사:\n\"\"\"\n" + lyrics + "\n\"\"\"\n\n";
 
     var pV1 = head +
@@ -256,7 +273,7 @@
 "- titles: 유튜브 제목 후보 3개. 반드시 이 형식을 지키세요: 👉곡명/구절/#태그 #태그\n" +
 "  · 곡명은 가사 맨 위 제목을 그대로 씁니다.\n" +
 "  · 구절은 2~5글자로 짧게. 곡의 간절함을 한마디로 압축한 말이거나 가사에서 가져온 말. 예: 제발, 한번만, 눈감아줘요\n" +
-"  · 태그는 2개. #으로 시작하고 공백 없이. 검색에 걸릴 만한 말로.\n" +
+"  · 태그는 2개. #으로 시작하고 공백 없이. 하나는 장르 태그, 하나는 곡에 맞는 검색어로.\n" +
 "  · 세 후보는 구절과 태그를 서로 다르게 씁니다. 각 40자 이내.\n" +
 "- description: 유튜브 설명란 본문. 곡의 정서를 짚는 첫 문단(2~3문장)과 짧은 노트(2~3문장). 가사를 그대로 옮기지 말고, 링크나 해시태그는 넣지 마세요. 전체 400자 이내.\n\n" +
 "JSON만 출력하세요. 코드펜스나 다른 말은 절대 붙이지 마세요.\n" +
@@ -414,3 +431,5 @@
 })();
 </script>
 </div>
+</body>
+</html>
