@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>송폼 프롬프트 시트 · sabin verse</title>
+<title>가사를 분석 · 영상 및 이미지 프롬프트 생성</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gothic+A1:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -125,6 +125,20 @@ select{appearance:none;-webkit-appearance:none;padding-right:26px;cursor:pointer
 .anchor span{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ochre);margin-right:8px}
 
 .reading{margin:0 18px 14px 66px;font-size:13px;line-height:1.9;color:var(--soft)}
+.overview{background:var(--card);border:1px solid var(--deep);padding:18px 20px;margin-bottom:18px}
+.overview .oh{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px}
+.overview .oh span{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--deep)}
+.overview p{margin:0;font-family:var(--serif);font-size:15.5px;line-height:1.95;color:var(--ink)}
+.overview .sp{margin-top:10px;font-family:var(--sans);font-size:12.5px;line-height:1.85;color:var(--soft)}
+
+.ko{margin:0;padding:11px 12px;border-top:1px dashed var(--line);
+  font-size:12.5px;line-height:1.85;color:var(--soft);background:rgba(143,174,155,.07)}
+.ko b{color:var(--deep);font-weight:500;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:5px}
+
+.shift{margin:0 18px 14px;padding:9px 12px;background:#fff;border:1px solid var(--line);
+  font-size:12.5px;line-height:1.8;color:var(--ink)}
+.shift span{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--celadon);margin-right:9px}
 .reading b{color:var(--deep);font-weight:500}
 
 .tl{margin:0 18px 16px 66px}
@@ -166,8 +180,8 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
 
 <header>
   <div>
-    <h1>가사를 읽고 <em>송폼</em>을 세다</h1>
-    <p class="sub">lyric reading → song form → 10s shot per section</p>
+    <h1>가사를 분석 <em>영상 및 이미지</em> 프롬프트 생성</h1>
+    <p class="sub">lyric reading → 10s video + 2 stills per section</p>
   </div>
   <div class="by">sabin verse<br>sabinverse.com</div>
 </header>
@@ -175,11 +189,6 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
 <div class="grid">
 
 <section class="panel">
-
-  <div class="field">
-    <label class="lab" for="title">곡 제목</label>
-    <input type="text" id="title" placeholder="무제">
-  </div>
 
   <div class="field">
     <label class="lab" for="lyrics">가사</label>
@@ -286,9 +295,9 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
 <section id="out">
   <div class="empty">
     <b>가사를 넣고 구성을 잡아주세요.</b>
-    Intro · Verse · Pre-Chorus · Chorus · Bridge · 간주 · Outro —
-    구간마다 <em>이미지 1장 + 10초 영상 1컷</em>이 나옵니다.
-    구간의 가사를 실제로 읽고 쓰기 때문에, 같은 문장이 반복되지 않습니다.
+    먼저 가사 전체를 두 줄로 읽어주고, 구간마다
+    <em>10초 영상 1컷 + 이미지 2장(첫 프레임·끝 프레임)</em>이 나옵니다.
+    모든 프롬프트에 한국어 설명이 함께 붙습니다.
   </div>
 </section>
 
@@ -347,6 +356,7 @@ const LOOKS = [
 let BLOCKS = [];   // {type,label,lines}
 let FORM   = [];   // {type, block:index|null}
 let SHOTS  = [];   // 결과
+let OVERVIEW = null; // 가사 전체 읽기
 
 /* ═══ 가사 분리 ═══ */
 const LABEL_MAP = [
@@ -468,7 +478,6 @@ function opts(){
   const bgEn = bgKey === "custom" ? $("customBg").value.trim()
              : bgKey === "auto"   ? "" : BG_EN[bgKey];
   return {
-    title: $("title").value.trim() || "무제",
     ethnicity: $("ethnicity").value,
     age: $("age").value,
     gender: $("gender").value,
@@ -514,7 +523,10 @@ function rulesText(o){
 - 피, 상처, 폭력처럼 생성 모델이 거부하는 직접 묘사는 대체 심상으로 옮긴다. 시의 붉음은 살리고 검열은 피한다.
 - 화면에 글자, 자막, 로고가 나오지 않게 한다.
 - 영상은 컷 없는 10초 단일 샷. 카메라 무브는 하나만. 구간마다 무브가 겹치지 않게 한다.
-- 영상 프롬프트 영어 60–90단어, 이미지 프롬프트 영어 45–70단어. 피사체 → 동작 → 카메라 → 렌즈와 빛 → 질감 순서로.
+- 이미지는 구간마다 두 장이다. A는 10초 영상이 시작되는 순간, B는 그 10초가 끝나는 순간이다. 같은 장소·같은 빛·같은 의상 안에서 시간만 흐른 두 장이어야 한다. A와 B 사이에서 무엇이 달라졌는지(자세, 손의 위치, 빛의 각도, 거리, 사물의 상태)가 눈에 보여야 한다. 두 장을 영상의 첫 프레임과 끝 프레임으로 쓸 수 있어야 한다.
+- 영상 프롬프트는 A에서 시작해 B로 끝나는 10초를 쓴다. 두 이미지 사이를 잇는 하나의 연속 동작이어야 한다.
+- 영상 프롬프트 영어 60–90단어, 이미지 프롬프트 각각 영어 45–70단어. 피사체 → 동작 → 카메라 → 렌즈와 빛 → 질감 순서로.
+- 모든 영어 프롬프트에는 한국어 설명을 반드시 함께 단다. 번역이 아니라, 그 프롬프트가 화면에 무엇을 만들어내는지 두 문장 안팎으로 풀어 쓴다. 영어를 확인하지 않고도 어떤 그림인지 알 수 있어야 한다.
 - 화면비 ${o.ratio}. 화면 톤: ${o.look}
 ${o.bg ? "- 배경: " + o.bg : "- 배경은 가사에서 읽어 정한다."}
 
@@ -524,21 +536,30 @@ ${figure}`;
 function buildBrief(){
   const o = opts(), secs = sectionList();
   return `당신은 가사를 영상 언어로 옮기는 뮤직비디오 감독이자 프롬프트 작가입니다.
-아래 곡의 구성 ${secs.length}칸 각각에 대해 이미지 프롬프트 1개와 10초 영상 프롬프트 1개를 써 주세요.
-
-곡: ${o.title}
+먼저 가사 전체를 두 줄로 읽어주고, 그다음 구성 ${secs.length}칸 각각에 대해
+10초 영상 프롬프트 1개와 이미지 프롬프트 2개(영상의 첫 프레임 A, 끝 프레임 B)를 써 주세요.
 
 ${rulesText(o)}
 
 구성별 연출 문법
 ${secs.map(s => `${s.i+1}. ${s.name} — ${s.role}`).join("\n")}
 
-출력 형식 (구간마다)
+출력 형식
+
+■ 맨 처음 — 가사 전체 읽기
+· 이 곡이 무엇을 하고 있는지 한국어 두 줄
+· 화자의 나이대와 그렇게 본 근거 한 줄
+
+■ 그다음 구간마다 (아래 순서를 지킬 것)
 · 번호와 구간 이름
 · 이 구간이 잡는 순간 한국어 한 문장
-· 화자의 나이대 (첫 구간에서만, 근거 한 줄과 함께)
-· IMAGE — 영어 이미지 프롬프트
-· VIDEO — 영어 10초 영상 프롬프트
+· A → B : 10초 사이에 무엇이 달라지는지 한국어 한 문장
+· VIDEO — A에서 B로 이어지는 영어 10초 영상 프롬프트
+  └ 한국어 설명
+· IMAGE A (00:00 첫 프레임) — 영어 이미지 프롬프트
+  └ 한국어 설명
+· IMAGE B (00:10 끝 프레임) — 영어 이미지 프롬프트
+  └ 한국어 설명
 · negative — 영어 쉼표 나열
 
 ────── 가사와 구성 ──────
@@ -549,8 +570,6 @@ ${secs.map(s => `\n【${s.i+1}. ${s.name}】\n${s.lyrics || "(가사 없는 구�
 function buildSystem(o, secs){
   return `당신은 가사를 영상 언어로 옮기는 뮤직비디오 감독이자 프롬프트 작가입니다. 한국 대중가요의 어법과 여백을 이해합니다.
 
-곡: ${o.title}
-
 ${rulesText(o)}
 
 곡 전체 구성
@@ -560,7 +579,16 @@ ${secs.map(s => `${s.i+1}. ${s.name} — ${s.role}`).join("\n")}
 ${secs.map(s => `【${s.name}】\n${s.lyrics || "(가사 없음)"}`).join("\n\n")}
 
 지금 요청받은 한 구간에 대해서만 아래 JSON을 출력하세요. 서문, 설명, 코드펜스 금지.
-{"moment":"이 구간이 잡는 순간 한국어 한 문장","reading":"이 구간의 가사가 하고 있는 일 한 문장${o.noFigure ? "" : " (첫 구간이면 화자 나이대와 근거 포함)"}","anchor":"이 구간 가사에서 그대로 인용한 기준 한 행 (가사 없으면 빈 문자열)","tags":["장소","계절","시간","감정"],"image":"영어 이미지 프롬프트","video":"영어 10초 영상 프롬프트","negative":"영어 쉼표 나열","camera":"이 구간의 카메라 무브 영어 한 구절"}`;
+{"moment":"이 구간이 잡는 순간 한국어 한 문장","reading":"이 구간의 가사가 하고 있는 일 한 문장${o.noFigure ? "" : " (첫 구간이면 화자 나이대와 근거 포함)"}","anchor":"이 구간 가사에서 그대로 인용한 기준 한 행 (가사 없으면 빈 문자열)","tags":["장소","계절","시간","감정"],"shift":"A에서 B로 무엇이 달라지는지 한국어 한 문장","video":"영어 10초 영상 프롬프트 — A에서 B로 이어지는 하나의 연속 동작","video_ko":"이 영상 프롬프트가 만들어낼 화면 한국어 두 문장","image_a":"영어 이미지 프롬프트 — 10초가 시작되는 순간","image_a_ko":"이 이미지가 무엇을 담는지 한국어 한두 문장","image_b":"영어 이미지 프롬프트 — 10초가 끝나는 순간, A와 같은 장소·빛·의상","image_b_ko":"이 이미지가 무엇을 담는지, A와 무엇이 다른지 한국어 한두 문장","negative":"영어 쉼표 나열","camera":"이 구간의 카메라 무브 영어 한 구절"}`;
+}
+
+function buildOverviewSystem(o, secs){
+  return `당신은 가사를 읽는 뮤직비디오 감독입니다. 아래 곡 전체를 끝까지 읽고, 오직 JSON만 출력하세요. 서문·설명·코드펜스 금지.
+
+곡 전체 가사
+${secs.map(s => `【${s.name}】\n${s.lyrics || "(가사 없음)"}`).join("\n\n")}
+
+{"summary":"이 곡이 무엇을 하고 있는지 한국어 두 줄. 줄바꿈 없이 두 문장으로.","speaker":"${o.noFigure ? "" : "화자의 나이대와 그렇게 본 근거 한 줄"}","keywords":["곡 전체를 관통하는 심상 단어 4개"]}`;
 }
 
 /* ═══ 렌더 ═══ */
@@ -575,6 +603,7 @@ function shotCard(s, d, i){
         <h3>${esc(s.name)}</h3>
         <div class="tags">${d && d.tags ? d.tags.map(esc).join(" · ") : esc(TYPES[s.type].ko)}</div>
       </div>
+      ${d ? `<button class="copy" data-sec="${i}">구간 전체</button>` : ""}
     </div>
     ${s.lyrics ? `<div class="lyr">${esc(s.lyrics)}</div>` : ""}
     ${d && d.anchor ? `<div class="anchor"><span>기준 행</span>${esc(d.anchor)}</div>` : ""}
@@ -582,15 +611,23 @@ function shotCard(s, d, i){
     ${!d ? `<div class="reading" style="color:var(--celadon)">대기 중…</div>` : `
     <div class="tl">
       <div class="tlbar"><i style="width:100%"></i></div>
-      <div class="tlm"><span>00:00</span><span>${esc(d.camera || "")}</span><span>00:10</span></div>
+      <div class="tlm"><span>A · 00:00</span><span>${esc(d.camera || "")}</span><span>B · 00:10</span></div>
     </div>
+    ${d.shift ? `<div class="shift"><span>A → B</span>${esc(d.shift)}</div>` : ""}
     <div class="pblock">
-      <div class="ph"><span>Image · Still</span><button class="copy" data-c="i${i}">복사</button></div>
-      <p id="ci${i}">${esc(d.image)}</p>
-    </div>
-    <div class="pblock">
-      <div class="ph"><span class="v">Video · 10 sec</span><button class="copy" data-c="v${i}">복사</button></div>
+      <div class="ph"><span class="v">1 · Video · 10 sec · A → B</span><button class="copy" data-c="v${i}">복사</button></div>
       <p id="cv${i}">${esc(d.video)}</p>
+      ${d.video_ko ? `<div class="ko"><b>한국어 설명</b>${esc(d.video_ko)}</div>` : ""}
+    </div>
+    <div class="pblock">
+      <div class="ph"><span>2 · Image A · 00:00 first frame</span><button class="copy" data-c="a${i}">복사</button></div>
+      <p id="ca${i}">${esc(d.image_a || d.image || "")}</p>
+      ${d.image_a_ko ? `<div class="ko"><b>한국어 설명</b>${esc(d.image_a_ko)}</div>` : ""}
+    </div>
+    <div class="pblock">
+      <div class="ph"><span>3 · Image B · 00:10 last frame</span><button class="copy" data-c="b${i}">복사</button></div>
+      <p id="cb${i}">${esc(d.image_b || "")}</p>
+      ${d.image_b_ko ? `<div class="ko"><b>한국어 설명</b>${esc(d.image_b_ko)}</div>` : ""}
     </div>
     ${d.negative ? `<div class="pblock neg"><div class="ph"><span>negative</span></div><p>${esc(d.negative)}</p></div>` : ""}
     `}
@@ -602,8 +639,14 @@ function renderOut(secs, progress){
   $("out").innerHTML = `
     ${progress !== undefined ? `<div class="status">가사를 읽는 중 · ${done} / ${secs.length}</div>
       <div class="bar"><i style="width:${Math.round(progress*100)}%"></i></div>` : ""}
+    ${OVERVIEW ? `<div class="overview">
+      <div class="oh"><span>가사 전체 읽기</span><button class="copy" data-c="ov">복사</button></div>
+      <p id="cov">${esc(OVERVIEW.summary || "")}</p>
+      ${OVERVIEW.speaker ? `<div class="sp">화자 · ${esc(OVERVIEW.speaker)}</div>` : ""}
+      ${OVERVIEW.keywords && OVERVIEW.keywords.length ? `<div class="sp">${OVERVIEW.keywords.map(esc).join(" · ")}</div>` : ""}
+    </div>` : ""}
     <div class="outhead">
-      <div class="n">${secs.length} shots · ${esc(opts().title)}</div>
+      <div class="n">${secs.length} sections · 영상 ${secs.length} · 이미지 ${secs.length*2}</div>
       <div class="acts">
         <button data-act="all">전체 복사</button>
         <button data-act="txt">TXT 저장</button>
@@ -628,20 +671,36 @@ function showErr(msg){
 }
 
 /* ═══ 텍스트 출력 ═══ */
+
+function secText(s, i){
+  const d = SHOTS[i];
+  let t = `[${String(i+1).padStart(2,"0")}] ${s.name}\n`;
+  if (s.lyrics) t += s.lyrics + "\n";
+  if (!d) return t;
+  if (d.moment) t += `\n· ${d.moment}\n`;
+  if (d.shift) t += `· A → B : ${d.shift}\n`;
+  t += `\n[1] VIDEO 10s (A → B)\n${d.video || ""}\n`;
+  if (d.video_ko) t += `설명: ${d.video_ko}\n`;
+  t += `\n[2] IMAGE A — 00:00 first frame\n${d.image_a || d.image || ""}\n`;
+  if (d.image_a_ko) t += `설명: ${d.image_a_ko}\n`;
+  if (d.image_b){
+    t += `\n[3] IMAGE B — 00:10 last frame\n${d.image_b}\n`;
+    if (d.image_b_ko) t += `설명: ${d.image_b_ko}\n`;
+  }
+  if (d.negative) t += `\nnegative\n${d.negative}\n`;
+  return t;
+}
+
 function allText(){
   const o = opts(), secs = sectionList();
-  let t = `${o.title}\n${secs.length} shots · ${o.ratio} · ${o.lookKo}\n${"=".repeat(46)}\n`;
-  secs.forEach((s,i) => {
-    const d = SHOTS[i];
-    t += `\n[${String(i+1).padStart(2,"0")}] ${s.name}\n`;
-    if (s.lyrics) t += s.lyrics + "\n";
-    if (d){
-      if (d.moment) t += `\n· ${d.moment}\n`;
-      t += `\nIMAGE\n${d.image}\n\nVIDEO 10s\n${d.video}\n`;
-      if (d.negative) t += `\nnegative\n${d.negative}\n`;
-    }
-    t += "-".repeat(46) + "\n";
-  });
+  let t = `가사를 분석 · 영상 및 이미지 프롬프트\n${secs.length}구간 · 영상 ${secs.length} · 이미지 ${secs.length*2} · ${o.ratio} · ${o.lookKo}\n${"=".repeat(46)}\n`;
+  if (OVERVIEW){
+    t += `\n■ 가사 전체 읽기\n${OVERVIEW.summary || ""}\n`;
+    if (OVERVIEW.speaker) t += `화자 · ${OVERVIEW.speaker}\n`;
+    if (OVERVIEW.keywords && OVERVIEW.keywords.length) t += OVERVIEW.keywords.join(" · ") + "\n";
+    t += "=".repeat(46) + "\n";
+  }
+  secs.forEach((s,i) => { t += "\n" + secText(s,i) + "-".repeat(46) + "\n"; });
   return t;
 }
 
@@ -677,15 +736,14 @@ catch(e){ storageOK = false; }
 
 function snapshot(){
   return {
-    title: $("title").value, lyrics: $("lyrics").value, form: FORM,
+    lyrics: $("lyrics").value, form: FORM,
     ethnicity: $("ethnicity").value, age: $("age").value, gender: $("gender").value,
     ratio: $("ratio").value, bg: bgKey, customBg: $("customBg").value, look: lookKey,
-    shots: SHOTS, saved: new Date().toISOString()
+    shots: SHOTS, overview: OVERVIEW, saved: new Date().toISOString()
   };
 }
 
 function restore(s){
-  $("title").value = s.title || "";
   $("lyrics").value = s.lyrics || "";
   BLOCKS = s.lyrics ? parseLyrics(s.lyrics) : [];
   FORM = s.form || [];
@@ -695,7 +753,7 @@ function restore(s){
   $("customBg").style.display = bgKey === "custom" ? "block" : "none";
   [...$("bgChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.bg === bgKey));
   [...$("lookChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.look === lookKey));
-  SHOTS = s.shots || [];
+  SHOTS = s.shots || []; OVERVIEW = s.overview || null;
   $("cnt").textContent = BLOCKS.length ? BLOCKS.length + "개 가사 블록 인식됨" : "라벨을 붙여 넣으면 구성이 자동으로 잡힙니다.";
   renderForm();
   if (SHOTS.filter(Boolean).length) renderOut(sectionList());
@@ -735,11 +793,10 @@ $("btnLoad").addEventListener("click", () => {
 });
 
 $("btnExport").addEventListener("click", () => {
-  const o = opts();
   const blob = new Blob([JSON.stringify(snapshot(), null, 2)], {type:"application/json"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = (o.title || "songform") + ".json"; a.click();
+  a.href = url; a.download = "가사분석_작업.json"; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   $("saveNote").textContent = "파일로 내보냈습니다.";
 });
@@ -751,7 +808,6 @@ $("lyrics").addEventListener("input", e => {
   renderForm();
 });
 $("apikey").addEventListener("input", syncButtons);
-$("title").addEventListener("input", () => saveNow(true));
 
 $("preset").addEventListener("click", e => {
   const b = e.target.closest("[data-preset]"); if (!b) return;
@@ -785,14 +841,19 @@ $("formList").addEventListener("change", e => {
 $("out").addEventListener("click", e => {
   const c = e.target.closest("[data-c]");
   if (c){
-    const k = c.dataset.c;
-    copyText($("c" + k).textContent, c);
+    copyText($("c" + c.dataset.c).textContent, c);
+    return;
+  }
+  const sc = e.target.closest("[data-sec]");
+  if (sc){
+    const i = +sc.dataset.sec;
+    copyText(secText(sectionList()[i], i), sc);
     return;
   }
   const a = e.target.closest("[data-act]");
   if (!a) return;
   if (a.dataset.act === "all") copyText(allText(), a);
-  else if (a.dataset.act === "txt") download((opts().title || "songform") + "_프롬프트.txt", allText());
+  else if (a.dataset.act === "txt") download("가사분석_프롬프트.txt", allText());
   else if (a.dataset.act === "brief") copyText($("briefText").textContent, a);
 });
 
@@ -810,7 +871,40 @@ $("run").addEventListener("click", async () => {
 
   $("run").disabled = $("go").disabled = true;
   SHOTS = new Array(secs.length).fill(null);
+  OVERVIEW = null;
   renderOut(secs, 0);
+
+  const callAPI = async (system, user, maxTok) => {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "x-api-key": key,
+        "anthropic-version":"2023-06-01",
+        "anthropic-dangerous-direct-browser-access":"true"
+      },
+      body: JSON.stringify({model:"claude-sonnet-4-6", max_tokens:maxTok, system, messages:[{role:"user", content:user}]})
+    });
+    if (!res.ok) throw new Error("응답 상태 " + res.status);
+    const data = await res.json();
+    let txt = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim().replace(/```json|```/g,"").trim();
+    const a = txt.indexOf("{"), b = txt.lastIndexOf("}");
+    if (a === -1 || b === -1) throw new Error("형식 오류");
+    return JSON.parse(txt.slice(a, b + 1));
+  };
+
+  // 0단계 — 가사 전체 읽기
+  try {
+    OVERVIEW = await callAPI(buildOverviewSystem(o, secs), "이 곡 전체를 읽고 JSON을 출력하세요.", 500);
+    renderOut(secs, 0);
+  } catch(err){
+    if (/Failed to fetch|NetworkError|load failed/i.test(err.message)){
+      renderOut(secs);
+      showErr("모델에 닿지 못했습니다. 이 화면에서 외부 호출이 막혀 있을 수 있습니다. 파일을 내려받아 브라우저에서 직접 열거나, 지시문 만들기를 눌러 Claude 대화창에 붙여넣으세요.");
+      $("run").disabled = false; $("go").disabled = false;
+      return;
+    }
+  }
 
   const system = buildSystem(o, secs);
   let failed = 0;
@@ -824,30 +918,10 @@ $("run").addEventListener("click", async () => {
 ${s.lyrics || "(가사 없는 연주 구간)"}${i > 0 ? `\n\n앞 구간에서 이미 쓴 장면: ${SHOTS.slice(0,i).filter(Boolean).map(d => d.moment).join(" / ")}\n이것들과 겹치지 않는 새 장면을 쓰세요.` : ""}`;
 
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "x-api-key": key,
-          "anthropic-version":"2023-06-01",
-          "anthropic-dangerous-direct-browser-access":"true"
-        },
-        body: JSON.stringify({
-          model:"claude-sonnet-4-6",
-          max_tokens:900,
-          system,
-          messages:[{role:"user", content:ask}]
-        })
-      });
-      if (!res.ok) throw new Error("응답 상태 " + res.status);
-      const data = await res.json();
-      let txt = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim().replace(/```json|```/g,"").trim();
-      const a = txt.indexOf("{"), b = txt.lastIndexOf("}");
-      if (a === -1 || b === -1) throw new Error("형식 오류");
-      SHOTS[i] = JSON.parse(txt.slice(a, b + 1));
+      SHOTS[i] = await callAPI(system, ask, 1400);
     } catch(err){
       failed++;
-      SHOTS[i] = {moment:"", reading:"이 구간은 생성하지 못했습니다.", image:"", video:"", negative:"", camera:"", tags:[]};
+      SHOTS[i] = {moment:"", reading:"이 구간은 생성하지 못했습니다.", image_a:"", image_a_ko:"", image_b:"", image_b_ko:"", shift:"", video:"", video_ko:"", negative:"", camera:"", tags:[]};
       if (/Failed to fetch|NetworkError|load failed/i.test(err.message)){
         renderOut(secs);
         showErr("모델에 닿지 못했습니다. 이 화면에서 외부 호출이 막혀 있을 수 있습니다. 파일을 내려받아 브라우저에서 직접 열거나, 지시문 만들기를 눌러 Claude 대화창에 붙여넣으세요.");
