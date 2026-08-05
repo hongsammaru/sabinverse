@@ -227,6 +227,21 @@
     return d;
   }
 
+  function commentList(items){
+    var d = document.createElement("div"); d.className = "sv-block";
+    var l = document.createElement("div"); l.className = "sv-label";
+    l.textContent = "댓글"; l.style.marginBottom = "10px";
+    d.appendChild(l);
+    (items || []).forEach(function(t){
+      var row = document.createElement("div"); row.className = "sv-title-row";
+      var sp = document.createElement("span"); sp.textContent = t;
+      var c = document.createElement("button"); c.className = "sv-copy"; c.textContent = "복사";
+      c.onclick = function(){ copyText(t, c); };
+      row.appendChild(sp); row.appendChild(c); d.appendChild(row);
+    });
+    return d;
+  }
+
   function heading(title, note){
     var h = document.createElement("h2"); h.className = "sv-part-h";
     h.appendChild(document.createTextNode(title));
@@ -283,9 +298,10 @@
 "위 가사를 읽고 아래 세 가지를 만드세요.\n" +
 "- hashtags: 12~15개. 각 항목은 #으로 시작하고 공백 없이. 한국어와 영어를 섞되 #사빈과 #sabinverse를 포함합니다.\n" +
 "- tags: 유튜브 태그 입력란용 키워드 10~15개. #을 붙이지 않습니다.\n" +
-"- pinnedComment: 고정 댓글용 한국어 한 문장.\n\n" +
+"- pinnedComment: 고정 댓글. 곡을 쓴 마음을 한 문장으로 말하고, 끝에 듣는 사람에게 건네는 짧은 질문을 붙입니다. 두 문장 이내.\n" +
+"- comments: 일반 댓글 2개. 고정 댓글과 겹치지 않게 씁니다. 각각 다른 방식으로 말을 겁니다. 하나는 가사 한 구절을 짚으며 어떻게 들렸는지 묻고, 다른 하나는 듣는 사람의 이야기를 끌어내는 질문으로 씁니다. 각 두 문장 이내. 광고 문구처럼 들리지 않게, 사람이 쓴 말투로.\n\n" +
 "JSON만 출력하세요. 코드펜스나 다른 말은 절대 붙이지 마세요.\n" +
-'{"hashtags":[""],"tags":[""],"pinnedComment":""}';
+'{"hashtags":[""],"tags":[""],"pinnedComment":"","comments":["",""]}';
 
     var pS = head +
 "위 가사로 유튜브 쇼츠에 쓸 문구를 만드세요. 동영상 설명과는 다른 표현을 쓰세요.\n" +
@@ -294,11 +310,13 @@
 "  · 곡명은 가사 맨 위 제목을 띄어쓰기 없이 붙여 씁니다. 예: 허락해주세요\n" +
 "  · 구절은 2~5글자로 짧게. 동영상 제목과 다른 말을 고릅니다.\n" +
 "  · 태그는 1개. 각 25자 이내.\n" +
+"- pinnedComment: 쇼츠 고정 댓글. 한 문장, 끝에 짧은 질문을 붙입니다.\n" +
+"- comments: 일반 댓글 2개. 각 한 문장. 서로 다른 방식으로 말을 겁니다.\n" +
 "- description: 쇼츠 설명란. 2~3문장, 전체 120자 이내. 링크나 해시태그는 넣지 마세요.\n" +
 "- hashtags: 8~10개. #Shorts와 #쇼츠를 맨 앞에 넣고, #사빈과 #sabinverse를 포함합니다.\n" +
 "- tags: 유튜브 태그 입력란용 키워드 8~10개. #을 붙이지 않습니다.\n\n" +
 "JSON만 출력하세요. 코드펜스나 다른 말은 절대 붙이지 마세요.\n" +
-'{"titles":["","",""],"description":"","hashtags":[""],"tags":[""]}';
+'{"titles":["","",""],"description":"","hashtags":[""],"tags":[""],"pinnedComment":"","comments":["",""]}';
 
     async function ask(p){
       var res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -358,6 +376,7 @@
       out.appendChild(block("설명란 전체", vFull, true));
       out.appendChild(block("유튜브 태그란", (v.tags || []).join(", "), false));
       if (v.pinnedComment) out.appendChild(block("고정 댓글", v.pinnedComment, true));
+      if (v.comments && v.comments.length) out.appendChild(commentList(v.comments));
 
       var gap = document.createElement("div"); gap.className = "sv-gap";
       out.appendChild(gap);
@@ -373,6 +392,8 @@
       out.appendChild(titleList(sh.titles));
       out.appendChild(block("설명란 전체", sFull, true));
       out.appendChild(block("유튜브 태그란", (sh.tags || []).join(", "), false));
+      if (sh.pinnedComment) out.appendChild(block("고정 댓글", sh.pinnedComment, true));
+      if (sh.comments && sh.comments.length) out.appendChild(commentList(sh.comments));
 
       out.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (e) {
