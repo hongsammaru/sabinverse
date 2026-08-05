@@ -191,18 +191,16 @@
     return d;
   }
 
-  function titleBlock(titles){
+  function titleOne(t){
     var d = document.createElement("div"); d.className = "sv-block";
     var l = document.createElement("div"); l.className = "sv-label";
-    l.textContent = "제목 후보"; l.style.marginBottom = "10px";
+    l.textContent = "제목"; l.style.marginBottom = "10px";
     d.appendChild(l);
-    (titles || []).forEach(function(t){
-      var row = document.createElement("div"); row.className = "sv-title-row";
-      var s = document.createElement("span"); s.textContent = t;
-      var c = document.createElement("button"); c.className = "sv-copy"; c.textContent = "복사";
-      c.onclick = function(){ copyText(t, c); };
-      row.appendChild(s); row.appendChild(c); d.appendChild(row);
-    });
+    var row = document.createElement("div"); row.className = "sv-title-row";
+    var s = document.createElement("span"); s.textContent = t || "";
+    var c = document.createElement("button"); c.className = "sv-copy"; c.textContent = "복사";
+    c.onclick = function(){ copyText(t || "", c); };
+    row.appendChild(s); row.appendChild(c); d.appendChild(row);
     return d;
   }
 
@@ -249,10 +247,10 @@
 
     var pV1 = head +
 "위 가사를 읽고 아래 두 가지를 한국어로 만드세요.\n" +
-"- titles: 유튜브 제목 후보 3개. 각 40자 이내. 서로 다른 결로 씁니다.\n" +
+"- title: 유튜브 제목 1개. 가사 맨 위에 있는 제목을 그대로 살려 씁니다. 형식은 '제목 — 사빈' 또는 '제목 / 사빈'. 40자 이내.\n" +
 "- description: 유튜브 설명란 본문. 곡의 정서를 짚는 첫 문단(2~3문장)과 짧은 노트(2~3문장). 가사를 그대로 옮기지 말고, 링크나 해시태그는 넣지 마세요. 전체 400자 이내.\n\n" +
 "JSON만 출력하세요. 코드펜스나 다른 말은 절대 붙이지 마세요.\n" +
-'{"titles":["","",""],"description":""}';
+'{"title":"","description":""}';
 
     var pV2 = head +
 "위 가사를 읽고 아래 세 가지를 만드세요.\n" +
@@ -264,12 +262,12 @@
 
     var pS = head +
 "위 가사로 유튜브 쇼츠에 쓸 문구를 만드세요. 동영상 설명과는 다른 표현을 쓰세요.\n" +
-"- titles: 쇼츠 제목 후보 3개. 각 25자 이내. 짧고 강한 한 구절을 살립니다.\n" +
+"- title: 쇼츠 제목 1개. 25자 이내. 가사에서 가장 강한 한 구절을 골라 씁니다.\n" +
 "- description: 쇼츠 설명란. 2~3문장, 전체 120자 이내. 링크나 해시태그는 넣지 마세요.\n" +
 "- hashtags: 8~10개. #Shorts와 #쇼츠를 맨 앞에 넣고, #사빈과 #sabinverse를 포함합니다.\n" +
 "- tags: 유튜브 태그 입력란용 키워드 8~10개. #을 붙이지 않습니다.\n\n" +
 "JSON만 출력하세요. 코드펜스나 다른 말은 절대 붙이지 마세요.\n" +
-'{"titles":["","",""],"description":"","hashtags":[""],"tags":[""]}';
+'{"title":"","description":"","hashtags":[""],"tags":[""]}';
 
     async function ask(p){
       var res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -312,7 +310,7 @@
       var vFull = vParts.join("\n\n");
 
       out.appendChild(heading("동영상", "LONG FORM"));
-      out.appendChild(titleBlock(v.titles));
+      out.appendChild(titleOne(v.title));
       out.appendChild(block("설명란 전체", vFull, true));
       out.appendChild(block("유튜브 태그란", (v.tags || []).join(", "), false));
       if (v.pinnedComment) out.appendChild(block("고정 댓글", v.pinnedComment, true));
@@ -328,7 +326,7 @@
       var sFull = sParts.join("\n\n");
 
       out.appendChild(heading("쇼츠", "SHORTS"));
-      out.appendChild(titleBlock(sh.titles));
+      out.appendChild(titleOne(sh.title));
       out.appendChild(block("설명란 전체", sFull, true));
       out.appendChild(block("유튜브 태그란", (sh.tags || []).join(", "), false));
 
