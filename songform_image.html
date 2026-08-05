@@ -279,9 +279,7 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
   가사 전체 읽기와 구간별 영상·이미지 프롬프트가 나옵니다.</p>
 
   <div class="saverow">
-    <button id="btnSave">작업 저장</button>
-    <button id="btnLoad">불러오기</button>
-    <button id="btnExport">파일로 내보내기</button>
+    <button id="btnLoad">저장해둔 작업 불러오기</button>
   </div>
   <p class="note" id="saveNote" style="margin-top:8px"></p>
 
@@ -300,7 +298,7 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
 
 <footer>
   이 도구는 <b>프롬프트</b>를 씁니다. 완성된 영상이나 이미지가 아니라 Veo · Sora · Midjourney에 붙여넣을 문장입니다.
-  작업 저장은 이 브라우저 안에만 남습니다. 확실히 보관하려면 <b>파일로 내보내기</b>를 쓰세요.
+  가사와 구성은 입력하는 동안 자동으로 저장됩니다. 지시문이 나오면 오른쪽에서 <b>지시문 저장</b>으로 파일에 담아두세요.
 </footer>
 </div>
 <script>
@@ -570,10 +568,16 @@ function renderBrief(text){
       <p style="font-size:14px;line-height:1.9">아래 지시문을 <b>전체 복사</b>해서 Claude 대화창에 그대로 붙여넣으세요.</p>
       <div class="sp">${secs.length}구간 · 영상 ${secs.length}컷 · 이미지 ${secs.length*2}장이 한국어 설명과 함께 나옵니다.
       마음에 안 드는 구간이 있으면 "3번 구간만 다시" 처럼 대화로 고치시면 됩니다.</div>
+      <div class="sp" style="margin-top:8px">이 지시문을 나중에 다시 쓰시려면 <b>지시문 저장</b>으로 파일에 담아두세요.
+      설정을 바꿔 다시 뽑고 싶으실 때는 <b>작업 내보내기</b>를 쓰시면 왼쪽 불러오기로 되살아납니다.</div>
     </div>
     <div class="outhead">
       <div class="n">Claude 대화창에 붙여넣을 지시문</div>
-      <div class="acts"><button data-act="brief">지시문 전체 복사</button></div>
+      <div class="acts">
+        <button data-act="brief">지시문 전체 복사</button>
+        <button data-act="savetxt">지시문 저장 · TXT</button>
+        <button data-act="savejson">작업 내보내기 · JSON</button>
+      </div>
     </div>
     <div class="brief"><pre id="briefText">${esc(text)}</pre></div>`;
 }
@@ -595,6 +599,11 @@ async function copyText(text, btn){
     btn.textContent = "복사됨"; btn.classList.add("done");
     setTimeout(() => { btn.textContent = old; btn.classList.remove("done"); }, 1600);
   }
+}
+
+function fileStem(){
+  const first = ($("lyrics").value.trim().split("\n").find(l => l.trim() && !/^[\[\(<【]/.test(l.trim())) || "가사분석").trim();
+  return first.replace(/[\\/:*?"<>|]/g,"").slice(0,20) || "가사분석";
 }
 
 function download(name, text){
@@ -647,8 +656,6 @@ function saveNow(silent){
   }
 }
 
-$("btnSave").addEventListener("click", () => saveNow(false));
-
 $("btnLoad").addEventListener("click", () => {
   const inp = document.createElement("input");
   inp.type = "file"; inp.accept = ".json,application/json";
@@ -667,20 +674,13 @@ $("btnLoad").addEventListener("click", () => {
   inp.click();
 });
 
-$("btnExport").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify(snapshot(), null, 2)], {type:"application/json"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = "가사분석_작업.json"; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  $("saveNote").textContent = "파일로 내보냈습니다.";
-});
 
 /* ═══ 이벤트 ═══ */
 $("lyrics").addEventListener("input", e => {
   BLOCKS = e.target.value.trim() ? parseLyrics(e.target.value) : [];
   $("cnt").textContent = BLOCKS.length ? BLOCKS.length + "개 가사 블록 인식됨" : "라벨을 붙여 넣으면 구성이 자동으로 잡힙니다.";
   renderForm();
+  saveNow(true);
 });
 
 $("preset").addEventListener("click", e => {
@@ -714,8 +714,27 @@ $("formList").addEventListener("change", e => {
 
 $("out").addEventListener("click", e => {
   const a = e.target.closest("[data-act]");
-  if (a && a.dataset.act === "brief") copyText($("briefText").textContent, a);
+  if (!a) return;
+  const act = a.dataset.act;
+  if (act === "brief"){ copyText($("briefText").textContent, a); return; }
+  if (act === "savetxt"){
+    download(fileStem() + "_지시문.txt", $("briefText").textContent);
+    a.textContent = "저장됨"; a.classList.add("done");
+    setTimeout(() => { a.textContent = "지시문 저장 · TXT"; a.classList.remove("done"); }, 1700);
+    return;
+  }
+  if (act === "savejson"){
+    const blob = new Blob([JSON.stringify(snapshot(), null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url; link.download = fileStem() + "_작업.json"; link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    a.textContent = "저장됨"; a.classList.add("done");
+    setTimeout(() => { a.textContent = "작업 내보내기 · JSON"; a.classList.remove("done"); }, 1700);
+  }
 });
+
+["ethnicity","age","gender","ratio"].forEach(k => $(k).addEventListener("change", () => saveNow(true)));
 
 $("go").addEventListener("click", () => {
   renderBrief(buildBrief());
@@ -726,8 +745,8 @@ $("go").addEventListener("click", () => {
 
 /* ═══ 시작 ═══ */
 $("saveNote").textContent = storageOK
-  ? "작업 저장은 이 브라우저 안에만 남습니다."
-  : "이 화면에서는 브라우저 저장이 막혀 있습니다. 파일로 내보내기를 쓰세요.";
+  ? "가사와 구성은 자동으로 저장됩니다."
+  : "이 화면에서는 자동 저장이 막혀 있습니다. 지시문이 나오면 파일로 저장해 두세요.";
 
 if (storageOK){
   try {
