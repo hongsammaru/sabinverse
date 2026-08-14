@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>쇼츠 모드 추가 기능 — sabin verse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EAEDE2;
+    --surface:#F7F8F2;
+    --surface-2:#FFFFFF;
+    --ink:#17180f;
+    --muted:#6E7568;
+    --rule:#D2D6C4;
+    --red:#B7472A;
+    --green:#2E4B3D;
+    --green-soft:#E2E8D9;
+    --red-soft:#F2E2DC;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{
+    font-family:'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+    letter-spacing:0.04em;
+  }
+  .wrap{
+    max-width:880px;
+    margin:0 auto;
+    padding:64px 28px 120px;
+  }
+
+  /* header */
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:24px;
+    padding-bottom:28px;
+    border-bottom:1px solid var(--rule);
+  }
+  .brand{
+    text-align:right;
+    font-size:12px;
+    color:var(--muted);
+    line-height:1.5;
+    white-space:nowrap;
+  }
+  .brand strong{ color:var(--ink); font-weight:600; }
+
+  .eyebrow{
+    font-size:12px;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin-bottom:18px;
+  }
+  h1{
+    font-size:clamp(30px, 5vw, 46px);
+    font-weight:900;
+    line-height:1.25;
+    margin:0 0 14px;
+    letter-spacing:-0.01em;
+  }
+  h1 .accent{ color:var(--red); }
+  .subtitle{
+    font-size:13px;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+
+  /* section base */
+  section{ padding:52px 0; border-bottom:1px solid var(--rule); }
+  section:last-of-type{ border-bottom:none; }
+  .section-label{
+    font-size:12px;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin-bottom:16px;
+  }
+  h2{
+    font-size:22px;
+    font-weight:700;
+    margin:0 0 18px;
+  }
+  p{ margin:0 0 14px; color:var(--ink); }
+  p.lead{ font-size:16px; color:#3a3c31; max-width:640px; }
+
+  /* UI mock chips */
+  .chip-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin:20px 0;
+  }
+  .chip{
+    font-size:13px;
+    padding:9px 16px;
+    border-radius:8px;
+    border:1px solid var(--rule);
+    background:var(--surface-2);
+    color:var(--ink);
+  }
+  .chip.active{
+    background:var(--green);
+    border-color:var(--green);
+    color:#fff;
+    font-weight:600;
+  }
+  .field-note{ font-size:13px; color:var(--muted); margin-top:6px; }
+
+  /* process steps */
+  .step{
+    display:grid;
+    grid-template-columns:56px 1fr;
+    gap:20px;
+    padding:26px 0;
+    border-top:1px solid var(--rule);
+  }
+  .step:first-child{ border-top:none; }
+  .step-num{
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    font-weight:600;
+    color:var(--red);
+    padding-top:2px;
+  }
+  .step h3{
+    font-size:17px;
+    margin:0 0 8px;
+    font-weight:700;
+  }
+  .step ul{
+    margin:10px 0 0;
+    padding-left:18px;
+    color:#3a3c31;
+    font-size:14.5px;
+  }
+  .step li{ margin-bottom:5px; }
+
+  /* output template card */
+  .code-card{
+    background:var(--surface-2);
+    border:1px solid var(--rule);
+    border-radius:10px;
+    padding:26px 24px;
+    overflow-x:auto;
+  }
+  .code-card pre{
+    margin:0;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.8px;
+    line-height:1.85;
+    color:#2b2c22;
+    white-space:pre-wrap;
+    word-break:keep-all;
+  }
+  .tag{
+    display:inline-block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    font-weight:600;
+    padding:1px 7px;
+    border-radius:4px;
+    margin-right:4px;
+  }
+  .tag.video{ background:var(--green-soft); color:var(--green); }
+  .tag.image{ background:var(--red-soft); color:var(--red); }
+  .tag.neg{ background:#EAEAE3; color:var(--muted); }
+  .tag.ko{ background:#EFEFE7; color:#7a7f6f; }
+
+  /* relation note */
+  .note{
+    background:var(--surface);
+    border:1px solid var(--rule);
+    border-left:3px solid var(--green);
+    border-radius:6px;
+    padding:16px 18px;
+    font-size:14px;
+    color:#3a3c31;
+  }
+
+  footer{
+    padding-top:40px;
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+
+  @media (max-width:560px){
+    .wrap{ padding:40px 18px 80px; }
+    header{ flex-direction:column; }
+    .brand{ text-align:left; }
+    .step{ grid-template-columns:1fr; }
+    .step-num{ padding-top:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="eyebrow">ADD-ON SPEC</div>
+      <h1>쇼츠 모드<br><span class="accent">추가 기능</span></h1>
+      <div class="subtitle">LYRIC → 25S CORE → 3×8S VIDEO + 3 IMAGE + SUNO</div>
+    </div>
+    <div class="brand mono">
+      sabin verse<br>
+      <strong>sabinverse.com</strong>
+    </div>
+  </header>
+
+  <section>
+    <div class="section-label">Overview</div>
+    <h2>기존 도구에 두 번째 모드로 추가</h2>
+    <p class="lead">
+      전체 가사를 구간별로 나누는 기존 방식과 달리, 가사 전체에서
+      <strong>핵심 구절만 추출해 25초 분량으로 압축</strong>한 뒤,
+      세로형 쇼츠 제작에 바로 쓸 수 있는 결과물을 생성한다.
+    </p>
+    <p style="color:var(--muted); font-size:14px;">
+      기존 "일반 모드"(8구간 · 영상 8컷 · 이미지 16장)는 그대로 유지되고,
+      쇼츠 모드는 같은 가사 입력창을 재사용하는 별도 진입점으로 추가된다.
+    </p>
+  </section>
+
+  <section>
+    <div class="section-label">UI 추가 요소</div>
+    <h2>모드 선택 &amp; 쇼츠 전용 옵션</h2>
+
+    <div class="chip-row">
+      <div class="chip">일반 모드</div>
+      <div class="chip active">쇼츠 모드</div>
+    </div>
+    <div class="field-note">기존 화면 상단에 모드 토글 추가</div>
+
+    <div class="chip-row" style="margin-top:28px;">
+      <div class="chip active">9:16 세로</div>
+      <div class="chip">자동 추출</div>
+      <div class="chip">직접 지정</div>
+      <div class="chip active">수노 프롬프트 포함</div>
+    </div>
+    <div class="field-note">화면비 · 핵심 구절 선정 방식 · 수노 포함 여부(기본 ON)</div>
+  </section>
+
+  <section>
+    <div class="section-label">Process — 4 Steps</div>
+    <h2>처리 순서 (지시문 로직)</h2>
+
+    <div class="step">
+      <div class="step-num mono">01</div>
+      <div>
+        <h3>핵심 구절 추출 (25초 분량)</h3>
+        <p style="margin:0;">전체 가사를 분석해 가장 임팩트 있는 부분(보통 후렴구 + 앞뒤 한두 줄)을 발췌한다.</p>
+        <ul>
+          <li>기준: 한국어 낭독 시 총 25초 내외 (대략 70~90자, 4~6줄)</li>
+          <li>선정 이유를 한국어 한 문장으로 함께 출력</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num mono">02</div>
+      <div>
+        <h3>8초 영상 프롬프트 3개</h3>
+        <p style="margin:0;">추출된 25초 구절을 3등분(약 8~9초씩)해서 각 컷을 생성한다.</p>
+        <ul>
+          <li>번호 + 해당 가사 구절(한국어)</li>
+          <li>VIDEO — 영어 8초 프롬프트 (세로 구도 명시) + 한국어 설명</li>
+          <li>컷 간 연결(전 컷 → 다음 컷 톤 변화) 한국어 한 문장</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num mono">03</div>
+      <div>
+        <h3>전체 분위기 이미지 3장</h3>
+        <p style="margin:0;">컷별이 아닌, 쇼츠 전체를 대표하는 썸네일/커버용 이미지.</p>
+        <ul>
+          <li>IMAGE — 영어 프롬프트 (세로 구도, 텍스트 오버레이 여백 고려) + 한국어 설명</li>
+          <li>negative — 영어 쉼표 나열 (기존 방식과 동일)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num mono">04</div>
+      <div>
+        <h3>수노(Suno)용 가사 &amp; 스타일 프롬프트</h3>
+        <p style="margin:0;">추출된 핵심 구절을 수노 입력 형식에 맞춰 정리한다.</p>
+        <ul>
+          <li>가사: [Intro]/[Verse]/[Chorus]/[Outro] 구조 태그 포함, 원곡 그대로 25초 분량에 맞춰 정리</li>
+          <li>스타일 프롬프트: 장르 · 무드 · 보컬 톤 · 템포 · 참고 아티스트 느낌 (영어, 200자 내외)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-label">Output Template</div>
+    <h2>결과물 출력 포맷</h2>
+
+    <div class="code-card">
+      <pre>■ 쇼츠 모드 결과
+
+<span class="tag ko">핵심 구절</span>
+(추출된 가사 25초 분량)
+└ 선정 이유: (한국어 한 문장)
+
+<span class="tag video">CUT 1/3</span> 8초
+가사: ...
+장면: (한국어 한 문장)
+VIDEO: (영어 프롬프트)
+└ 한국어 설명
+연결: (한국어 한 문장)
+
+<span class="tag video">CUT 2/3</span> ...
+<span class="tag video">CUT 3/3</span> ...
+
+<span class="tag image">IMAGE 1/3</span>
+IMAGE: (영어 프롬프트)
+└ 한국어 설명
+
+<span class="tag image">IMAGE 2/3</span> ...
+<span class="tag image">IMAGE 3/3</span> ...
+
+<span class="tag neg">negative</span>
+(영어 쉼표 나열)
+
+<span class="tag ko">수노용 가사</span>
+[Verse]
+...
+[Chorus]
+...
+
+<span class="tag ko">수노 스타일 프롬프트</span>
+(영어, 200자 내외)</pre>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-label">Compatibility</div>
+    <h2>기존 모드와의 관계</h2>
+    <div class="note">
+      "지시문 저장 · TXT" / "작업 내보내기 · JSON" 기능은 두 모드에 동일하게 적용된다.
+      가사와 구성 입력창, 저장 로직은 공유하며 모드에 따라 출력 로직만 분기한다.
+    </div>
+  </section>
+
+  <footer class="mono">Add-on Spec · sabin verse · sabinverse.com</footer>
+
+</div>
+</body>
+</html>
