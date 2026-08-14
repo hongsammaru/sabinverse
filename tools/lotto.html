@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>로또 번호 생성기</title>
+<style>
+  :root{
+    --bg: #0d1224;
+    --bg-panel: #151b34;
+    --line: #262e52;
+    --ink: #eef0fb;
+    --ink-dim: #9aa3c7;
+    --gold: #e8b54d;
+    --coral: #ef6f6c;
+    --ball-yellow:#f3c94d;
+    --ball-blue:#4f8ff0;
+    --ball-red:#f0655f;
+    --ball-gray:#8b93ab;
+    --ball-green:#5cbf6a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 20% -10%, #1b2350 0%, transparent 50%),
+      radial-gradient(circle at 100% 10%, #201839 0%, transparent 45%),
+      var(--bg);
+    color:var(--ink);
+    font-family: 'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+    min-height:100vh;
+    padding: 40px 20px 80px;
+  }
+  .wrap{max-width:720px;margin:0 auto;}
+
+  .eyebrow{
+    font-size:13px; letter-spacing:.18em; color:var(--gold);
+    text-transform:uppercase; margin-bottom:10px; font-weight:600;
+  }
+  h1{
+    font-size:clamp(28px,5vw,42px);
+    line-height:1.15;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+    font-weight:800;
+  }
+  .sub{color:var(--ink-dim); font-size:15px; margin:0 0 6px; line-height:1.6;}
+  .odds{
+    display:inline-flex; align-items:baseline; gap:8px;
+    margin-top:18px; padding:10px 16px;
+    border:1px solid var(--line); border-radius:10px;
+    background:rgba(255,255,255,0.02);
+    font-size:13px; color:var(--ink-dim);
+  }
+  .odds b{color:var(--coral); font-size:16px; font-variant-numeric: tabular-nums;}
+
+  .panel{
+    margin-top:36px;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:28px;
+  }
+
+  .row{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px;}
+  .row:last-child{margin-bottom:0;}
+  .field-label{
+    font-size:12px; color:var(--ink-dim); letter-spacing:.05em;
+    text-transform:uppercase; width:100%; margin-bottom:8px;
+  }
+  .toggle{
+    display:flex; align-items:center; gap:8px;
+    padding:9px 14px; border-radius:999px;
+    border:1px solid var(--line); cursor:pointer;
+    font-size:13px; color:var(--ink-dim);
+    background:transparent; transition:.15s;
+    user-select:none;
+  }
+  .toggle input{accent-color:var(--gold);}
+  .toggle.active{ border-color:var(--gold); color:var(--ink); background:rgba(232,181,77,0.08);}
+
+  select, input[type=number]{
+    background:#0d1330; color:var(--ink); border:1px solid var(--line);
+    border-radius:8px; padding:8px 12px; font-size:14px; font-family:inherit;
+  }
+
+  .generate-btn{
+    margin-top:24px; width:100%; padding:16px;
+    background:linear-gradient(135deg,var(--gold),#d99a3a);
+    color:#1a1206; border:none; border-radius:12px;
+    font-size:16px; font-weight:800; letter-spacing:.02em;
+    cursor:pointer; transition:.15s transform;
+  }
+  .generate-btn:hover{transform:translateY(-1px);}
+  .generate-btn:active{transform:translateY(0);}
+
+  .results{margin-top:30px; display:flex; flex-direction:column; gap:14px;}
+  .game-row{
+    display:flex; align-items:center; gap:12px;
+    padding:14px 16px; background:rgba(255,255,255,0.02);
+    border:1px solid var(--line); border-radius:14px;
+    flex-wrap:wrap;
+  }
+  .game-idx{font-size:12px; color:var(--ink-dim); width:22px; flex-shrink:0;}
+  .balls{display:flex; gap:8px; flex-wrap:wrap;}
+  .ball{
+    width:38px; height:38px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:14px; color:#12131a;
+    box-shadow: inset 0 -4px 6px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.3);
+    animation: pop .35s ease backwards;
+  }
+  @keyframes pop{ from{transform:scale(0.4); opacity:0;} to{transform:scale(1); opacity:1;} }
+  .b-yellow{background:var(--ball-yellow);}
+  .b-blue{background:var(--ball-blue); color:#fff;}
+  .b-red{background:var(--ball-red); color:#fff;}
+  .b-gray{background:var(--ball-gray); color:#fff;}
+  .b-green{background:var(--ball-green);}
+
+  .note{
+    margin-top:36px; padding:20px 22px;
+    border-left:3px solid var(--coral);
+    background:rgba(239,111,108,0.06);
+    border-radius:0 12px 12px 0;
+    font-size:13.5px; line-height:1.75; color:var(--ink-dim);
+  }
+  .note b{color:var(--ink); font-weight:700;}
+  .note-title{
+    font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--coral); font-weight:700; margin-bottom:8px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">LOTTO 6/45 · FAIR RANDOM GENERATOR</div>
+  <h1>확률은 못 올려도,<br>공정하게는 뽑아드립니다.</h1>
+  <p class="sub">6/45 로또는 매 회차 독립 추첨입니다. 어떤 알고리즘도 당첨 확률 자체는 바꾸지 못합니다. 이 도구는 진짜 난수로 번호를 뽑고, 원하면 '사람들이 몰리는 패턴'만 피해드립니다.</p>
+  <div class="odds">1등 당첨 확률 <b>1 / 8,145,060</b> · 모든 조합 확률 동일</div>
+
+  <div class="panel">
+    <div class="row">
+      <div class="field-label">생성 게임 수</div>
+      <select id="numGames">
+        <option value="1">1게임</option>
+        <option value="3">3게임</option>
+        <option value="5" selected>5게임</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <div class="field-label">옵션 (선택)</div>
+      <div class="toggle" data-key="avoidBirthday">
+        <input type="checkbox"><span>생일 패턴 회피 (1~31 위주 조합 제외)</span>
+      </div>
+      <div class="toggle" data-key="avoidConsecutive">
+        <input type="checkbox"><span>연속번호 4개 이상 회피</span>
+      </div>
+      <div class="toggle" data-key="balanceOddEven">
+        <input type="checkbox"><span>홀짝 균형 (2:4~4:2 범위)</span>
+      </div>
+    </div>
+
+    <button class="generate-btn" onclick="generate()">번호 생성하기</button>
+
+    <div class="results" id="results"></div>
+  </div>
+
+  <div class="note">
+    <div class="note-title">정직한 안내</div>
+    위 옵션들은 <b>당첨 확률을 높이지 않습니다.</b> 통계적으로 모든 6자리 조합의 당첨 확률은 완전히 동일합니다. 다만 '생일 패턴 회피'와 '홀짝 균형'은 다른 사람들이 즐겨 고르는 번호 조합을 피하게 해줘서, 만약 당첨되었을 때 <b>1등 상금을 나눠 가질 확률을 낮추는 효과</b>는 있습니다. 이것이 통계학적으로 유일하게 근거 있는 부분입니다. 로또는 기댓값이 음수인 게임이라는 점도 참고해 주세요.
+  </div>
+</div>
+
+<script>
+const opts = { avoidBirthday:false, avoidConsecutive:false, balanceOddEven:false };
+
+document.querySelectorAll('.toggle').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    const key = el.dataset.key;
+    opts[key] = !opts[key];
+    el.classList.toggle('active', opts[key]);
+    el.querySelector('input').checked = opts[key];
+  });
+});
+
+function secureRandomInt(max){
+  const arr = new Uint32Array(1);
+  crypto.getRandomValues(arr);
+  return arr[0] % max;
+}
+
+function ballClass(n){
+  if(n<=10) return 'b-yellow';
+  if(n<=20) return 'b-blue';
+  if(n<=30) return 'b-red';
+  if(n<=40) return 'b-gray';
+  return 'b-green';
+}
+
+function passesFilters(nums){
+  const sorted = [...nums].sort((a,b)=>a-b);
+  if(opts.avoidBirthday){
+    const under31 = sorted.filter(n=>n<=31).length;
+    if(under31 >= 6) return false; // 전부 1~31이면 생일 조합으로 간주, 회피
+  }
+  if(opts.avoidConsecutive){
+    let maxRun=1, run=1;
+    for(let i=1;i<sorted.length;i++){
+      if(sorted[i]===sorted[i-1]+1){ run++; maxRun=Math.max(maxRun,run); }
+      else run=1;
+    }
+    if(maxRun>=4) return false;
+  }
+  if(opts.balanceOddEven){
+    const oddCount = sorted.filter(n=>n%2===1).length;
+    if(oddCount<2 || oddCount>4) return false;
+  }
+  return true;
+}
+
+function generateOneGame(){
+  let nums, tries=0;
+  do{
+    const pool = Array.from({length:45}, (_,i)=>i+1);
+    nums = [];
+    for(let i=0;i<6;i++){
+      const idx = secureRandomInt(pool.length);
+      nums.push(pool[idx]);
+      pool.splice(idx,1);
+    }
+    tries++;
+  } while(!passesFilters(nums) && tries<500);
+  return nums.sort((a,b)=>a-b);
+}
+
+function generate(){
+  const n = parseInt(document.getElementById('numGames').value,10);
+  const resultsEl = document.getElementById('results');
+  resultsEl.innerHTML = '';
+  for(let g=0; g<n; g++){
+    const nums = generateOneGame();
+    const row = document.createElement('div');
+    row.className = 'game-row';
+    const idx = document.createElement('div');
+    idx.className = 'game-idx';
+    idx.textContent = 'G' + (g+1);
+    const balls = document.createElement('div');
+    balls.className = 'balls';
+    nums.forEach((num, i)=>{
+      const b = document.createElement('div');
+      b.className = 'ball ' + ballClass(num);
+      b.style.animationDelay = (i*0.05) + 's';
+      b.textContent = num;
+      balls.appendChild(b);
+    });
+    row.appendChild(idx);
+    row.appendChild(balls);
+    resultsEl.appendChild(row);
+  }
+}
+
+generate();
+</script>
+</body>
+</html>
