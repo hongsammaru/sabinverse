@@ -197,10 +197,16 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
   </div>
 
   <div class="field">
+    <span class="lab">장르</span>
+    <div class="chips" id="genreChips"></div>
+    <p class="note">장르에 따라 인물의 동작·표정, 조명의 색온도와 채도, 카메라 무브의 속도와 리듬이 달라집니다. 기본값은 <b>발라드</b>입니다.</p>
+  </div>
+
+  <div class="field">
     <span class="lab">곡 구성</span>
     <div class="chips" id="preset">
       <button class="chip" data-preset="lyrics">가사에서 불러오기</button>
-      <button class="chip" data-preset="ballad">클래식 발라드</button>
+      <button class="chip" data-preset="ballad">표준 구성</button>
       <button class="chip" data-preset="simple">프리코러스 없음</button>
       <button class="chip" data-preset="mini">미니멀</button>
     </div>
@@ -344,6 +350,17 @@ const BG_EN = {
   surreal:"a surreal dreamscape, floating objects, an endless sky"
 };
 
+const GENRES = [
+  ["ballad","발라드","느리고 절제된 카메라 무브 — 3~5초에 걸친 완만한 드리프트나 고정 샷 위주. 조명은 채도를 낮춘 단색조, 차갑거나 옅게 바랜 색온도(4000–5600K)가 기본. 인물의 동작은 크지 않고 정지에 가깝다 — 시선, 숨, 손끝의 미세한 움직임 위주. 의상은 단순하고 무채색에 가깝다."],
+  ["semitrot","세미트롯","발라드보다 리듬감이 살아있는 완만한 카메라 무브 — 패닝이나 트래킹이 박자를 타듯 흐른다. 조명은 발라드보다 채도와 색온도를 한 단계 올려 따뜻한 텅스텐 톤(3200–3800K)을 기본으로 쓴다. 인물의 표정과 손짓에 절제된 리듬감이 있다 — 완전히 정지하지 않고 미세하게 박자를 탄다. 의상은 단정하되 포인트 컬러 하나를 허용한다."],
+  ["trot","트롯","경쾌하고 리듬을 타는 카메라 무브 — 빠른 트래킹, 스윙, 비트에 맞춘 짧은 드리프트. 조명은 채도가 높고 밝은 무대 조명 톤(색색의 스포트라이트, 3200K 이하 따뜻한 톤 또는 원색 조명 허용). 인물의 표정과 몸짓은 크고 생동감 있다 — 웃음, 손짓, 어깨의 리듬. 의상은 화려하거나 색이 진하고, 전통 무대 요소(반짝이, 원색 계열 한복 변형 등)를 허용한다."],
+  ["jazz","째즈","느리고 부드럽게 흐르는 카메라 무브 — 슬로우 트래킹, 롱 드리프트. 조명은 낮고 따뜻한 호박색·스포트라이트 위주, 그림자와 명암 대비가 강하다(low-key lighting). 인물의 동작은 여유롭고 세련되며, 연기나 안개 같은 대기 질감을 자주 쓴다. 의상은 클래식하고 몸에 맞는 라인, 벨벳이나 새틴 같은 광택 있는 질감을 선호한다."],
+  ["rnb","알앤비","부드럽고 느린 카메라 무브 — 슬로우 돌리, 미세한 흔들림. 조명은 낮은 채도의 네온이나 블루·퍼플 톤(5600K 이상 차가운 색온도), 대비가 강한 실루엣을 자주 쓴다. 인물의 동작은 절제되고 관능적이며 느리다. 의상은 매끈한 텍스처(실크, 가죽)를 선호한다."],
+  ["dance","댄스/팝","빠르고 활기찬 카메라 무브 — 핸드헬드에 가까운 트래킹, 짧고 강한 드리프트. 조명은 채도가 매우 높고 원색적이며 색온도가 자주 바뀐다(콘서트 조명처럼). 인물의 동작은 크고 역동적이다. 의상은 트렌디하고 대비가 강한 컬러를 쓴다."],
+  ["indie","인디","자연광 위주의 다큐멘터리적 카메라 무브 — 핸드헬드와 고정 샷 혼용. 조명은 자연스러운 데이라이트 톤(5000–6500K), 인위적인 조명을 최소화한다. 인물의 동작은 꾸미지 않고 일상적이다. 의상은 캐주얼하고 낡거나 자연스러운 질감을 쓴다."],
+  ["hiphop","힙합","단단하고 절도 있는 카메라 무브 — 로우 앵글, 정지된 트래킹, 급격하게 느껴지는 짧은 무브. 조명은 강한 대비의 하드 라이트, 도시적인 색온도(주황빛 나트륨등과 차가운 블루 혼합). 인물의 동작은 절도 있고 자신감 있다. 의상은 스트리트웨어, 오버사이즈 실루엣을 쓴다."]
+];
+
 const LOOKS = [
   ["cinema","시네마틱","cinematic 35mm film still, anamorphic, shallow depth of field, fine grain"],
   ["mv","뮤직비디오","music video look, rich contrast, controlled color grade, glossy highlights"],
@@ -453,13 +470,21 @@ function applyPreset(p){
 }
 
 /* ═══ 옵션 ═══ */
-let bgKey = "auto", lookKey = "cinema";
+let bgKey = "auto", lookKey = "cinema", genreKey = "ballad";
 
+$("genreChips").innerHTML = GENRES.map(([k,ko]) =>
+  `<button class="chip" data-genre="${k}" aria-pressed="${k===genreKey}">${ko}</button>`).join("");
 $("bgChips").innerHTML = BG.map(([k,ko]) =>
   `<button class="chip" data-bg="${k}" aria-pressed="${k===bgKey}">${ko}</button>`).join("");
 $("lookChips").innerHTML = LOOKS.map(([k,ko]) =>
   `<button class="chip" data-look="${k}" aria-pressed="${k===lookKey}">${ko}</button>`).join("");
 
+$("genreChips").addEventListener("click", e => {
+  const b = e.target.closest("[data-genre]"); if (!b) return;
+  genreKey = b.dataset.genre;
+  [...$("genreChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.genre === genreKey));
+  saveNow(true);
+});
 $("bgChips").addEventListener("click", e => {
   const b = e.target.closest("[data-bg]"); if (!b) return;
   bgKey = b.dataset.bg;
@@ -480,6 +505,7 @@ $("shortsToggle").addEventListener("click", () => {
 
 function opts(){
   const look = LOOKS.find(l => l[0] === lookKey);
+  const genre = GENRES.find(g => g[0] === genreKey);
   const bgEn = bgKey === "custom" ? $("customBg").value.trim()
              : bgKey === "auto"   ? "" : BG_EN[bgKey];
   return {
@@ -491,6 +517,8 @@ function opts(){
     bgAuto: bgKey === "auto",
     look: look[2],
     lookKo: look[1],
+    genreKo: genre[1],
+    genreDesc: genre[2],
     noFigure: $("gender").value === "none"
   };
 }
@@ -521,6 +549,7 @@ function rulesText(o){
 - 나이대는 얼굴만이 아니라 옷의 낡음, 자세, 손의 상태, 공간의 살림살이로도 드러낸다.`;
 
   return `원칙
+- 이 곡의 장르는 ${o.genreKo}이다. 인물의 동작 강도와 표정, 카메라 무브의 속도와 리듬, 조명의 색온도와 채도, 의상의 질감을 이 장르에 맞게 정한다. 발라드처럼 잔잔하게 쓰지 말고 아래 지침을 그대로 따른다: ${o.genreDesc}
 - 각 구간의 가사를 실제로 읽고, 그 구간에서만 나올 수 있는 장면을 쓴다. 구간마다 피사체·동작·사물이 서로 달라야 한다. 프레이밍만 바꾸고 같은 문장을 돌려쓰지 않는다.
 - 가사 문장을 그대로 옮겨 적지 않는다. 보이는 것으로 번역한다. 슬픔이 아니라 슬픔이 놓인 자리를 쓴다.
 - 곡 전체가 한 편의 영상이므로 장소·의상·계절·빛의 성격은 이어진다. 바뀌는 것은 그 안에서 무엇을 보느냐다.
@@ -551,6 +580,7 @@ function shortsBrief(o, secs){
 
 ━━━━━━━━━━━━━━━━━━━━━━
 ■ 위 구간 작업이 모두 끝나면, 이어서 아래 쇼츠(9:16) 콘텐츠도 만들어 주세요
+· 장르는 앞서 지정한 ${o.genreKo} 톤을 그대로 유지한다: ${o.genreDesc}
 
 1. 쇼츠용 핵심 가사 추출 (수노용)
 · 아래 가사 전체 중 가장 임팩트 있는 부분을 뽑아 25초 낭독 분량(4~6줄)으로 정리
@@ -684,6 +714,7 @@ function snapshot(){
     lyrics: $("lyrics").value, form: FORM,
     ethnicity: $("ethnicity").value, age: $("age").value, gender: $("gender").value,
     ratio: $("ratio").value, bg: bgKey, customBg: $("customBg").value, look: lookKey,
+    genre: genreKey,
     shorts: SHORTS,
     saved: new Date().toISOString()
   };
@@ -694,13 +725,14 @@ function restore(s){
   BLOCKS = s.lyrics ? parseLyrics(s.lyrics) : [];
   FORM = s.form || [];
   ["ethnicity","age","gender","ratio"].forEach(k => { if (s[k]) $(k).value = s[k]; });
-  bgKey = s.bg || "auto"; lookKey = s.look || "cinema";
+  bgKey = s.bg || "auto"; lookKey = s.look || "cinema"; genreKey = s.genre || "ballad";
   SHORTS = !!s.shorts;
   $("shortsToggle").setAttribute("aria-pressed", String(SHORTS));
   $("customBg").value = s.customBg || "";
   $("customBg").style.display = bgKey === "custom" ? "block" : "none";
   [...$("bgChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.bg === bgKey));
   [...$("lookChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.look === lookKey));
+  [...$("genreChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.genre === genreKey));
   $("cnt").textContent = BLOCKS.length ? BLOCKS.length + "개 가사 블록 인식됨" : "라벨을 붙여 넣으면 구성이 자동으로 잡힙니다.";
   renderForm();
 }
