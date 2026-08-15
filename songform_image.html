@@ -192,7 +192,7 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
 
   <div class="field">
     <label class="lab" for="lyrics">가사</label>
-    <textarea id="lyrics" spellcheck="false" placeholder="[Verse 1]&#10;아 노을아 노을아&#10;지지마라 지지마라&#10;&#10;[Chorus]&#10;내 이름&#10;바람에 실어 보내는"></textarea>
+    <textarea id="lyrics" spellcheck="false" placeholder="이곳에 가사를 넣어주세요"></textarea>
     <p class="note" id="cnt">라벨을 붙여 넣으면 구성이 자동으로 잡힙니다.</p>
   </div>
 
@@ -312,7 +312,8 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
 
 <footer>
   이 도구는 <b>프롬프트</b>를 씁니다. 완성된 영상이나 이미지가 아니라 Veo · Sora · Midjourney에 붙여넣을 문장입니다.
-  가사와 구성은 입력하는 동안 자동으로 저장됩니다. 지시문이 나오면 오른쪽에서 <b>지시문 저장</b>으로 파일에 담아두세요.
+  가사는 새로고침하면 비워지니, 작업을 이어가려면 <b>작업 내보내기 · JSON</b>으로 저장해 두었다가 <b>저장해둔 작업 불러오기</b>로 다시 불러오세요.
+  지시문이 나오면 오른쪽에서 <b>지시문 저장</b>으로도 파일에 담아두세요.
 </footer>
 </div>
 <script>
@@ -720,10 +721,7 @@ function snapshot(){
   };
 }
 
-function restore(s){
-  $("lyrics").value = s.lyrics || "";
-  BLOCKS = s.lyrics ? parseLyrics(s.lyrics) : [];
-  FORM = s.form || [];
+function restorePrefs(s){
   ["ethnicity","age","gender","ratio"].forEach(k => { if (s[k]) $(k).value = s[k]; });
   bgKey = s.bg || "auto"; lookKey = s.look || "cinema"; genreKey = s.genre || "ballad";
   SHORTS = !!s.shorts;
@@ -733,6 +731,13 @@ function restore(s){
   [...$("bgChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.bg === bgKey));
   [...$("lookChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.look === lookKey));
   [...$("genreChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.genre === genreKey));
+}
+
+function restore(s){
+  $("lyrics").value = s.lyrics || "";
+  BLOCKS = s.lyrics ? parseLyrics(s.lyrics) : [];
+  FORM = s.form || [];
+  restorePrefs(s);
   $("cnt").textContent = BLOCKS.length ? BLOCKS.length + "개 가사 블록 인식됨" : "라벨을 붙여 넣으면 구성이 자동으로 잡힙니다.";
   renderForm();
 }
@@ -839,13 +844,13 @@ $("go").addEventListener("click", () => {
 
 /* ═══ 시작 ═══ */
 $("saveNote").textContent = storageOK
-  ? "가사와 구성은 자동으로 저장됩니다."
+  ? "장르·화면 설정 등은 기억되지만, 가사는 새로고침할 때마다 비워집니다."
   : "이 화면에서는 자동 저장이 막혀 있습니다. 지시문이 나오면 파일로 저장해 두세요.";
 
 if (storageOK){
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) restore(JSON.parse(raw));
+    if (raw) restorePrefs(JSON.parse(raw));
   } catch(e){}
 }
 renderForm();
