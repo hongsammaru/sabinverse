@@ -467,9 +467,10 @@ function syncButtons(){
 function applyPreset(p){
   if (p === "lyrics"){
     if (!BLOCKS.length){ alert("먼저 가사를 넣어주세요."); return; }
-    FORM = [{type:"intro",block:null}];
+    FORM = [];
+    if (BLOCKS[0].type !== "intro") FORM.push({type:"intro",block:null});
     BLOCKS.forEach((b,ix) => FORM.push({type:b.type, block:ix}));
-    FORM.push({type:"outro",block:null});
+    if (BLOCKS[BLOCKS.length-1].type !== "outro") FORM.push({type:"outro",block:null});
   } else {
     FORM = PRESETS[p].map(t => ({type:t, block:TYPES[t].inst ? null : null}));
     FORM.forEach(f => { if (!TYPES[f.type].inst) f.block = autoBlock(f.type); });
