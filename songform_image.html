@@ -395,6 +395,7 @@ function parseLyrics(raw){
   const out = [];
   const lines = raw.replace(/\r/g,"").split("\n");
   let cur = null;
+  let lastType = "verse", lastLabel = "";
   const push = () => { if (cur && cur.lines.length) out.push(cur); };
 
   for (const ln of lines){
@@ -406,10 +407,12 @@ function parseLyrics(raw){
       for (const [re,k] of LABEL_MAP){ if (re.test(m[1])){ type = k; break; } }
       push();
       cur = {type, label:m[1].trim(), lines:[]};
+      lastType = type; lastLabel = m[1].trim();
       continue;
     }
     if (!t){ if (cur && cur.lines.length){ push(); cur = null; } continue; }
-    if (!cur) cur = {type:"verse", label:"", lines:[]};
+    // 빈 줄로 블록이 끊겨도 새 라벨을 만나기 전까지는 직전 섹션 타입을 이어받는다
+    if (!cur) cur = {type:lastType, label:lastLabel, lines:[]};
     cur.lines.push(t);
   }
   push();
