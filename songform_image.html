@@ -257,6 +257,10 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
         <option value="두 사람">두 사람</option>
         <option value="none">인물 없음</option>
       </select>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;color:var(--sub,#666);cursor:pointer">
+        <input type="checkbox" id="noFace" style="width:15px;height:15px;cursor:pointer">
+        얼굴 안 보이게 (뒷모습·손·실루엣만)
+      </label>
     </div>
     <div>
       <label class="lab" for="ratio">화면비</label>
@@ -520,7 +524,8 @@ function opts(){
     lookKo: look[1],
     genreKo: genre[1],
     genreDesc: genre[2],
-    noFigure: $("gender").value === "none"
+    noFigure: $("gender").value === "none",
+    noFace: $("noFace").checked
   };
 }
 
@@ -547,7 +552,10 @@ function rulesText(o){
 - 나이대: ${o.age === "auto"
   ? "가사 전체에서 추론한다. 시어의 결, 말투와 어미, 회상하는 시간의 폭, 몸을 감각하는 방식, 가사가 놓인 생활의 자리를 근거로 정하고 그 이유를 한 줄로 밝힌다."
   : o.age + "로 고정한다."}
-- 나이대는 얼굴만이 아니라 옷의 낡음, 자세, 손의 상태, 공간의 살림살이로도 드러낸다.`;
+- 나이대는 얼굴만이 아니라 옷의 낡음, 자세, 손의 상태, 공간의 살림살이로도 드러낸다.${o.noFace ? `
+- 얼굴이 화면에 보이지 않게 한다 (반드시 지킬 것). 정면·측면 얼굴, 눈·코·입이 식별되는 각도를 모든 VIDEO·IMAGE 프롬프트에서 금지한다. 대신 뒷모습(from behind), 뒷목과 어깨, 손과 손끝, 실루엣, 그림자, 창이나 거울에 흐릿하게 비치는 형체, 프레임 바깥으로 얼굴이 걸쳐 나가는 구도, 역광으로 얼굴이 어둠에 잠긴 상태 중에서 구간에 맞는 방식을 골라 쓴다.
+- 매 프롬프트 끝에 얼굴이 보이지 않는 이유가 되는 구체적 장치를 한 개 이상 명시한다 (예: "seen only from behind", "face turned away from camera", "silhouetted against the window, features unreadable", "camera framed from the shoulders down, head out of frame").
+- negative 프롬프트에도 "visible face, facial features, eye contact with camera"를 포함한다.` : ""}`;
 
   return `원칙
 - 이 곡의 장르는 ${o.genreKo}이다. 인물의 동작 강도와 표정, 카메라 무브의 속도와 리듬, 조명의 색온도와 채도, 의상의 질감을 이 장르에 맞게 정한다. 발라드처럼 잔잔하게 쓰지 말고 아래 지침을 그대로 따른다: ${o.genreDesc}
@@ -647,6 +655,13 @@ ${secs.map(s => `${s.i+1}. ${s.name} — ${s.role}`).join("\n")}
   └ 한국어 설명
 · negative — 영어 쉼표 나열
 
+■ 출력 방식 (반드시 지킬 것)
+· 위 전체 결과를 일반 텍스트로 답하지 말고, 반드시 HTML 아티팩트로 만들어서 출력한다.
+· 구간마다 카드 형태의 블록으로 나눈다. 각 카드 안의 VIDEO 프롬프트, IMAGE A 프롬프트, IMAGE B 프롬프트, negative 옆에는 각각 "복사" 버튼을 둔다.
+· 버튼을 누르면 그 프롬프트의 영어 텍스트만 클립보드에 복사되고(navigator.clipboard.writeText 사용), 버튼 글자가 잠시 "복사됨"으로 바뀌었다가 원래대로 돌아온다.
+· 버튼은 한국어 설명이 아니라 영어 프롬프트 원문만 복사해야 한다.
+· 쇼츠 모드가 켜져 있다면 쇼츠 결과물(8초 영상 프롬프트 3개, 이미지 3장, 수노용 가사, 수노 스타일 프롬프트)에도 동일하게 항목별 복사 버튼을 둔다.
+
 ────── 가사와 구성 ──────
 ${secs.map(s => `\n【${s.i+1}. ${s.name}】\n${s.lyrics || "(가사 없는 구간)"}`).join("\n")}
 ──────────────────────`;
@@ -725,6 +740,7 @@ function snapshot(){
   return {
     lyrics: $("lyrics").value, form: FORM,
     ethnicity: $("ethnicity").value, age: $("age").value, gender: $("gender").value,
+    noFace: $("noFace").checked,
     ratio: $("ratio").value, bg: bgKey, customBg: $("customBg").value, look: lookKey,
     genre: genreKey,
     shorts: SHORTS,
@@ -734,6 +750,7 @@ function snapshot(){
 
 function restorePrefs(s){
   ["ethnicity","age","gender","ratio"].forEach(k => { if (s[k]) $(k).value = s[k]; });
+  $("noFace").checked = !!s.noFace;
   bgKey = s.bg || "auto"; lookKey = s.look || "cinema"; genreKey = s.genre || "ballad";
   SHORTS = !!s.shorts;
   $("shortsToggle").setAttribute("aria-pressed", String(SHORTS));
@@ -844,7 +861,7 @@ $("out").addEventListener("click", e => {
   }
 });
 
-["ethnicity","age","gender","ratio"].forEach(k => $(k).addEventListener("change", () => saveNow(true)));
+["ethnicity","age","gender","ratio","noFace"].forEach(k => $(k).addEventListener("change", () => saveNow(true)));
 
 $("go").addEventListener("click", () => {
   renderBrief(buildBrief());
