@@ -385,6 +385,8 @@ const REL = [
    `기다림·그리움의 대상은 이별했거나 세상을 떠나 다시 만날 수 없는 사람이다. 오래된 사진, 남겨진 물건, 비어 있는 자리, 정리되지 않은 유품처럼 상실과 부재를 드러내는 소품과 구도를 적극적으로 쓴다.`]
 ];
 
+const LIVELY_GENRES = new Set(["trot","dance","hiphop"]);
+
 const LOOKS = [
   ["cinema","시네마틱","cinematic 35mm film still, anamorphic, shallow depth of field, fine grain"],
   ["mv","뮤직비디오","music video look, rich contrast, controlled color grade, glossy highlights"],
@@ -558,6 +560,7 @@ function opts(){
     genreDesc: genre[2],
     relKo: rel[1],
     relDesc: rel[2],
+    lively: LIVELY_GENRES.has(genreKey),
     noFigure: $("gender").value === "none",
     noFace: $("noFace").checked,
     refPhoto: $("refPhoto").checked
@@ -588,7 +591,7 @@ function rulesText(o){
   ? "가사 전체에서 추론한다. 시어의 결, 말투와 어미, 회상하는 시간의 폭, 몸을 감각하는 방식, 가사가 놓인 생활의 자리를 근거로 정하고 그 이유를 한 줄로 밝힌다."
   : o.age + "로 고정한다."}
 - 나이대는 얼굴만이 아니라 옷의 낡음, 자세, 손의 상태, 공간의 살림살이로도 드러낸다.
-- 인물 동일성 고정 (반드시 지킬 것, 참고 사진 유무와 무관하게 적용): 첫 구간의 VIDEO·IMAGE 프롬프트를 쓰기 전에, 이 인물의 구체적 외형을 딱 한 번 정한다 — 머리 길이와 스타일(예: "short black hair combed back", "shoulder-length wavy hair"), 체형(예: "lean build", "stocky build"), 피부톤과 특징적인 신체 부위(예: "weathered hands", "a faint scar above the left eyebrow"), 그리고 이 인물을 상징하는 옷차림 한 가지(예: "a faded navy cardigan", "a grey wool coat with a frayed collar")를 정해 이후 모든 구간에서 정확히 같은 영어 단어·문구로 반복한다. 구간마다 표현을 바꿔 쓰거나("검은 머리" → "짙은 머리") 다른 체형·옷으로 슬쩍 바뀌는 것을 금지한다. 얼굴·손·뒷모습 등 일부만 보이는 구간에서도 보이는 부위에 한해 이 고정된 외형 단어를 그대로 쓴다. 정한 외형 묘사를 지시문 맨 앞에 "인물 고정 묘사: ..." 한 줄로 먼저 밝히고 시작한다.${o.noFace ? `
+- 인물 동일성 고정 (반드시 지킬 것, 참고 사진 유무와 무관하게 적용): 첫 구간의 VIDEO·IMAGE 프롬프트를 쓰기 전에, 이 인물의 구체적 외형을 딱 한 번 정한다 — 머리 길이와 스타일(예: "short black hair combed back", "shoulder-length wavy hair"), 체형(예: "lean build", "stocky build"), 피부톤과 특징적인 신체 부위(예: "weathered hands", "a faint scar above the left eyebrow"), 안경 착용 여부, 그리고 이 인물을 상징하는 옷차림 한 가지(예: "a faded navy cardigan", "a grey wool coat with a frayed collar")를 정해 이후 모든 구간에서 정확히 같은 영어 단어·문구로 반복한다. 옷차림은 예외 없이 첫 구간부터 마지막 구간까지 완전히 동일해야 한다 — Intro에서 남색 가디건을 입었다면 Verse·Bridge·Outro와 쇼츠까지 전부 같은 "a faded navy cardigan"이어야 하며, 스웨트셔츠·니트풀오버·시퀸 블레이저처럼 다른 옷으로 바뀌는 것은 계절이나 가사가 명백히 옷을 갈아입는 장면을 요구하지 않는 한 금지한다. 안경도 마찬가지로 첫 구간에서 정한 유무를 끝까지 유지한다. 각 구간의 프롬프트를 쓰고 나서, 방금 쓴 인물 묘사가 앞선 구간과 단어 단위로 일치하는지 스스로 대조하고, 다르면 고쳐 쓴 뒤에만 다음 구간으로 넘어간다. 정한 외형 묘사를 지시문 맨 앞에 "인물 고정 묘사: ..." 한 줄로 먼저 밝히고 시작한다.${o.noFace ? `
 - 얼굴이 화면에 보이지 않게 한다 (반드시 지킬 것). 정면·측면 얼굴, 눈·코·입이 식별되는 각도를 모든 VIDEO·IMAGE 프롬프트에서 금지한다. 대신 뒷모습(from behind), 뒷목과 어깨, 손과 손끝, 실루엣, 그림자, 창이나 거울에 흐릿하게 비치는 형체, 프레임 바깥으로 얼굴이 걸쳐 나가는 구도, 역광으로 얼굴이 어둠에 잠긴 상태 중에서 구간에 맞는 방식을 골라 쓴다.
 - 매 프롬프트 끝에 얼굴이 보이지 않는 이유가 되는 구체적 장치를 한 개 이상 명시한다 (예: "seen only from behind", "face turned away from camera", "silhouetted against the window, features unreadable", "camera framed from the shoulders down, head out of frame").
 - negative 프롬프트에도 "visible face, facial features, eye contact with camera"를 포함한다.` : ""}${o.refPhoto ? `
@@ -597,7 +600,8 @@ function rulesText(o){
 - 참고 사진이 첨부되지 않았다면 이 항목은 건너뛰고 원래 규칙대로 진행한다.` : ""}`;
 
   return `원칙
-- 이 곡의 장르는 ${o.genreKo}이다. 인물의 동작 강도와 표정, 카메라 무브의 속도와 리듬, 조명의 색온도와 채도, 의상의 질감을 이 장르에 맞게 정한다. 발라드처럼 잔잔하게 쓰지 말고 아래 지침을 그대로 따른다: ${o.genreDesc}
+- 이 곡의 장르는 ${o.genreKo}이다. 인물의 동작 강도와 표정, 카메라 무브의 속도와 리듬, 조명의 색온도와 채도, 의상의 질감을 이 장르에 맞게 정한다. 발라드처럼 잔잔하게 쓰지 말고 아래 지침을 그대로 따른다: ${o.genreDesc}${o.lively ? `
+- 중요 — 아래 "구성별 연출 문법"에 적힌 Intro·간주·Outro의 기본 관습("인물이 아직 보이지 않는다", "얼굴 없이 손·사물·빈 자리만", "인물이 멀어지고 빛이 빠진다")은 발라드처럼 잔잔한 장르를 위한 문법이다. 이 곡은 ${o.genreKo}이므로 이 관습을 그대로 따르지 않는다. Intro에도 인물이 이미 무대나 배경 안에 들어와 있고 밝은 조명과 리듬감 있는 자세로 시작한다. 간주에서도 얼굴을 비추지 않더라도 손이나 발, 어깨가 완전히 멈춰있지 않고 박자를 타는 작은 움직임이 있어야 한다. Outro도 조명이 어둡게 꺼지며 인물이 사라지는 대신, 마지막까지 밝은 조명 아래 인물이 남아 여운 있는 미소나 손짓으로 마무리한다. Intro·간주·Outro의 negative 목록에도 "smiling", "expressive gesture" 같은 표현을 넣지 않는다.` : ""}
 - 기다림·그리움의 대상: ${o.relDesc}
 - 각 구간의 가사를 실제로 읽고, 그 구간에서만 나올 수 있는 장면을 쓴다. 구간마다 피사체·동작·사물이 서로 달라야 한다. 프레이밍만 바꾸고 같은 문장을 돌려쓰지 않는다.
 - 가사 문장을 그대로 옮겨 적지 않는다. 보이는 것으로 번역한다. 슬픔이 아니라 슬픔이 놓인 자리를 쓴다.
@@ -642,6 +646,7 @@ function shortsBrief(o, secs){
 ■ 위 구간 작업이 모두 끝나면, 이어서 아래 쇼츠(9:16) 콘텐츠도 만들어 주세요
 · 장르는 앞서 지정한 ${o.genreKo} 톤을 그대로 유지한다: ${o.genreDesc}
 · 기다림·그리움의 대상도 앞서 지정한 대로 유지한다: ${o.relDesc}
+· 인물도 위에서 정한 "인물 고정 묘사"(머리·체형·피부·안경 여부·옷차림)를 단어 그대로 옮겨 쓴다. 쇼츠라고 무대 의상이나 다른 옷으로 바꾸지 않는다 — 본편과 같은 사람, 같은 옷차림이어야 한다.
 
 1. 쇼츠용 핵심 가사 추출 (수노용)
 · 아래 가사 전체 중 가장 임팩트 있는 부분을 뽑아 25초 낭독 분량(4~6줄)으로 정리
@@ -677,6 +682,12 @@ ${rulesText(o)}
 
 구성별 연출 문법
 ${secs.map(s => `${s.i+1}. ${s.name} — ${s.role}`).join("\n")}
+
+구간을 하나씩 쓰기 전 매번 재확인할 것
+아래 두 가지는 위 원칙에서 이미 정했지만, 구간이 이어질수록 잊기 쉬우므로 각 구간의 VIDEO·IMAGE 프롬프트를 쓰기 직전마다 다시 확인한다:
+1) 장르: 이 곡은 ${o.genreKo}이다. 지금 쓰려는 구간의 카메라 무브 속도·조명 색온도와 채도·인물의 표정과 몸짓 강도가 발라드 쪽으로 밋밋해지지 않았는지, ${o.genreKo} 특유의 리듬과 활기(${o.genreDesc})가 이번 구간에도 실제로 들어갔는지 점검한다. Intro나 Outro처럼 정적인 구성이어도 조명의 색온도·채도와 인물의 미세한 표정만큼은 장르 톤을 유지한다.
+2) 인물: 위에서 "인물 고정 묘사"로 정한 머리·체형·피부·안경 여부·옷차림 문구를 이번 구간에도 단어 그대로 옮겨 썼는지 확인한다. 특히 옷차림이 슬쩍 다른 옷으로 바뀌지 않았는지 반드시 대조한다.${o.lively ? `
+3) 지금 쓰려는 구간이 Intro·간주·Outro라면: 위 원칙에서 밝힌 대로 "인물 없음·얼굴 없음·빛이 꺼짐" 관습을 따르지 않는다는 점을 다시 확인한다. 인물이 프레임 안에 있고, 밝은 조명이 유지되며, negative에 smiling을 넣지 않았는지 점검한다.` : ""}
 
 출력 형식
 
