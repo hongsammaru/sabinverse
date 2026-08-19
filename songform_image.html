@@ -587,7 +587,8 @@ function rulesText(o){
 - 나이대: ${o.age === "auto"
   ? "가사 전체에서 추론한다. 시어의 결, 말투와 어미, 회상하는 시간의 폭, 몸을 감각하는 방식, 가사가 놓인 생활의 자리를 근거로 정하고 그 이유를 한 줄로 밝힌다."
   : o.age + "로 고정한다."}
-- 나이대는 얼굴만이 아니라 옷의 낡음, 자세, 손의 상태, 공간의 살림살이로도 드러낸다.${o.noFace ? `
+- 나이대는 얼굴만이 아니라 옷의 낡음, 자세, 손의 상태, 공간의 살림살이로도 드러낸다.
+- 인물 동일성 고정 (반드시 지킬 것, 참고 사진 유무와 무관하게 적용): 첫 구간의 VIDEO·IMAGE 프롬프트를 쓰기 전에, 이 인물의 구체적 외형을 딱 한 번 정한다 — 머리 길이와 스타일(예: "short black hair combed back", "shoulder-length wavy hair"), 체형(예: "lean build", "stocky build"), 피부톤과 특징적인 신체 부위(예: "weathered hands", "a faint scar above the left eyebrow"), 그리고 이 인물을 상징하는 옷차림 한 가지(예: "a faded navy cardigan", "a grey wool coat with a frayed collar")를 정해 이후 모든 구간에서 정확히 같은 영어 단어·문구로 반복한다. 구간마다 표현을 바꿔 쓰거나("검은 머리" → "짙은 머리") 다른 체형·옷으로 슬쩍 바뀌는 것을 금지한다. 얼굴·손·뒷모습 등 일부만 보이는 구간에서도 보이는 부위에 한해 이 고정된 외형 단어를 그대로 쓴다. 정한 외형 묘사를 지시문 맨 앞에 "인물 고정 묘사: ..." 한 줄로 먼저 밝히고 시작한다.${o.noFace ? `
 - 얼굴이 화면에 보이지 않게 한다 (반드시 지킬 것). 정면·측면 얼굴, 눈·코·입이 식별되는 각도를 모든 VIDEO·IMAGE 프롬프트에서 금지한다. 대신 뒷모습(from behind), 뒷목과 어깨, 손과 손끝, 실루엣, 그림자, 창이나 거울에 흐릿하게 비치는 형체, 프레임 바깥으로 얼굴이 걸쳐 나가는 구도, 역광으로 얼굴이 어둠에 잠긴 상태 중에서 구간에 맞는 방식을 골라 쓴다.
 - 매 프롬프트 끝에 얼굴이 보이지 않는 이유가 되는 구체적 장치를 한 개 이상 명시한다 (예: "seen only from behind", "face turned away from camera", "silhouetted against the window, features unreadable", "camera framed from the shoulders down, head out of frame").
 - negative 프롬프트에도 "visible face, facial features, eye contact with camera"를 포함한다.` : ""}${o.refPhoto ? `
