@@ -203,6 +203,12 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
   </div>
 
   <div class="field">
+    <span class="lab">기다림·그리움의 대상</span>
+    <div class="chips" id="relChips"></div>
+    <p class="note">"기다림", "그리움" 같은 가사는 상대가 <b>살아있고 그저 만나지 못하는 상황</b>일 수도, <b>이별·사별</b>일 수도 있습니다. 이 판단이 틀리면 흑백 가족사진을 껴안는 등 가사와 전혀 다른 장면이 나올 수 있어, "가사에서 판단"보다는 직접 골라두는 걸 권합니다. 기본값은 <b>가사에서 판단</b>입니다.</p>
+  </div>
+
+  <div class="field">
     <span class="lab">곡 구성</span>
     <div class="chips" id="preset">
       <button class="chip" data-preset="lyrics">가사에서 불러오기</button>
@@ -370,6 +376,15 @@ const GENRES = [
   ["hiphop","힙합","단단하고 절도 있는 카메라 무브 — 로우 앵글, 정지된 트래킹, 급격하게 느껴지는 짧은 무브. 조명은 강한 대비의 하드 라이트, 도시적인 색온도(주황빛 나트륨등과 차가운 블루 혼합). 인물의 동작은 절도 있고 자신감 있다. 의상은 스트리트웨어, 오버사이즈 실루엣을 쓴다."]
 ];
 
+const REL = [
+  ["auto","가사에서 판단 (기본)",
+   `가사 전체 맥락(대명사, 시제, 구체적 표현)에서 기다림·그리움의 대상이 살아있고 관계가 지속 중인지, 아니면 이별했거나 세상을 떠났는지를 먼저 스스로 판단한다. "떠난", "다시 못 올", "영정", "그 해 겨울 이후" 처럼 명확한 사별·이별의 단서가 없다면, 상대는 살아있고 관계가 지속 중이며 다만 바쁘거나 멀리 있어 지금 만나지 못하는 상황으로 해석한다. 이 판단과 그 근거가 된 가사 구절을 지시문 맨 앞에 한국어 한 문장으로 먼저 밝히고 시작한다.`],
+  ["alive","살아있음 · 현재 관계",
+   `기다림·그리움의 대상은 살아있고 관계가 지속 중이다. 상대는 바쁘거나 멀리 있어 지금 만나지 못할 뿐, 언제든 다시 만날 수 있는 사람이다. 오래된 흑백 가족사진이나 낡은 액자를 품에 안는 연출, 영정이나 제사상을 연상시키는 소품, 고인을 그리워하는 듯한 표정과 자세는 쓰지 않는다. 대신 휴대폰 메시지를 확인하는 손짓, 나란히 놓인 두 개의 잔(하나는 아직 비어있는), 달력에 다가올 날짜를 표시하는 동작, 창밖을 보며 누군가를 기다리는 자세처럼 "그 사람이 지금 살아서 어딘가에 있고 곧 올 수도 있다"는 여지를 남기는 소품과 구도만 쓴다.`],
+  ["lost","이별 · 사별",
+   `기다림·그리움의 대상은 이별했거나 세상을 떠나 다시 만날 수 없는 사람이다. 오래된 사진, 남겨진 물건, 비어 있는 자리, 정리되지 않은 유품처럼 상실과 부재를 드러내는 소품과 구도를 적극적으로 쓴다.`]
+];
+
 const LOOKS = [
   ["cinema","시네마틱","cinematic 35mm film still, anamorphic, shallow depth of field, fine grain"],
   ["mv","뮤직비디오","music video look, rich contrast, controlled color grade, glossy highlights"],
@@ -483,10 +498,12 @@ function applyPreset(p){
 }
 
 /* ═══ 옵션 ═══ */
-let bgKey = "auto", lookKey = "cinema", genreKey = "ballad";
+let bgKey = "auto", lookKey = "cinema", genreKey = "ballad", relKey = "auto";
 
 $("genreChips").innerHTML = GENRES.map(([k,ko]) =>
   `<button class="chip" data-genre="${k}" aria-pressed="${k===genreKey}">${ko}</button>`).join("");
+$("relChips").innerHTML = REL.map(([k,ko]) =>
+  `<button class="chip" data-rel="${k}" aria-pressed="${k===relKey}">${ko}</button>`).join("");
 $("bgChips").innerHTML = BG.map(([k,ko]) =>
   `<button class="chip" data-bg="${k}" aria-pressed="${k===bgKey}">${ko}</button>`).join("");
 $("lookChips").innerHTML = LOOKS.map(([k,ko]) =>
@@ -496,6 +513,12 @@ $("genreChips").addEventListener("click", e => {
   const b = e.target.closest("[data-genre]"); if (!b) return;
   genreKey = b.dataset.genre;
   [...$("genreChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.genre === genreKey));
+  saveNow(true);
+});
+$("relChips").addEventListener("click", e => {
+  const b = e.target.closest("[data-rel]"); if (!b) return;
+  relKey = b.dataset.rel;
+  [...$("relChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.rel === relKey));
   saveNow(true);
 });
 $("bgChips").addEventListener("click", e => {
@@ -519,6 +542,7 @@ $("shortsToggle").addEventListener("click", () => {
 function opts(){
   const look = LOOKS.find(l => l[0] === lookKey);
   const genre = GENRES.find(g => g[0] === genreKey);
+  const rel = REL.find(r => r[0] === relKey);
   const bgEn = bgKey === "custom" ? $("customBg").value.trim()
              : bgKey === "auto"   ? "" : BG_EN[bgKey];
   return {
@@ -532,6 +556,8 @@ function opts(){
     lookKo: look[1],
     genreKo: genre[1],
     genreDesc: genre[2],
+    relKo: rel[1],
+    relDesc: rel[2],
     noFigure: $("gender").value === "none",
     noFace: $("noFace").checked,
     refPhoto: $("refPhoto").checked
@@ -571,6 +597,7 @@ function rulesText(o){
 
   return `원칙
 - 이 곡의 장르는 ${o.genreKo}이다. 인물의 동작 강도와 표정, 카메라 무브의 속도와 리듬, 조명의 색온도와 채도, 의상의 질감을 이 장르에 맞게 정한다. 발라드처럼 잔잔하게 쓰지 말고 아래 지침을 그대로 따른다: ${o.genreDesc}
+- 기다림·그리움의 대상: ${o.relDesc}
 - 각 구간의 가사를 실제로 읽고, 그 구간에서만 나올 수 있는 장면을 쓴다. 구간마다 피사체·동작·사물이 서로 달라야 한다. 프레이밍만 바꾸고 같은 문장을 돌려쓰지 않는다.
 - 가사 문장을 그대로 옮겨 적지 않는다. 보이는 것으로 번역한다. 슬픔이 아니라 슬픔이 놓인 자리를 쓴다.
 - 곡 전체가 한 편의 영상이므로 장소·의상·계절·빛의 성격은 이어진다. 바뀌는 것은 그 안에서 무엇을 보느냐다.
@@ -613,6 +640,7 @@ function shortsBrief(o, secs){
 ━━━━━━━━━━━━━━━━━━━━━━
 ■ 위 구간 작업이 모두 끝나면, 이어서 아래 쇼츠(9:16) 콘텐츠도 만들어 주세요
 · 장르는 앞서 지정한 ${o.genreKo} 톤을 그대로 유지한다: ${o.genreDesc}
+· 기다림·그리움의 대상도 앞서 지정한 대로 유지한다: ${o.relDesc}
 
 1. 쇼츠용 핵심 가사 추출 (수노용)
 · 아래 가사 전체 중 가장 임팩트 있는 부분을 뽑아 25초 낭독 분량(4~6줄)으로 정리
@@ -757,6 +785,7 @@ function snapshot(){
     refPhoto: $("refPhoto").checked,
     ratio: $("ratio").value, bg: bgKey, customBg: $("customBg").value, look: lookKey,
     genre: genreKey,
+    rel: relKey,
     shorts: SHORTS,
     saved: new Date().toISOString()
   };
@@ -766,7 +795,7 @@ function restorePrefs(s){
   ["ethnicity","age","gender","ratio"].forEach(k => { if (s[k]) $(k).value = s[k]; });
   $("noFace").checked = !!s.noFace;
   $("refPhoto").checked = !!s.refPhoto;
-  bgKey = s.bg || "auto"; lookKey = s.look || "cinema"; genreKey = s.genre || "ballad";
+  bgKey = s.bg || "auto"; lookKey = s.look || "cinema"; genreKey = s.genre || "ballad"; relKey = s.rel || "auto";
   SHORTS = !!s.shorts;
   $("shortsToggle").setAttribute("aria-pressed", String(SHORTS));
   $("customBg").value = s.customBg || "";
@@ -774,6 +803,7 @@ function restorePrefs(s){
   [...$("bgChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.bg === bgKey));
   [...$("lookChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.look === lookKey));
   [...$("genreChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.genre === genreKey));
+  [...$("relChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.rel === relKey));
 }
 
 function restore(s){
