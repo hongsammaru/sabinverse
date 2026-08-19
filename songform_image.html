@@ -261,6 +261,10 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
         <input type="checkbox" id="noFace" style="width:15px;height:15px;cursor:pointer">
         얼굴 안 보이게 (뒷모습·손·실루엣만)
       </label>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:13px;color:var(--sub,#666);cursor:pointer">
+        <input type="checkbox" id="refPhoto" style="width:15px;height:15px;cursor:pointer">
+        참고 사진 첨부해서 인물 특징 일관되게 유지
+      </label>
     </div>
     <div>
       <label class="lab" for="ratio">화면비</label>
@@ -529,7 +533,8 @@ function opts(){
     genreKo: genre[1],
     genreDesc: genre[2],
     noFigure: $("gender").value === "none",
-    noFace: $("noFace").checked
+    noFace: $("noFace").checked,
+    refPhoto: $("refPhoto").checked
   };
 }
 
@@ -559,7 +564,10 @@ function rulesText(o){
 - 나이대는 얼굴만이 아니라 옷의 낡음, 자세, 손의 상태, 공간의 살림살이로도 드러낸다.${o.noFace ? `
 - 얼굴이 화면에 보이지 않게 한다 (반드시 지킬 것). 정면·측면 얼굴, 눈·코·입이 식별되는 각도를 모든 VIDEO·IMAGE 프롬프트에서 금지한다. 대신 뒷모습(from behind), 뒷목과 어깨, 손과 손끝, 실루엣, 그림자, 창이나 거울에 흐릿하게 비치는 형체, 프레임 바깥으로 얼굴이 걸쳐 나가는 구도, 역광으로 얼굴이 어둠에 잠긴 상태 중에서 구간에 맞는 방식을 골라 쓴다.
 - 매 프롬프트 끝에 얼굴이 보이지 않는 이유가 되는 구체적 장치를 한 개 이상 명시한다 (예: "seen only from behind", "face turned away from camera", "silhouetted against the window, features unreadable", "camera framed from the shoulders down, head out of frame").
-- negative 프롬프트에도 "visible face, facial features, eye contact with camera"를 포함한다.` : ""}`;
+- negative 프롬프트에도 "visible face, facial features, eye contact with camera"를 포함한다.` : ""}${o.refPhoto ? `
+- 지시문과 함께 이 인물의 참고 사진이 첨부되어 있다면, 그 사진을 실제로 보고 헤어스타일과 색, 체형과 키, 피부톤, 자세와 걸음걸이, 즐겨 입을 법한 옷의 색과 질감, 손이나 목덜미 같은 특징적인 신체 부위를 관찰한다. 이렇게 관찰한 특징을 모든 구간의 VIDEO·IMAGE 프롬프트에서 매번 동일한 단어로 반복해 인물의 생김새와 옷차림이 구간마다 달라지지 않게 한다 (예: 3구간에서 "a woman with shoulder-length wavy black hair, slender build"라고 썼다면 7구간에서도 같은 머리 길이·체형 묘사를 그대로 유지).
+- 사진에서 확인한 특징 중 얼굴 자체를 제외한 나머지(머리, 체형, 의상, 손, 자세)는 얼굴 비노출 여부와 상관없이 계속 활용한다. 얼굴 비노출이 켜져 있다면 사진 속 얼굴 생김새를 텍스트로 옮기지 않고, 그 외의 특징만 일관성 유지에 사용한다.
+- 참고 사진이 첨부되지 않았다면 이 항목은 건너뛰고 원래 규칙대로 진행한다.` : ""}`;
 
   return `원칙
 - 이 곡의 장르는 ${o.genreKo}이다. 인물의 동작 강도와 표정, 카메라 무브의 속도와 리듬, 조명의 색온도와 채도, 의상의 질감을 이 장르에 맞게 정한다. 발라드처럼 잔잔하게 쓰지 말고 아래 지침을 그대로 따른다: ${o.genreDesc}
@@ -679,12 +687,16 @@ function renderBrief(text){
   const shotDesc = SHORTS
     ? `${secs.length}구간 · 영상 ${secs.length}컷 · 이미지 ${secs.length*2}장 + 쇼츠(25초·8초 영상 3개·이미지 3개·수노 가사와 프롬프트)가 한국어 설명과 함께 나옵니다.`
     : `${secs.length}구간 · 영상 ${secs.length}컷 · 이미지 ${secs.length*2}장이 한국어 설명과 함께 나옵니다.`;
+  const photoNote = $("refPhoto").checked
+    ? `<div class="sp" style="margin-top:8px;color:#a85c3f">인물 사진을 첨부해두셨다면, 지시문을 붙여넣을 때 <b>같은 메시지에 그 사진도 함께 첨부</b>해주세요. Claude가 지시문과 사진을 같이 보고, 사진 속 인물의 특징을 모든 구간에서 일관되게 묘사합니다.</div>`
+    : "";
   $("out").innerHTML = `
     <div class="overview">
       <div class="oh"><span>다음 순서</span></div>
       <p style="font-size:14px;line-height:1.9">아래 지시문을 <b>전체 복사</b>해서 Claude 대화창에 그대로 붙여넣으세요.</p>
       <div class="sp">${shotDesc}
       마음에 안 드는 구간이 있으면 "3번 구간만 다시" 처럼 대화로 고치시면 됩니다.</div>
+      ${photoNote}
       <div class="sp" style="margin-top:8px">이 지시문을 나중에 다시 쓰시려면 <b>지시문 저장</b>으로 파일에 담아두세요.
       설정을 바꿔 다시 뽑고 싶으실 때는 <b>작업 내보내기</b>를 쓰시면 왼쪽 불러오기로 되살아납니다.</div>
     </div>
@@ -742,6 +754,7 @@ function snapshot(){
     lyrics: $("lyrics").value, form: FORM,
     ethnicity: $("ethnicity").value, age: $("age").value, gender: $("gender").value,
     noFace: $("noFace").checked,
+    refPhoto: $("refPhoto").checked,
     ratio: $("ratio").value, bg: bgKey, customBg: $("customBg").value, look: lookKey,
     genre: genreKey,
     shorts: SHORTS,
@@ -752,6 +765,7 @@ function snapshot(){
 function restorePrefs(s){
   ["ethnicity","age","gender","ratio"].forEach(k => { if (s[k]) $(k).value = s[k]; });
   $("noFace").checked = !!s.noFace;
+  $("refPhoto").checked = !!s.refPhoto;
   bgKey = s.bg || "auto"; lookKey = s.look || "cinema"; genreKey = s.genre || "ballad";
   SHORTS = !!s.shorts;
   $("shortsToggle").setAttribute("aria-pressed", String(SHORTS));
@@ -862,7 +876,7 @@ $("out").addEventListener("click", e => {
   }
 });
 
-["ethnicity","age","gender","ratio","noFace"].forEach(k => $(k).addEventListener("change", () => saveNow(true)));
+["ethnicity","age","gender","ratio","noFace","refPhoto"].forEach(k => $(k).addEventListener("change", () => saveNow(true)));
 
 $("go").addEventListener("click", () => {
   renderBrief(buildBrief());
