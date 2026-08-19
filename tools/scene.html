@@ -160,13 +160,20 @@ footer{margin-top:34px;border-top:1px solid var(--edge);padding-top:16px;font-si
             <option value="한국인">한국인</option>
             <option value="시가 부르는 대로">시가 정함</option>
           </select></label>
-        <label class="field"><span>연령대</span>
+        <label class="field"><span>성별</span>
+          <select id="gender">
+            <option value="">시가 정함</option>
+            <option value="남성">남성</option>
+            <option value="여성">여성</option>
+          </select></label>
+        <label class="field wide"><span>연령대</span>
           <select id="age">
             <option value="">시가 정함</option>
-            <option value="10대">10대</option><option value="20대 초반">20대 초반</option>
-            <option value="20대 후반">20대 후반</option><option value="30대">30대</option>
-            <option value="40대">40대</option><option value="50대">50대</option>
-            <option value="60대 이상">60대 이상</option>
+            <option value="20대">20대</option>
+            <option value="30대">30대</option>
+            <option value="40대">40대</option>
+            <option value="50대">50대</option>
+            <option value="60대">60대</option>
           </select></label>
 
         <label class="field wide"><span>부 안의 두 컷 관계</span>
@@ -231,13 +238,13 @@ poemEl.addEventListener('input',sync);keyEl.addEventListener('input',sync);
 
 function opts(){
   return {model:$('#model').value,ratio:$('#ratio').value,tone:$('#tone').value,
-    figure:$('#figure').value,ethnicity:$('#ethnicity').value,age:$('#age').value,
+    figure:$('#figure').value,ethnicity:$('#ethnicity').value,age:$('#age').value,gender:$('#gender').value,
     link:$('#link').value,arc:$('#arc').value,
     noFigure:$('#figure').value.indexOf('등장시키지 않는다')!==-1};
 }
 function syncFigure(){
   const off=opts().noFigure;
-  ['#ethnicity','#age'].forEach(s=>{$(s).disabled=off;$(s).parentElement.style.opacity=off?.4:1});
+  ['#ethnicity','#age','#gender'].forEach(s=>{$(s).disabled=off;$(s).parentElement.style.opacity=off?.4:1});
 }
 $('#figure').addEventListener('change',syncFigure);syncFigure();sync();
 
@@ -268,9 +275,10 @@ const RULES=o=>`작업 순서
 - 화면비: ${o.ratio}
 ${o.noFigure?'':`
 인물 묘사
-- 사람이 화면에 나오면, 영어 프롬프트에서 그 사람이 처음 등장하는 자리에 국적과 나이대를 반드시 함께 적는다. 예: "a Korean woman in her late 30s". 이걸 생략하면 생성 모델은 백인 20대를 기본값으로 그린다. 여섯 컷 전부에 똑같이 다시 적는다.
-- 손, 목덜미, 뒷모습, 발끝처럼 신체 일부만 보일 때도 피부 톤과 나이가 화면에 드러나므로 똑같이 명시한다. 예: "the hands of a Korean man in his 60s, sun-worn knuckles".
+- 사람이 화면에 나오면, 영어 프롬프트에서 그 사람이 처음 등장하는 자리에 국적과 성별, 나이대를 반드시 함께 적는다. 예: "a Korean woman in her late 30s". 이걸 생략하면 생성 모델은 백인 남성 20대를 기본값으로 그린다. 여섯 컷 전부에 똑같이 다시 적는다.
+- 손, 목덜미, 뒷모습, 발끝처럼 신체 일부만 보일 때도 피부 톤과 성별, 나이가 화면에 드러나므로 똑같이 명시한다. 예: "the hands of a Korean man in his 60s, sun-worn knuckles".
 - 국적: ${o.ethnicity}
+- 성별: ${o.gender?o.gender+'로 고정한다.':'시에서 추론한다. 화자의 말투와 어미, 정서를 대하는 방식, 시가 놓인 관계와 생활을 근거로 화자의 성별을 정하고, 그렇게 본 이유를 한 줄로 밝힌다. 시가 성별을 특정하지 않으면 특정하지 않았다고 말하고 가장 자연스러운 쪽을 고른다.'}
 - 나이대: ${o.age?o.age+'로 고정한다.':'시에서 추론한다. 시어의 결, 말투와 어미, 회상하는 시간의 폭, 몸을 감각하는 방식, 시가 놓인 생활의 자리를 근거로 화자의 나이대를 정하고, 그렇게 본 이유를 한 줄로 밝힌다. 시가 화자의 나이를 특정하지 않으면 특정하지 않았다고 말하고 가장 자연스러운 한 대를 고른다.'}
 - 나이대는 얼굴만이 아니라 옷의 낡음, 자세, 손의 상태, 공간의 살림살이로도 드러낸다.`}`;
 
@@ -280,7 +288,7 @@ function buildBrief(poem,o){
 ${RULES(o)}
 
 출력 형식
-0) 읽기 — 시에서 그대로 인용한 중심 한 행, 이 시가 무엇을 하고 있는지 두 문장, 심상 단어 4개, 시의 색조를 담은 hex 코드 4개${o.noFigure?'':', 화자의 나이대와 그렇게 본 근거 한 줄'}, 그리고 서론·본론·결론 분할표(부 / 해당 행 인용 / 그 부가 하는 일 한 줄)
+0) 읽기 — 시에서 그대로 인용한 중심 한 행, 이 시가 무엇을 하고 있는지 두 문장, 심상 단어 4개, 시의 색조를 담은 hex 코드 4개${o.noFigure?'':', 화자의 성별·나이대와 그렇게 본 근거 한 줄'}, 그리고 서론·본론·결론 분할표(부 / 해당 행 인용 / 그 부가 하는 일 한 줄)
 1) 고정 요소(anchor) — 여섯 컷에 그대로 반복해 넣을 영어 한 줄
 2) 서론 · 0–20초
    - 진행 앵커(있으면) 영어 한 줄
@@ -338,7 +346,7 @@ async function runAPI(){
   const key=keyEl.value.trim(),o=opts(),poem=poemEl.value.trim();
   stage.innerHTML='<div class="card"><div class="load">시를 읽는 중 · 1 / 4</div></div>';
   try{
-    const sys1=`당신은 시를 영상 언어로 옮기는 감독입니다.\n${RULES(o)}\n\n오직 아래 JSON만 출력. 서문·설명·코드펜스 금지.\n{"reading":{"line":"중심 한 행 인용","emotion":"두 문장","imagery":["","","",""],"palette":["#hex","#hex","#hex","#hex"],"age":"화자 나이대","ageWhy":"근거 한 줄"},"anchor":"여섯 컷에 반복할 영어 한 줄","parts":[{"name":"서론","lines":"해당 행 인용","does":"한 줄"},{"name":"본론","lines":"","does":""},{"name":"결론","lines":"","does":""}]}`;
+    const sys1=`당신은 시를 영상 언어로 옮기는 감독입니다.\n${RULES(o)}\n\n오직 아래 JSON만 출력. 서문·설명·코드펜스 금지.\n{"reading":{"line":"중심 한 행 인용","emotion":"두 문장","imagery":["","","",""],"palette":["#hex","#hex","#hex","#hex"],"age":"화자 나이대","ageWhy":"근거 한 줄","gender":"화자 성별","genderWhy":"근거 한 줄"},"anchor":"여섯 컷에 반복할 영어 한 줄","parts":[{"name":"서론","lines":"해당 행 인용","does":"한 줄"},{"name":"본론","lines":"","does":""},{"name":"결론","lines":"","does":""}]}`;
     const base=await call(key,sys1,`시:\n${poem}`,1600);
 
     const results=[];
@@ -347,7 +355,7 @@ async function runAPI(){
       const t=PARTS[i].t;
       const sysP=`당신은 시를 영상 언어로 옮기는 감독입니다.\n${RULES(o)}\n\n지금은 ${PARTS[i].name} 부만 씁니다. 이 부는 ${t}–${t+20}초, 컷 두 개입니다.\n반드시 두 프롬프트 안에 다음 고정 요소를 영어 그대로 포함하세요: "${base.anchor}"\n타임코드: 컷1 ${t}–${t+10}, 컷2 ${t+10}–${t+20}.\n\n오직 아래 JSON만 출력. 서문·설명·코드펜스 금지.\n{"progress":"이 부에만 더할 진행 앵커 영어 한 줄, 없으면 빈 문자열","cuts":[{"beats":[{"ko":"한국어 한 문장","camera":"영어 카메라 지시"},{"ko":"","camera":""},{"ko":"","camera":""}],"prompt":"영어 영상 프롬프트","negative":"영어 쉼표 나열","audio":"영어 앰비언스 한 줄"},{"beats":[{"ko":"","camera":""},{"ko":"","camera":""},{"ko":"","camera":""}],"prompt":"","negative":"","audio":""}],"seam":"두 컷 사이 이음새 한국어 한 문장","images":[{"title":"한국어 제목 8자 이내","ko":"이 컷이 잡는 순간 한 문장","prompt":"영어 이미지 프롬프트","negative":""},{"title":"","ko":"","prompt":"","negative":""}]}`;
       results.push(await call(key,sysP,
-        `시 전문:\n${poem}\n\n이 부에 해당하는 행: ${base.parts[i].lines}\n이 부가 하는 일: ${base.parts[i].does}\n화자: ${base.reading.age||''}`,3000));
+        `시 전문:\n${poem}\n\n이 부에 해당하는 행: ${base.parts[i].lines}\n이 부가 하는 일: ${base.parts[i].does}\n화자: ${base.reading.gender||''} ${base.reading.age||''}`,3000));
     }
     renderFull(base,results);
   }catch(e){
@@ -380,7 +388,7 @@ function renderFull(base,parts){
       <dt>심상</dt><dd>${(r.imagery||[]).map(esc).join(' · ')}</dd>
       <dt>색조</dt><dd><div class="chips">${(r.palette||[]).map(c=>`<span class="sw" style="background:${esc(c)}"></span>`).join('')}
         <span style="font-family:var(--mono);font-size:11px;color:var(--dim);align-self:center">${(r.palette||[]).map(esc).join('  ')}</span></div></dd>
-      ${r.age?`<dt>화자</dt><dd>${esc(r.age)} — ${esc(r.ageWhy||'')}</dd>`:''}
+      ${(r.gender||r.age)?`<dt>화자</dt><dd>${[r.gender,r.age].filter(Boolean).map(esc).join(' · ')} — ${esc(r.genderWhy||r.ageWhy||'')}</dd>`:''}
       <dt>세 부</dt><dd>${(base.parts||[]).map(p=>`<b style="color:var(--cream);font-weight:400">${esc(p.name)}</b> — ${esc(p.lines)}<br><span style="color:var(--dim)">${esc(p.does)}</span>`).join('<br><br>')}</dd>
     </dl></div>
     <div class="card"><div class="cap">고정 요소 · ANCHOR</div>${pblock('여섯 컷 전부에 그대로',base.anchor)}</div>`;
