@@ -351,11 +351,39 @@ async function runAPI(){
 
     const results=[];
     for(let i=0;i<3;i++){
-      stage.innerHTML=`<div class="card"><div class="load">${PARTS[i].name} 두 컷을 쓰는 중 · ${i+2} / 4</div></div>`;
+      stage.innerHTML=`<div class="card"><div class="load">${PARTS[i].name} 네 아이템을 쓰는 중 · ${i+2} / 4</div></div>`;
       const t=PARTS[i].t;
-      const sysP=`당신은 시를 영상 언어로 옮기는 감독입니다.\n${RULES(o)}\n\n지금은 ${PARTS[i].name} 부만 씁니다. 이 부는 ${t}–${t+20}초, 컷 두 개입니다.\n반드시 두 프롬프트 안에 다음 고정 요소를 영어 그대로 포함하세요: "${base.anchor}"\n타임코드: 컷1 ${t}–${t+10}, 컷2 ${t+10}–${t+20}.\n\n오직 아래 JSON만 출력. 서문·설명·코드펜스 금지.\n{"progress":"이 부에만 더할 진행 앵커 영어 한 줄, 없으면 빈 문자열","cuts":[{"beats":[{"ko":"한국어 한 문장","camera":"영어 카메라 지시"},{"ko":"","camera":""},{"ko":"","camera":""}],"prompt":"영어 영상 프롬프트","negative":"영어 쉼표 나열","audio":"영어 앰비언스 한 줄"},{"beats":[{"ko":"","camera":""},{"ko":"","camera":""},{"ko":"","camera":""}],"prompt":"","negative":"","audio":""}],"seam":"두 컷 사이 이음새 한국어 한 문장","images":[{"title":"한국어 제목 8자 이내","ko":"이 컷이 잡는 순간 한 문장","prompt":"영어 이미지 프롬프트","negative":""},{"title":"","ko":"","prompt":"","negative":""}]}`;
+      
+      // 이전 부의 끝장면 (다음 부의 시작 근거)
+      let prevContext='';
+      if(i>0){
+        const lastResult=results[i-1];
+        if(lastResult.images && lastResult.images[1]){
+          prevContext=`\n\n【 직전 단계: ${PARTS[i-1].name} 이미지2 (${PARTS[i-1].t+20}초 전환) 】\n상황: "${lastResult.images[1].ko}"\n→ ${PARTS[i].name}은 이 상황 이후의 다음 전개입니다. 장면이나 감정이 자연스럽게 이어지되, 영상1부터 완전히 새로운 시각/상황을 제시하세요.`;
+        }
+      }
+      
+      const sysP=`당신은 시를 영상 언어로 옮기는 감독입니다.\n${RULES(o)}\n\n【 핵심: 4개 아이템의 시간 순서와 중복 제거 】
+${PARTS[i].name} 부는 다음 4개를 순서대로 생성합니다:
+  1️⃣ 영상1 (${t}-${t+10}초) — ${PARTS[i].name}의 시작, 첫 인상, 상황 설정
+  2️⃣ 영상2 (${t+10}-${t+20}초) — 영상1에서 한 걸음 나아간 전개, 감정/사건 심화
+  3️⃣ 이미지1 (${t+20}초 시점) — 영상2의 끝(${t+20}초)을 정적으로 포착. 넓은 구도
+  4️⃣ 이미지2 (${t+20}초→다음) — 이 부의 마무리에서 다음 부로 자연스럽게 전환되는 순간. 가까운 구도
+
+【 중복 방지 규칙 】
+• 영상1과 영상2: 카메라 앵글, 시점, 거리감 완전히 다르게
+• 영상2와 이미지1: 같은 순간이지만 영상의 동적 마지막과 이미지의 정적 포착 다르게
+• 이미지1과 이미지2: 시간대와 구도(넓이 vs 가까움) 명확히 구분
+• 고정 앵커 "${base.anchor}"는 두 영상 모두에 포함하되, 상황 맥락은 다르게
+
+${prevContext}
+
+지금은 ${PARTS[i].name} 부입니다. 시의 내용: ${base.parts[i].does}
+
+오직 아래 JSON만 출력. 서문·설명·코드펜스 금지.
+{"progress":"이 부의 진행 앵커 영어 한 줄, 없으면 ''","cuts":[{"name":"영상1_${t}-${t+10}","beats":[{"ko":"${PARTS[i].name} 첫 상황 한국어","camera":"영어 카메라 지시"},{"ko":"","camera":""},{"ko":"","camera":""}],"prompt":"영어 영상 프롬프트 (시작, 첫 인상)","negative":"영어 쉼표 나열","audio":"앰비언스 한 줄"},{"name":"영상2_${t+10}-${t+20}","beats":[{"ko":"한국어","camera":"영어 카메라 지시"},{"ko":"","camera":""},{"ko":"","camera":""}],"prompt":"영어 영상 프롬프트 (영상1 다음, 한 걸음 진전)","negative":"","audio":""}],"seam":"영상1과 영상2 사이 이음새 한국어","images":[{"name":"이미지1_${t+20}초","title":"8자 이내 제목","ko":"영상2 끝(${t+20}초 정확히)을 정적으로 포착. 넓은 구도 한 문장","prompt":"영어 이미지 프롬프트 (영상2의 마지막 프레임, 넓게)","negative":""},{"name":"이미지2_${t+20}→다음","title":"","ko":"이 부 마무리에서 다음 부로 자연스럽게 전환. 가까운 구도 한 문장","prompt":"영어 이미지 프롬프트 (전환 시점, 가깝게, 다음부 힌트)","negative":""}]}`;
       results.push(await call(key,sysP,
-        `시 전문:\n${poem}\n\n이 부에 해당하는 행: ${base.parts[i].lines}\n이 부가 하는 일: ${base.parts[i].does}\n화자: ${base.reading.gender||''} ${base.reading.age||''}`,3000));
+        `시 전문:\n${poem}\n\n${PARTS[i].name} 해당 행: ${base.parts[i].lines}\n${PARTS[i].name}의 역할: ${base.parts[i].does}\n화자: ${base.reading.gender||''} ${base.reading.age||''}`,3500));
     }
     renderFull(base,results);
   }catch(e){
@@ -399,16 +427,24 @@ function renderFull(base,parts){
     if(p.progress) h+=pblock('이 부의 진행 앵커',p.progress);
     p.cuts.forEach((c,ci)=>{
       const ct=t+ci*10;
-      h+=`<div class="cut"><p class="cuth">컷 ${i*2+ci+1} · ${ct}–${ct+10}초</p>
+      const videoNum=i*2+ci+1;
+      const videoRole=ci===0?`${PARTS[i].name} 시작 (첫 인상, 상황 설정)`:`${PARTS[i].name} 전개 (영상${videoNum-1} 다음, 한 걸음 진전)`;
+      h+=`<div class="cut"><p class="cuth">영상${videoNum} · ${ct}–${ct+10}초 — <span style="color:var(--celadon);font-style:italic">${videoRole}</span></p>
         ${beatsTable(c.beats||[],ct)}
         ${pblock('VIDEO PROMPT · '+$('#model').value,c.prompt)}
         ${pblock('NEGATIVE',c.negative,'neg')}
         <p class="audio">앰비언스 — ${esc(c.audio||'')}</p></div>`;
-      if(ci===0&&p.seam) h+=`<p class="seam">이음새 — ${esc(p.seam)}</p>`;
+      if(ci===0&&p.seam) h+=`<p class="seam">이음새 (영상1→2) — ${esc(p.seam)}</p>`;
     });
-    h+='<div class="imgs">'+(p.images||[]).map((im,ii)=>`<div class="img">
-      <h4>${esc(im.title)} <span style="font-family:var(--mono);font-size:10px;color:var(--dim)">${ii===0?'넓게':'가깝게'}</span></h4>
-      <p class="ko">${esc(im.ko)}</p>${pblock('IMAGE PROMPT',im.prompt)}${pblock('NEGATIVE',im.negative,'neg')}</div>`).join('')+'</div>';
+    h+='<div class="imgs">'+(p.images||[]).map((im,ii)=>{
+      const imgNum=i*2+3+ii;
+      const imgTime=ii===0?`${t+20}초`:`${t+20}초 → 다음부`;
+      const imgRole=ii===0?`영상2(${t+10}-${t+20}초) 끝을 정적으로 포착. 넓은 구도`:`${PARTS[i].name} 마무리에서 ${i<2?PARTS[i+1].name:'끝'}으로 자연스럽게 전환. 가까운 구도`;
+      return `<div class="img">
+      <h4>${esc(im.title)} <span style="font-family:var(--mono);font-size:10px;color:var(--dim)">이미지${imgNum} · ${imgTime}</span></h4>
+      <p class="ko" style="color:var(--celadon);font-size:11.5px;margin-bottom:8px;font-style:italic">${imgRole}</p>
+      <p class="ko">${esc(im.ko)}</p>${pblock('IMAGE PROMPT',im.prompt)}${pblock('NEGATIVE',im.negative,'neg')}</div>`;
+    }).join('')+'</div>';
     h+='</div></div>';
   });
   stage.innerHTML=h;wireCopy(stage);
