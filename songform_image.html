@@ -511,10 +511,10 @@ function applyPreset(p){
 }
 
 /* ═══ 옵션 ═══ */
-let bgKey = "auto", lookKey = "cinema", genreKey = "ballad", relKey = "auto";
+let bgKey = "auto", lookKey = "cinema", genreKeys = ["ballad"], relKey = "auto";
 
 $("genreChips").innerHTML = GENRES.map(([k,ko]) =>
-  `<button class="chip" data-genre="${k}" aria-pressed="${k===genreKey}">${ko}</button>`).join("");
+  `<button class="chip" data-genre="${k}" aria-pressed="${genreKeys.includes(k)}">${ko}</button>`).join("");
 $("relChips").innerHTML = REL.map(([k,ko]) =>
   `<button class="chip" data-rel="${k}" aria-pressed="${k===relKey}">${ko}</button>`).join("");
 $("bgChips").innerHTML = BG.map(([k,ko]) =>
@@ -524,8 +524,13 @@ $("lookChips").innerHTML = LOOKS.map(([k,ko]) =>
 
 $("genreChips").addEventListener("click", e => {
   const b = e.target.closest("[data-genre]"); if (!b) return;
-  genreKey = b.dataset.genre;
-  [...$("genreChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.genre === genreKey));
+  const k = b.dataset.genre;
+  if (genreKeys.includes(k)) {
+    if (genreKeys.length > 1) genreKeys = genreKeys.filter(g => g !== k);
+  } else {
+    genreKeys = genreKeys.length >= 2 ? [genreKeys[1], k] : [...genreKeys, k];
+  }
+  [...$("genreChips").children].forEach(c => c.setAttribute("aria-pressed", genreKeys.includes(c.dataset.genre)));
   saveNow(true);
 });
 $("relChips").addEventListener("click", e => {
@@ -554,7 +559,7 @@ $("shortsToggle").addEventListener("click", () => {
 
 function opts(){
   const look = LOOKS.find(l => l[0] === lookKey);
-  const genre = GENRES.find(g => g[0] === genreKey);
+  const genres = genreKeys.map(k => GENRES.find(g => g[0] === k)).filter(Boolean);
   const rel = REL.find(r => r[0] === relKey);
   const bgEn = bgKey === "custom" ? $("customBg").value.trim()
              : bgKey === "auto"   ? "" : BG_EN[bgKey];
@@ -567,11 +572,13 @@ function opts(){
     bgAuto: bgKey === "auto",
     look: look[2],
     lookKo: look[1],
-    genreKo: genre[1],
-    genreDesc: genre[2],
+    genreKo: genres.map(g => g[1]).join(" + "),
+    genreDesc: genres.length > 1
+      ? genres.map(g => `[${g[1]}] ${g[2]}`).join(" 그리고 ") + " — 이 두 장르를 한 곡 안에서 자연스럽게 섞는다. 카메라 무브 속도, 조명의 색온도와 채도, 인물 동작의 강도는 두 장르 지침을 절충해서 정하되 어느 한쪽으로 완전히 치우치지 않게 한다. 구간에 따라(예: 잔잔한 절과 고조되는 후렴) 두 장르 중 더 어울리는 쪽의 비중을 살짝 높여도 된다."
+      : genres[0][2],
     relKo: rel[1],
     relDesc: rel[2],
-    lively: LIVELY_GENRES.has(genreKey),
+    lively: genreKeys.some(k => LIVELY_GENRES.has(k)),
     noFigure: $("gender").value === "none",
     noFace: $("noFace").checked,
     refPhoto: $("refPhoto").checked
@@ -807,7 +814,7 @@ function snapshot(){
     noFace: $("noFace").checked,
     refPhoto: $("refPhoto").checked,
     ratio: $("ratio").value, bg: bgKey, customBg: $("customBg").value, look: lookKey,
-    genre: genreKey,
+    genre: genreKeys,
     rel: relKey,
     shorts: SHORTS,
     saved: new Date().toISOString()
@@ -818,14 +825,17 @@ function restorePrefs(s){
   ["ethnicity","age","gender","ratio"].forEach(k => { if (s[k]) $(k).value = s[k]; });
   $("noFace").checked = !!s.noFace;
   $("refPhoto").checked = !!s.refPhoto;
-  bgKey = s.bg || "auto"; lookKey = s.look || "cinema"; genreKey = s.genre || "ballad"; relKey = s.rel || "auto";
+  bgKey = s.bg || "auto"; lookKey = s.look || "cinema";
+  genreKeys = s.genre ? (Array.isArray(s.genre) ? s.genre : [s.genre]) : ["ballad"];
+  if (genreKeys.length === 0) genreKeys = ["ballad"];
+  relKey = s.rel || "auto";
   SHORTS = !!s.shorts;
   $("shortsToggle").setAttribute("aria-pressed", String(SHORTS));
   $("customBg").value = s.customBg || "";
   $("customBg").style.display = bgKey === "custom" ? "block" : "none";
   [...$("bgChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.bg === bgKey));
   [...$("lookChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.look === lookKey));
-  [...$("genreChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.genre === genreKey));
+  [...$("genreChips").children].forEach(c => c.setAttribute("aria-pressed", genreKeys.includes(c.dataset.genre)));
   [...$("relChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.rel === relKey));
 }
 
