@@ -129,6 +129,12 @@ footer{margin-top:34px;border-top:1px solid var(--edge);padding-top:16px;font-si
       <textarea id="poem" placeholder="시를 붙여넣으세요."></textarea>
 
       <div class="controls">
+        <label class="field wide"><span>콘텐츠 타입</span>
+          <select id="type">
+            <option value="both">영상 & 이미지 (전체)</option>
+            <option value="video">영상만 (6개)</option>
+            <option value="image">이미지만 (6개)</option>
+          </select></label>
         <label class="field"><span>영상 모델</span>
           <select id="model">
             <option value="Google Veo 3">Veo 3</option>
@@ -237,7 +243,7 @@ function sync(){
 poemEl.addEventListener('input',sync);keyEl.addEventListener('input',sync);
 
 function opts(){
-  return {model:$('#model').value,ratio:$('#ratio').value,tone:$('#tone').value,
+  return {type:$('#type').value,model:$('#model').value,ratio:$('#ratio').value,tone:$('#tone').value,
     figure:$('#figure').value,ethnicity:$('#ethnicity').value,age:$('#age').value,gender:$('#gender').value,
     link:$('#link').value,arc:$('#arc').value,
     noFigure:$('#figure').value.indexOf('등장시키지 않는다')!==-1};
@@ -283,22 +289,48 @@ ${o.noFigure?'':`
 - 나이대는 얼굴만이 아니라 옷의 낡음, 자세, 손의 상태, 공간의 살림살이로도 드러낸다.`}`;
 
 function buildBrief(poem,o){
-  return `당신은 시를 영상 언어로 옮기는 감독이자 프롬프트 작가입니다. 아래 시를 서론 · 본론 · 결론 세 부로 나누고, 부마다 10초짜리 영상 프롬프트 2개와 대표 이미지 프롬프트 2개를 써 주세요. 모두 영상 6컷 60초, 이미지 6장입니다.
+  const isVideo=o.type==='video';
+  const isImage=o.type==='image';
+  const isBoth=o.type==='both';
+  
+  let briefType=isBoth?'영상 6컷 60초, 이미지 6장':isVideo?'영상 6컷 60초만':isImage?'이미지 6장만':'';
+  let briefDesc=isBoth?'부마다 10초짜리 영상 프롬프트 2개와 대표 이미지 프롬프트 2개':
+    isVideo?'부마다 10초짜리 영상 프롬프트 2개':
+    isImage?'부마다 대표 이미지 프롬프트 2개':'';
+  
+  let outputFormat=`0) 읽기 — 시에서 그대로 인용한 중심 한 행, 이 시가 무엇을 하고 있는지 두 문장, 심상 단어 4개, 시의 색조를 담은 hex 코드 4개${o.noFigure?'':', 화자의 성별·나이대와 그렇게 본 근거 한 줄'}, 그리고 서론·본론·결론 분할표(부 / 해당 행 인용 / 그 부가 하는 일 한 줄)`;
+  
+  if(isBoth||isVideo){
+    outputFormat+=`
+1) 고정 요소(anchor) — 여섯 영상에 그대로 반복해 넣을 영어 한 줄
+2) 서론 · 0–20초
+   - 진행 앵커(있으면) 영어 한 줄
+   - 영상1 · 0–10초 : 0–3 / 3–7 / 7–10 박자표(무엇이 보이는지 한국어 한 문장 + 영어 카메라 지시), 영어 영상 프롬프트, negative, 앰비언스 사운드 한 줄
+   - 이음새 — 영상1에서 영상2로 무엇이 이어지고 무엇이 한 걸음 나아가는지 한국어 한 문장
+   - 영상2 · 10–20초 : 10–13 / 13–17 / 17–20 박자표, 영어 영상 프롬프트(고정 요소를 처음부터 다시 전부 포함), negative, 앰비언스 한 줄
+3) 본론 · 20–40초 — 위와 같은 형식. 영상3은 20–30초(20–23/23–27/27–30), 영상4는 30–40초(30–33/33–37/37–40)
+4) 결론 · 40–60초 — 위와 같은 형식. 영상5는 40–50초(40–43/43–47/47–50), 영상6은 50–60초(50–53/53–57/57–60)`;
+  }
+  
+  if(isBoth||isImage){
+    outputFormat+=`
+${isBoth?'5) 대표 이미지':'2) 대표 이미지'} — 부마다 넓게와 가깝게 두 장
+   - 서론-I(넓게) / 서론-II(가깝게) : 각각 한국어 제목 8자, 이 컷이 잡는 순간 한 문장, 영어 이미지 프롬프트, negative
+   - 본론-I(넓게) / 본론-II(가깝게) : 위와 같은 형식
+   - 결론-I(넓게) / 결론-II(가깝게) : 위와 같은 형식`;
+  }
+  
+  if(isBoth){
+    outputFormat+=`
+6) 이어붙이기 — 여섯 컷을 편집에서 잇는 순서와, 부와 부 사이 전환을 각각 한국어 한 줄`;
+  }
+  
+  return `당신은 시를 영상 언어로 옮기는 감독이자 프롬프트 작가입니다. 아래 시를 서론 · 본론 · 결론 세 부로 나누고, ${briefDesc}를 써 주세요. 모두 ${briefType}입니다.
 
 ${RULES(o)}
 
 출력 형식
-0) 읽기 — 시에서 그대로 인용한 중심 한 행, 이 시가 무엇을 하고 있는지 두 문장, 심상 단어 4개, 시의 색조를 담은 hex 코드 4개${o.noFigure?'':', 화자의 성별·나이대와 그렇게 본 근거 한 줄'}, 그리고 서론·본론·결론 분할표(부 / 해당 행 인용 / 그 부가 하는 일 한 줄)
-1) 고정 요소(anchor) — 여섯 컷에 그대로 반복해 넣을 영어 한 줄
-2) 서론 · 0–20초
-   - 진행 앵커(있으면) 영어 한 줄
-   - 컷 1 · 0–10초 : 0–3 / 3–7 / 7–10 박자표(무엇이 보이는지 한국어 한 문장 + 영어 카메라 지시), 영어 영상 프롬프트, negative, 앰비언스 사운드 한 줄
-   - 이음새 — 컷 1에서 컷 2로 무엇이 이어지고 무엇이 한 걸음 나아가는지 한국어 한 문장
-   - 컷 2 · 10–20초 : 10–13 / 13–17 / 17–20 박자표, 영어 영상 프롬프트(고정 요소를 처음부터 다시 전부 포함), negative, 앰비언스 한 줄
-   - 대표 이미지 서론-I(넓게) · 서론-II(가깝게) : 각각 한국어 제목, 이 컷이 잡는 순간 한 문장, 영어 이미지 프롬프트, negative
-3) 본론 · 20–40초 — 위와 같은 형식. 컷 3은 20–30초(20–23/23–27/27–30), 컷 4는 30–40초(30–33/33–37/37–40)
-4) 결론 · 40–60초 — 위와 같은 형식. 컷 5는 40–50초(40–43/43–47/47–50), 컷 6은 50–60초(50–53/53–57/57–60)
-5) 이어붙이기 — 여섯 컷을 편집에서 잇는 순서와, 부와 부 사이 전환을 각각 한국어 한 줄
+${outputFormat}
 
 ────────────────────────
 ${poem.trim()}
@@ -344,48 +376,75 @@ const PARTS=[{name:'서론',t:0},{name:'본론',t:20},{name:'결론',t:40}];
 
 async function runAPI(){
   const key=keyEl.value.trim(),o=opts(),poem=poemEl.value.trim();
+  const isVideo=o.type==='video',isImage=o.type==='image',isBoth=o.type==='both';
+  
   stage.innerHTML='<div class="card"><div class="load">시를 읽는 중 · 1 / 4</div></div>';
   try{
-    const sys1=`당신은 시를 영상 언어로 옮기는 감독입니다.\n${RULES(o)}\n\n오직 아래 JSON만 출력. 서문·설명·코드펜스 금지.\n{"reading":{"line":"중심 한 행 인용","emotion":"두 문장","imagery":["","","",""],"palette":["#hex","#hex","#hex","#hex"],"age":"화자 나이대","ageWhy":"근거 한 줄","gender":"화자 성별","genderWhy":"근거 한 줄"},"anchor":"여섯 컷에 반복할 영어 한 줄","parts":[{"name":"서론","lines":"해당 행 인용","does":"한 줄"},{"name":"본론","lines":"","does":""},{"name":"결론","lines":"","does":""}]}`;
+    const sys1=`당신은 시를 영상 언어로 옮기는 감독입니다.\n${RULES(o)}\n\n오직 아래 JSON만 출력. 서문·설명·코드펜스 금지.\n{"reading":{"line":"중심 한 행 인용","emotion":"두 문장","imagery":["","","",""],"palette":["#hex","#hex","#hex","#hex"],"age":"화자 나이대","ageWhy":"근거 한 줄","gender":"화자 성별","genderWhy":"근거 한 줄"},"anchor":"${isImage?'':'여섯 영상에 반복할 영어 한 줄'}","parts":[{"name":"서론","lines":"해당 행 인용","does":"한 줄"},{"name":"본론","lines":"","does":""},{"name":"결론","lines":"","does":""}]}`;
     const base=await call(key,sys1,`시:\n${poem}`,1600);
 
     const results=[];
     for(let i=0;i<3;i++){
-      stage.innerHTML=`<div class="card"><div class="load">${PARTS[i].name} 네 아이템을 쓰는 중 · ${i+2} / 4</div></div>`;
+      const loadMsg=isVideo?'영상':isImage?'이미지':'네 아이템';
+      stage.innerHTML=`<div class="card"><div class="load">${PARTS[i].name} ${loadMsg}을 쓰는 중 · ${i+2} / 4</div></div>`;
       const t=PARTS[i].t;
       
-      // 이전 부의 끝장면 (다음 부의 시작 근거)
       let prevContext='';
-      if(i>0){
-        const lastResult=results[i-1];
-        if(lastResult.images && lastResult.images[1]){
-          prevContext=`\n\n【 직전 단계: ${PARTS[i-1].name} 이미지2 (${PARTS[i-1].t+20}초 전환) 】\n상황: "${lastResult.images[1].ko}"\n→ ${PARTS[i].name}은 이 상황 이후의 다음 전개입니다. 장면이나 감정이 자연스럽게 이어지되, 영상1부터 완전히 새로운 시각/상황을 제시하세요.`;
+      if(i>0 && results[i-1]){
+        if(isVideo&&results[i-1].seam){
+          prevContext=`\n\n【 영상2의 끝(${PARTS[i-1].t+20}초) 다음 】\n이음새: "${results[i-1].seam}"\n→ 영상1부터 자연스럽게 전개하세요.`;
+        } else if(isImage&&results[i-1].images){
+          prevContext=`\n\n【 직전 이미지2 (${PARTS[i-1].t+20}초) 】\n"${results[i-1].images[1].ko}"\n→ 이미지1부터 다음 상황을 포착하세요.`;
+        } else if(isBoth&&results[i-1].images){
+          prevContext=`\n\n【 직전 단계: ${PARTS[i-1].name} 이미지2 】\n상황: "${results[i-1].images[1].ko}"\n→ 이 상황 이후의 다음 전개입니다.`;
         }
       }
       
-      const sysP=`당신은 시를 영상 언어로 옮기는 감독입니다.\n${RULES(o)}\n\n【 핵심: 4개 아이템의 시간 순서와 중복 제거 】
-${PARTS[i].name} 부는 다음 4개를 순서대로 생성합니다:
-  1️⃣ 영상1 (${t}-${t+10}초) — ${PARTS[i].name}의 시작, 첫 인상, 상황 설정
-  2️⃣ 영상2 (${t+10}-${t+20}초) — 영상1에서 한 걸음 나아간 전개, 감정/사건 심화
-  3️⃣ 이미지1 (${t+20}초 시점) — 영상2의 끝(${t+20}초)을 정적으로 포착. 넓은 구도
-  4️⃣ 이미지2 (${t+20}초→다음) — 이 부의 마무리에서 다음 부로 자연스럽게 전환되는 순간. 가까운 구도
+      let sysP,userMsg;
+      if(isVideo){
+        sysP=`당신은 시를 영상 언어로 옮기는 감독입니다.\n${RULES(o)}\n\n【 ${PARTS[i].name} 영상 두 개 】
+각 영상 10초, 타임코드: 영상${i*2+1} ${t}–${t+10}, 영상${i*2+2} ${t+10}–${t+20}
 
-【 중복 방지 규칙 】
-• 영상1과 영상2: 카메라 앵글, 시점, 거리감 완전히 다르게
-• 영상2와 이미지1: 같은 순간이지만 영상의 동적 마지막과 이미지의 정적 포착 다르게
-• 이미지1과 이미지2: 시간대와 구도(넓이 vs 가까움) 명확히 구분
-• 고정 앵커 "${base.anchor}"는 두 영상 모두에 포함하되, 상황 맥락은 다르게
-
+원칙
+• 영상1: ${PARTS[i].name}의 시작, 첫 인상, 상황 설정
+• 영상2: 영상1 다음의 전개, 한 걸음 진전
+• 고정 앵커 "${base.anchor}"를 두 영상 모두에 포함하되, 카메라 앵글은 완전히 다르게
 ${prevContext}
 
-지금은 ${PARTS[i].name} 부입니다. 시의 내용: ${base.parts[i].does}
+오직 아래 JSON만 출력. 서문·설명·코드펜스 금지.
+{"progress":"진행 앵커 영어 한 줄, 없으면 ''","cuts":[{"name":"영상${i*2+1}_${t}-${t+10}","beats":[{"ko":"한국어","camera":"영어 카메라"},{"ko":"","camera":""},{"ko":"","camera":""}],"prompt":"영어 영상 프롬프트 (시작, 첫 인상)","negative":"영어","audio":"앰비언스 한 줄"},{"name":"영상${i*2+2}_${t+10}-${t+20}","beats":[{"ko":"한국어","camera":"영어 카메라"},{"ko":"","camera":""},{"ko":"","camera":""}],"prompt":"영어 영상 프롬프트 (전개, 진전)","negative":"영어","audio":"앰비언스"}],"seam":"이음새 한국어"}`;
+        userMsg=`시 전문:\n${poem}\n\n${PARTS[i].name} 해당 행: ${base.parts[i].lines}\n역할: ${base.parts[i].does}\n화자: ${base.reading.gender||''} ${base.reading.age||''}`;
+      } else if(isImage){
+        sysP=`당신은 영상 기반의 이미지 프롬프트 작가입니다.\n${RULES(o)}\n\n【 ${PARTS[i].name} 이미지 두 개 】
+영상2의 끝(${t+20}초)을 기준으로:
+• 이미지1(넓게): 영상2 끝 순간의 전체 장면
+• 이미지2(가깝게): 다음 부로 전환되는 순간의 근접 포착
+${prevContext}
+
+오직 아래 JSON만 출력.
+{"images":[{"name":"이미지${i*2+3}","title":"제목","ko":"${t+20}초 장면","prompt":"영어 이미지 프롬프트 (넓게)","negative":""},{"name":"이미지${i*2+4}","title":"제목","ko":"전환 순간","prompt":"영어 이미지 프롬프트 (가깝게)","negative":""}]}`;
+        userMsg=`시 전문:\n${poem}\n\n${PARTS[i].name} 이미지: ${base.parts[i].does}`;
+      } else {
+        // isBoth: 기존 로직
+        sysP=`당신은 시를 영상 언어로 옮기는 감독입니다.\n${RULES(o)}\n\n【 핵심: 4개 아이템의 시간 순서와 중복 제거 】
+${PARTS[i].name} 부는 다음 4개를 순서대로 생성합니다:
+  1️⃣ 영상1 (${t}-${t+10}초) — 시작, 첫 인상
+  2️⃣ 영상2 (${t+10}-${t+20}초) — 전개, 진전
+  3️⃣ 이미지1 (${t+20}초) — 영상2 끝을 정적으로 포착 (넓게)
+  4️⃣ 이미지2 (${t+20}→다음) — 다음부로 전환 (가깝게)
+
+고정 앵커 "${base.anchor}"는 두 영상 모두에 포함하되, 상황 맥락은 다르게
+${prevContext}
 
 오직 아래 JSON만 출력. 서문·설명·코드펜스 금지.
-{"progress":"이 부의 진행 앵커 영어 한 줄, 없으면 ''","cuts":[{"name":"영상1_${t}-${t+10}","beats":[{"ko":"${PARTS[i].name} 첫 상황 한국어","camera":"영어 카메라 지시"},{"ko":"","camera":""},{"ko":"","camera":""}],"prompt":"영어 영상 프롬프트 (시작, 첫 인상)","negative":"영어 쉼표 나열","audio":"앰비언스 한 줄"},{"name":"영상2_${t+10}-${t+20}","beats":[{"ko":"한국어","camera":"영어 카메라 지시"},{"ko":"","camera":""},{"ko":"","camera":""}],"prompt":"영어 영상 프롬프트 (영상1 다음, 한 걸음 진전)","negative":"","audio":""}],"seam":"영상1과 영상2 사이 이음새 한국어","images":[{"name":"이미지1_${t+20}초","title":"8자 이내 제목","ko":"영상2 끝(${t+20}초 정확히)을 정적으로 포착. 넓은 구도 한 문장","prompt":"영어 이미지 프롬프트 (영상2의 마지막 프레임, 넓게)","negative":""},{"name":"이미지2_${t+20}→다음","title":"","ko":"이 부 마무리에서 다음 부로 자연스럽게 전환. 가까운 구도 한 문장","prompt":"영어 이미지 프롬프트 (전환 시점, 가깝게, 다음부 힌트)","negative":""}]}`;
-      results.push(await call(key,sysP,
-        `시 전문:\n${poem}\n\n${PARTS[i].name} 해당 행: ${base.parts[i].lines}\n${PARTS[i].name}의 역할: ${base.parts[i].does}\n화자: ${base.reading.gender||''} ${base.reading.age||''}`,3500));
+{"progress":"진행 앵커 영어 한 줄, 없으면 ''","cuts":[{"name":"영상${i*2+1}","beats":[{"ko":"한국어","camera":"영어"},{"ko":"","camera":""},{"ko":"","camera":""}],"prompt":"영어 프롬프트 (시작)","negative":"","audio":""},{"name":"영상${i*2+2}","beats":[{"ko":"","camera":""},{"ko":"","camera":""},{"ko":"","camera":""}],"prompt":"영어 프롬프트 (전개)","negative":"","audio":""}],"seam":"이음새","images":[{"name":"이미지${i*2+3}","title":"","ko":"${t+20}초","prompt":"영어 (넓게)","negative":""},{"name":"이미지${i*2+4}","title":"","ko":"전환","prompt":"영어 (가깝게)","negative":""}]}`;
+        userMsg=`시 전문:\n${poem}\n\n${PARTS[i].name}: ${base.parts[i].lines}\n역할: ${base.parts[i].does}\n화자: ${base.reading.gender||''} ${base.reading.age||''}`;
+      }
+      
+      const maxTok=isImage?2000:isVideo?2500:3500;
+      results.push(await call(key,sysP,userMsg,maxTok));
     }
-    renderFull(base,results);
+    renderFull(base,results,o.type);
   }catch(e){
     stage.innerHTML=`<div class="card"><div class="err">${esc(e.message)}<br><br>키가 맞는지, 잔액이 있는지 확인해 주세요. 그냥 <b>지시문 만들기</b>로 복사해 Claude 대화창에 붙여넣으셔도 결과는 같습니다.</div></div>`;
   }
@@ -407,7 +466,8 @@ function beatsTable(beats,t){
   return '<table>'+beats.map((b,i)=>`<tr><th>${spans[i][0]}–${spans[i][1]}초</th>
     <td class="ko">${esc(b.ko)}</td><td class="cam">${esc(b.camera)}</td></tr>`).join('')+'</table>';
 }
-function renderFull(base,parts){
+function renderFull(base,parts,type='both'){
+  const isVideo=type==='video',isImage=type==='image',isBoth=type==='both';
   const r=base.reading;
   let h=`<div class="card"><div class="cap">읽기</div>
     <dl class="read">
@@ -418,34 +478,66 @@ function renderFull(base,parts){
         <span style="font-family:var(--mono);font-size:11px;color:var(--dim);align-self:center">${(r.palette||[]).map(esc).join('  ')}</span></div></dd>
       ${(r.gender||r.age)?`<dt>화자</dt><dd>${[r.gender,r.age].filter(Boolean).map(esc).join(' · ')} — ${esc(r.genderWhy||r.ageWhy||'')}</dd>`:''}
       <dt>세 부</dt><dd>${(base.parts||[]).map(p=>`<b style="color:var(--cream);font-weight:400">${esc(p.name)}</b> — ${esc(p.lines)}<br><span style="color:var(--dim)">${esc(p.does)}</span>`).join('<br><br>')}</dd>
-    </dl></div>
-    <div class="card"><div class="cap">고정 요소 · ANCHOR</div>${pblock('여섯 컷 전부에 그대로',base.anchor)}</div>`;
+    </dl></div>`;
+  
+  if((isBoth||isVideo)&&base.anchor){
+    h+=`<div class="card"><div class="cap">고정 요소 · ANCHOR (영상)</div>${pblock('여섯 영상에 반복',base.anchor)}</div>`;
+  }
 
   parts.forEach((p,i)=>{
     const t=PARTS[i].t;
-    h+=`<div class="part"><h2>${PARTS[i].name}<small>${t}–${t+20}초 · 컷 ${i*2+1}, ${i*2+2}</small></h2><div class="pbody">`;
-    if(p.progress) h+=pblock('이 부의 진행 앵커',p.progress);
-    p.cuts.forEach((c,ci)=>{
-      const ct=t+ci*10;
-      const videoNum=i*2+ci+1;
-      const videoRole=ci===0?`${PARTS[i].name} 시작 (첫 인상, 상황 설정)`:`${PARTS[i].name} 전개 (영상${videoNum-1} 다음, 한 걸음 진전)`;
-      h+=`<div class="cut"><p class="cuth">영상${videoNum} · ${ct}–${ct+10}초 — <span style="color:var(--celadon);font-style:italic">${videoRole}</span></p>
-        ${beatsTable(c.beats||[],ct)}
-        ${pblock('VIDEO PROMPT · '+$('#model').value,c.prompt)}
-        ${pblock('NEGATIVE',c.negative,'neg')}
-        <p class="audio">앰비언스 — ${esc(c.audio||'')}</p></div>`;
-      if(ci===0&&p.seam) h+=`<p class="seam">이음새 (영상1→2) — ${esc(p.seam)}</p>`;
-    });
-    h+='<div class="imgs">'+(p.images||[]).map((im,ii)=>{
-      const imgNum=i*2+3+ii;
-      const imgTime=ii===0?`${t+20}초`:`${t+20}초 → 다음부`;
-      const imgRole=ii===0?`영상2(${t+10}-${t+20}초) 끝을 정적으로 포착. 넓은 구도`:`${PARTS[i].name} 마무리에서 ${i<2?PARTS[i+1].name:'끝'}으로 자연스럽게 전환. 가까운 구도`;
-      return `<div class="img">
-      <h4>${esc(im.title)} <span style="font-family:var(--mono);font-size:10px;color:var(--dim)">이미지${imgNum} · ${imgTime}</span></h4>
-      <p class="ko" style="color:var(--celadon);font-size:11.5px;margin-bottom:8px;font-style:italic">${imgRole}</p>
-      <p class="ko">${esc(im.ko)}</p>${pblock('IMAGE PROMPT',im.prompt)}${pblock('NEGATIVE',im.negative,'neg')}</div>`;
-    }).join('')+'</div>';
-    h+='</div></div>';
+    
+    if(isVideo){
+      // 영상만 표시
+      h+=`<div class="part"><h2>${PARTS[i].name}<small>${t}–${t+20}초 · 영상 ${i*2+1}, ${i*2+2}</small></h2><div class="pbody">`;
+      if(p.progress) h+=pblock('진행 앵커',p.progress);
+      p.cuts.forEach((c,ci)=>{
+        const ct=t+ci*10;
+        const videoNum=i*2+ci+1;
+        const videoRole=ci===0?`${PARTS[i].name} 시작`:`${PARTS[i].name} 전개`;
+        h+=`<div class="cut"><p class="cuth">영상${videoNum} · ${ct}–${ct+10}초 — ${videoRole}</p>
+          ${beatsTable(c.beats||[],ct)}
+          ${pblock('VIDEO PROMPT · '+$('#model').value,c.prompt)}
+          ${pblock('NEGATIVE',c.negative,'neg')}
+          <p class="audio">앰비언스 — ${esc(c.audio||'')}</p></div>`;
+        if(ci===0&&p.seam) h+=`<p class="seam">이음새 — ${esc(p.seam)}</p>`;
+      });
+      h+='</div></div>';
+    } else if(isImage){
+      // 이미지만 표시
+      h+=`<div class="part"><h2>${PARTS[i].name}<small>이미지 ${i*2+3}, ${i*2+4}</small></h2><div class="pbody">`;
+      h+='<div class="imgs" style="display:grid;gap:14px">'+(p.images||[]).map((im,ii)=>{
+        const imgNum=i*2+3+ii;
+        const imgLayout=ii===0?'넓게':'가깝게';
+        return `<div class="img">
+        <h4>${esc(im.title)} <span style="font-family:var(--mono);font-size:10px;color:var(--dim)">이미지${imgNum} · ${imgLayout}</span></h4>
+        <p class="ko">${esc(im.ko)}</p>${pblock('IMAGE PROMPT',im.prompt)}${pblock('NEGATIVE',im.negative,'neg')}</div>`;
+      }).join('')+'</div>';
+      h+='</div></div>';
+    } else {
+      // 영상 + 이미지 (기존)
+      h+=`<div class="part"><h2>${PARTS[i].name}<small>${t}–${t+20}초 · 영상 ${i*2+1}, ${i*2+2}</small></h2><div class="pbody">`;
+      if(p.progress) h+=pblock('진행 앵커',p.progress);
+      p.cuts.forEach((c,ci)=>{
+        const ct=t+ci*10;
+        const videoNum=i*2+ci+1;
+        const videoRole=ci===0?`시작`:`전개`;
+        h+=`<div class="cut"><p class="cuth">영상${videoNum} · ${ct}–${ct+10}초 — ${videoRole}</p>
+          ${beatsTable(c.beats||[],ct)}
+          ${pblock('VIDEO PROMPT · '+$('#model').value,c.prompt)}
+          ${pblock('NEGATIVE',c.negative,'neg')}
+          <p class="audio">앰비언스 — ${esc(c.audio||'')}</p></div>`;
+        if(ci===0&&p.seam) h+=`<p class="seam">이음새 — ${esc(p.seam)}</p>`;
+      });
+      h+='<div class="imgs">'+(p.images||[]).map((im,ii)=>{
+        const imgNum=i*2+3+ii;
+        const imgLayout=ii===0?'넓게':'가깝게';
+        return `<div class="img">
+        <h4>${esc(im.title)} <span style="font-family:var(--mono);font-size:10px;color:var(--dim)">이미지${imgNum} · ${imgLayout}</span></h4>
+        <p class="ko">${esc(im.ko)}</p>${pblock('IMAGE PROMPT',im.prompt)}${pblock('NEGATIVE',im.negative,'neg')}</div>`;
+      }).join('')+'</div>';
+      h+='</div></div>';
+    }
   });
   stage.innerHTML=h;wireCopy(stage);
 }
