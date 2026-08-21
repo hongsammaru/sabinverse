@@ -228,16 +228,7 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
     </div>
   </div>
 
-  <div class="field two">
-    <div>
-      <label class="lab" for="ethnicity">국적</label>
-      <select id="ethnicity">
-        <option value="한국인">한국인</option>
-        <option value="한국인 (한복·한옥 등 전통 요소 허용)">한국인 · 전통</option>
-        <option value="동아시아인, 국적 불특정">동아시아인</option>
-        <option value="지정하지 않음">지정 안 함</option>
-      </select>
-    </div>
+  <div class="field">
     <div>
       <label class="lab" for="age">나이대</label>
       <select id="age">
@@ -250,6 +241,7 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
         <option value="50–60대">50–60대</option>
         <option value="70대 이상">70대 이상</option>
       </select>
+      <p class="note" style="margin-top:6px">국적은 항상 한국인으로 고정됩니다 (선택 불필요).</p>
     </div>
   </div>
 
@@ -271,6 +263,7 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
         <input type="checkbox" id="refPhoto" style="width:15px;height:15px;cursor:pointer">
         참고 사진 첨부해서 인물 특징 일관되게 유지
       </label>
+      <p class="note" style="margin-top:6px">참고 사진 없이는 텍스트 설명만으로 매 컷의 얼굴을 새로 그리게 되어, 동일 인물 유지에 한계가 있습니다. 완전한 얼굴 동일성이 필요하면 이미지투이미지·캐릭터 락 기능이 있는 생성 도구에 참고 사진과 함께 넣어주세요.</p>
     </div>
     <div>
       <label class="lab" for="ratio">화면비</label>
@@ -564,7 +557,7 @@ function opts(){
   const bgEn = bgKey === "custom" ? $("customBg").value.trim()
              : bgKey === "auto"   ? "" : BG_EN[bgKey];
   return {
-    ethnicity: $("ethnicity").value,
+    ethnicity: "한국인",
     age: $("age").value,
     gender: $("gender").value,
     ratio: $("ratio").value,
@@ -602,8 +595,10 @@ function rulesText(o){
   const figure = o.noFigure
     ? "사람은 등장시키지 않는다. 사물, 빈 공간, 풍경으로만 쓴다."
     : `인물은 ${o.gender === "가사에서 추론" ? "가사에서 추론해 정한다" : o.gender}.
-- 영어 프롬프트에서 사람이 처음 등장하는 자리에 국적과 나이대를 반드시 함께 적는다. 예: "a Korean woman in her late 30s". 생략하면 생성 모델은 백인 20대를 기본값으로 그린다.
-- 손, 목덜미, 뒷모습, 발끝만 보일 때도 똑같이 명시한다. 예: "the hands of a Korean man in his 60s, sun-worn knuckles".
+- 인물 국적·인종 고정 (예외 없음, 옵션 아님, 매 프롬프트 필수): 이 도구가 생성하는 모든 인물은 예외 없이 한국인이다. 장르·가사 내용과 무관하게 항상 적용된다.
+- 영어 프롬프트에서 사람이 처음 등장하는 자리마다 국적과 나이대를 인종 특징과 함께 반드시 적는다. 예: "a Korean woman in her late 30s, definitively East Asian facial features, NOT Caucasian, NOT Western". 이 문구를 생략하면 생성 모델은 백인 20대를 기본값으로 그린다.
+- 손, 목덜미, 뒷모습, 발끝만 보일 때도 예외 없이 축약된 형태로 명시한다. 예: "the hands of a Korean man in his 60s, sun-worn knuckles, East Asian skin tone".
+- negative 프롬프트 맨 앞에 항상 다음을 고정으로 포함한다: "Caucasian face, Western facial features, European setting, non-Korean ethnicity".
 - 국적: ${o.ethnicity}
 - 나이대: ${o.age === "auto"
   ? "가사 전체에서 추론한다. 시어의 결, 말투와 어미, 회상하는 시간의 폭, 몸을 감각하는 방식, 가사가 놓인 생활의 자리를 근거로 정하고 그 이유를 한 줄로 밝힌다."
@@ -816,7 +811,7 @@ catch(e){ storageOK = false; }
 function snapshot(){
   return {
     lyrics: $("lyrics").value, form: FORM,
-    ethnicity: $("ethnicity").value, age: $("age").value, gender: $("gender").value,
+    age: $("age").value, gender: $("gender").value,
     noFace: $("noFace").checked,
     refPhoto: $("refPhoto").checked,
     ratio: $("ratio").value, bg: bgKey, customBg: $("customBg").value, look: lookKey,
@@ -828,7 +823,7 @@ function snapshot(){
 }
 
 function restorePrefs(s){
-  ["ethnicity","age","gender","ratio"].forEach(k => { if (s[k]) $(k).value = s[k]; });
+  ["age","gender","ratio"].forEach(k => { if (s[k]) $(k).value = s[k]; });
   $("noFace").checked = !!s.noFace;
   $("refPhoto").checked = !!s.refPhoto;
   bgKey = s.bg || "auto"; lookKey = s.look || "cinema";
@@ -945,7 +940,7 @@ $("out").addEventListener("click", e => {
   }
 });
 
-["ethnicity","age","gender","ratio","noFace","refPhoto"].forEach(k => $(k).addEventListener("change", () => saveNow(true)));
+["age","gender","ratio","noFace","refPhoto"].forEach(k => $(k).addEventListener("change", () => saveNow(true)));
 
 $("go").addEventListener("click", () => {
   renderBrief(buildBrief());
