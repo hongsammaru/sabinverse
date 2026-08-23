@@ -299,12 +299,12 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
     <span class="lab">쇼츠 전용 옵션 (본편과 다르게 설정하고 싶을 때만)</span>
     <div class="field two" style="margin-top:10px">
       <div>
-        <label class="lab" for="shortsGender">쇼츠 인물</label>
+        <label class="lab" for="shortsGender">쇼츠 성별 (필수)</label>
         <select id="shortsGender">
           <option value="same">본편과 동일</option>
-          <option value="여성 1인">여성 1인</option>
-          <option value="남성 1인">남성 1인</option>
-          <option value="두 사람">두 사람</option>
+          <option value="여성">여성</option>
+          <option value="남성">남성</option>
+          <option value="혼성">혼성 (두 성별 모두 등장)</option>
           <option value="none">인물 없음</option>
         </select>
       </div>
@@ -313,26 +313,28 @@ footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-si
         <select id="shortsAge">
           <option value="same">본편과 동일</option>
           <option value="10대">10대</option>
-          <option value="20대 초반">20대 초반</option>
-          <option value="20대 후반">20대 후반</option>
+          <option value="20대">20대</option>
           <option value="30대">30대</option>
-          <option value="40대">40대</option>
-          <option value="50–60대">50–60대</option>
-          <option value="70대 이상">70대 이상</option>
+          <option value="40대 이상">40대 이상</option>
         </select>
       </div>
     </div>
-    <div class="field" style="margin-top:10px">
-      <label class="lab" for="shortsMood">쇼츠 분위기</label>
-      <select id="shortsMood">
-        <option value="same">본편과 동일 톤</option>
-        <option value="intense">더 강렬하고 자극적으로 (빠른 컷, 큰 표정, 대담한 구도)</option>
-        <option value="comedic">가볍고 밈처럼 유쾌하게</option>
-        <option value="emotional">더 절절하고 감정적으로 (눈물, 벅찬 표정)</option>
-        <option value="mysterious">궁금증을 유발하는 미스터리한 훅</option>
-      </select>
+    <p class="note" style="margin-top:-4px">인원수는 별도로 정하지 않습니다 — 가사 문맥에서 도구가 알아서 판단하되, 여기서 고른 성별 구성은 반드시 지킵니다.</p>
+
+    <div class="field" style="margin-top:14px">
+      <span class="lab">쇼츠 장소</span>
+      <div class="chips" id="shortsBgChips"></div>
+      <input type="text" id="shortsCustomBg" style="margin-top:8px" placeholder="추가 설명 (선택) — 예: 포장마차, 자정 무렵">
+      <p class="note">위 칩으로 기본 장소를 고르고, 아래 칸에 세부 묘사를 더하거나(칩+텍스트 병행), 칩에 맞는 곳이 없으면 텍스트만으로 직접 정해도 됩니다.</p>
     </div>
-    <p class="note">본편 인물과 다른 사람(예: 본편은 남성, 쇼츠는 여성)으로 완전히 별도 영상을 만들 때 쓰세요. "본편과 동일"로 두면 위에서 정한 본편 설정을 그대로 씁니다. 쇼츠용 결과물 추가가 꺼져 있으면 이 옵션은 지시문에 반영되지 않습니다.</p>
+
+    <div class="field" style="margin-top:14px">
+      <span class="lab">쇼츠 분위기</span>
+      <div class="chips" id="shortsMoodChips"></div>
+      <input type="text" id="shortsCustomMood" style="margin-top:8px" placeholder="추가 설명 (선택) — 예: 마지막 컷에서만 웃는다">
+    </div>
+
+    <p class="note" style="margin-top:12px">본편 인물과 다른 사람(예: 본편은 남성, 쇼츠는 여성)으로 완전히 별도 영상을 만들 때 쓰세요. "본편과 동일"로 두면 위에서 정한 본편 설정을 그대로 씁니다. 쇼츠용 결과물 추가가 꺼져 있으면 이 옵션은 지시문에 반영되지 않습니다. 쇼츠 인물도 예외 없이 한국인으로 고정되며, 이는 아래 옵션과 무관하게 항상 지시문에 다시 명시됩니다.</p>
   </div>
 
   <button class="go" id="go" disabled>지시문 만들기</button>
@@ -397,6 +399,23 @@ const BG_EN = {
   winter:"a narrow Korean alley in winter", fog:"a fogged forest path", studio:"a bare studio, seamless backdrop",
   surreal:"a surreal dreamscape, floating objects, an endless sky"
 };
+
+const SHORTS_BG = [
+  ["same","본편과 동일"],["indoor","실내(집)"],["city","도시 거리"],
+  ["rural","시골·논밭"],["coast","해안·어촌"],["mountain","산속·절"]
+];
+const SHORTS_BG_EN = {
+  indoor:"a modest, lived-in Korean home interior, low furniture, ondol-style floor heating implied, everyday household objects, not a polished film set",
+  city:"a Korean urban street, boxy low- and high-rise apartment blocks, shopfront signage with Hangul lettering out of focus, utility poles with tangled cable bundles, Korean sedans and scooters",
+  rural:"a Korean rural village, rice paddies or terraced dry fields, a farmhouse with a corrugated metal roof, low gentle hills in the background",
+  coast:"a small Korean fishing village, low concrete block houses, a concrete breakwater, drying nets or seaweed racks, Korean-style fishing boats",
+  mountain:"a Korean mountainside near a small hanok or modest temple building, granite ridgelines, Korean red pine trees, no permanent snow cover"
+};
+
+const SHORTS_MOOD = [
+  ["same","본편과 동일 톤"],["intense","강렬하게"],["comedic","코믹하게"],
+  ["emotional","절절하게"],["mysterious","미스터리하게"]
+];
 
 const GENRES = [
   ["ballad","발라드","느리고 절제된 카메라 무브 — 3~5초에 걸친 완만한 드리프트나 고정 샷 위주. 조명은 채도를 낮춘 단색조, 차갑거나 옅게 바랜 색온도(4000–5600K)가 기본. 인물의 동작은 크지 않고 정지에 가깝다 — 시선, 숨, 손끝의 미세한 움직임 위주. 의상은 단순하고 무채색에 가깝다."],
@@ -545,6 +564,7 @@ function applyPreset(p){
 
 /* ═══ 옵션 ═══ */
 let bgKey = "auto", lookKey = "cinema", genreKeys = ["ballad"], relKey = "auto";
+let shortsBgKey = "same", shortsMoodKey = "same";
 
 $("genreChips").innerHTML = GENRES.map(([k,ko]) =>
   `<button class="chip" data-genre="${k}" aria-pressed="${genreKeys.includes(k)}">${ko}</button>`).join("");
@@ -554,6 +574,10 @@ $("bgChips").innerHTML = BG.map(([k,ko]) =>
   `<button class="chip" data-bg="${k}" aria-pressed="${k===bgKey}">${ko}</button>`).join("");
 $("lookChips").innerHTML = LOOKS.map(([k,ko]) =>
   `<button class="chip" data-look="${k}" aria-pressed="${k===lookKey}">${ko}</button>`).join("");
+$("shortsBgChips").innerHTML = SHORTS_BG.map(([k,ko]) =>
+  `<button class="chip" data-sbg="${k}" aria-pressed="${k===shortsBgKey}">${ko}</button>`).join("");
+$("shortsMoodChips").innerHTML = SHORTS_MOOD.map(([k,ko]) =>
+  `<button class="chip" data-smood="${k}" aria-pressed="${k===shortsMoodKey}">${ko}</button>`).join("");
 
 $("genreChips").addEventListener("click", e => {
   const b = e.target.closest("[data-genre]"); if (!b) return;
@@ -584,13 +608,26 @@ $("lookChips").addEventListener("click", e => {
   [...$("lookChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.look === lookKey));
 });
 
+$("shortsBgChips").addEventListener("click", e => {
+  const b = e.target.closest("[data-sbg]"); if (!b) return;
+  shortsBgKey = b.dataset.sbg;
+  [...$("shortsBgChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.sbg === shortsBgKey));
+  saveNow(true);
+});
+$("shortsMoodChips").addEventListener("click", e => {
+  const b = e.target.closest("[data-smood]"); if (!b) return;
+  shortsMoodKey = b.dataset.smood;
+  [...$("shortsMoodChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.smood === shortsMoodKey));
+  saveNow(true);
+});
+
 $("shortsToggle").addEventListener("click", () => {
   SHORTS = !SHORTS;
   $("shortsToggle").setAttribute("aria-pressed", String(SHORTS));
   $("shortsOptsBox").style.display = SHORTS ? "block" : "none";
   saveNow(true);
 });
-["shortsGender","shortsAge","shortsMood"].forEach(k => $(k).addEventListener("change", () => saveNow(true)));
+["shortsGender","shortsAge","shortsCustomBg","shortsCustomMood"].forEach(k => $(k).addEventListener("change", () => saveNow(true)));
 
 function opts(){
   const look = LOOKS.find(l => l[0] === lookKey);
@@ -627,17 +664,31 @@ const MOOD_DESC = {
   mysterious: "궁금증을 유발하는 미스터리한 톤으로 바꾼다 — 얼굴을 일부만 보여주거나(그림자, 역광, 프레임 밖) 정보를 아껴서 보여주는 구도를 쓴다, 조명은 어둡고 대비가 강하다, 마지막 컷에서만 정체나 감정을 드러낸다."
 };
 
+const SHORTS_GENDER_DESC = {
+  "여성": "쇼츠에는 한국인 여성만 등장한다 (필요하다면 두 명 이상이어도 되지만 전원 여성이어야 한다).",
+  "남성": "쇼츠에는 한국인 남성만 등장한다 (필요하다면 두 명 이상이어도 되지만 전원 남성이어야 한다).",
+  "혼성": "쇼츠에는 한국인 여성과 한국인 남성이 함께 등장한다. 두 사람 모두 인물 고정 묘사 규칙(머리·체형·피부·안경 여부·옷차림)을 각자 한 번씩 정해 세 장 모두에서 동일하게 반복한다."
+};
+
 function shortsOpts(o){
   const g = $("shortsGender").value;
   const a = $("shortsAge").value;
-  const m = $("shortsMood").value;
+  const bgCustom = $("shortsCustomBg").value.trim();
+  const moodCustom = $("shortsCustomMood").value.trim();
+  const bgPreset = shortsBgKey === "same" ? "" : SHORTS_BG_EN[shortsBgKey];
+  const bgKo = SHORTS_BG.find(x => x[0] === shortsBgKey)[1];
   return {
     override: g !== "same" || a !== "same",
-    gender: g === "same" ? o.gender : g,
-    age: g === "same" && a === "same" ? o.age : (a === "same" ? "auto" : a),
+    genderKey: g,
+    genderDesc: SHORTS_GENDER_DESC[g] || "",
+    age: g === "same" && a === "same" ? o.age : (a === "same" ? "가사에서 추론" : a),
     noFigure: g === "none",
-    mood: m,
-    moodDesc: m === "same" ? "" : MOOD_DESC[m]
+    bgOverride: shortsBgKey !== "same" || bgCustom !== "",
+    bgKo: bgKo,
+    bgEn: [bgPreset, bgCustom].filter(Boolean).join(", "),
+    moodOverride: shortsMoodKey !== "same" || moodCustom !== "",
+    moodKo: SHORTS_MOOD.find(x => x[0] === shortsMoodKey)[1],
+    moodDesc: [shortsMoodKey === "same" ? "" : MOOD_DESC[shortsMoodKey], moodCustom].filter(Boolean).join(" 추가 지시: ")
   };
 }
 
@@ -736,19 +787,25 @@ ${figure}`;
 function shortsBrief(o, secs, so){
   const allLyrics = secs.map(s => s.lyrics).filter(Boolean).join("\n");
 
+  const nationalityLine = `
+· 인물 국적 재확인 (쇼츠 전용, 예외 없음): 위에서 어떤 성별·나이대·인물 옵션을 골랐든 상관없이, 이 쇼츠에 등장하는 모든 인물은 예외 없이 한국인이다. 매 프롬프트에서 사람이 처음 등장하는 자리(문장 첫 단어)에 "A Korean woman" 또는 "A Korean man"으로 국적·성별을 명시하고, "definitively East Asian facial features, NOT Caucasian, NOT Western" 문구를 반드시 병기한다. negative 맨 앞에도 "Caucasian face, Western facial features, European setting, non-Korean ethnicity"를 고정으로 포함한다.`;
+
   const overrideBlock = so.override ? `
-· 쇼츠 인물은 본편과 다르게 지정되어 있다: ${so.noFigure ? "사람은 등장시키지 않는다. 사물, 빈 공간, 풍경으로만 쓴다." : `${so.gender}, 나이대 ${so.age === "auto" ? "가사에서 추론" : so.age}`}. 본편의 "인물 고정 묘사"는 쇼츠에 그대로 옮기지 않는다 — 이 쇼츠만을 위한 새로운 인물 외형(머리·체형·피부·안경 여부·옷차림 한 가지)을 딱 한 번 정해 "쇼츠 인물 고정 묘사: ..." 한 줄로 먼저 밝히고, 8초 영상 3개와 이미지 3장 전부에서 그 문구를 정확히 반복한다. 인물 국적·인종 고정 규칙(한국인, "definitively East Asian facial features, NOT Caucasian, NOT Western")과 성별 표기 규칙(문장 첫 단어에 "A Korean woman/man")은 본편과 동일하게 그대로 적용한다.` : `
+· 쇼츠 인물은 본편과 다르게 지정되어 있다: ${so.noFigure ? "사람은 등장시키지 않는다. 사물, 빈 공간, 풍경으로만 쓴다." : `${so.genderDesc} 나이대는 ${so.age}로 한다. 인원수는 별도로 정하지 않으니 가사 문맥에서 몇 명이 필요한지 스스로 판단하되, 위에서 정한 성별 구성(${so.genderKey === "혼성" ? "여성과 남성 모두" : so.genderKey + "만"})은 반드시 지킨다.`} 본편의 "인물 고정 묘사"는 쇼츠에 그대로 옮기지 않는다 — 이 쇼츠만을 위한 새로운 인물 외형(머리·체형·피부·안경 여부·옷차림 한 가지)을 등장인물별로 딱 한 번씩 정해 "쇼츠 인물 고정 묘사: ..." 한 줄로 먼저 밝히고, 8초 영상 3개와 이미지 3장 전부에서 그 문구를 정확히 반복한다.` : `
 · 인물은 위에서 정한 본편 "인물 고정 묘사"(머리·체형·피부·안경 여부·옷차림)를 단어 그대로 옮겨 쓴다. 쇼츠라고 다른 옷으로 바꾸지 않는다 — 본편과 같은 사람, 같은 옷차림이어야 한다.`;
 
-  const moodBlock = so.mood !== "same" ? `
-· 쇼츠 분위기는 본편과 다르게 지정되어 있다: ${so.moodDesc} 이 톤을 8초 영상 3개와 이미지 3장 전부에 일관되게 적용한다. 장소·의상·소품은 본편 설정을 유지하되(위 오버라이드 인물 지정이 없다면), 표정·동작 강도·카메라 무브·조명 대비만 이 분위기에 맞게 조정한다.` : "";
+  const bgBlock = so.bgOverride ? `
+· 쇼츠 장소는 본편과 다르게 지정되어 있다: ${so.bgKo}${so.bgEn ? ` — ${so.bgEn}` : ""}${so.bgEn && so.bgKo !== "본편과 동일" ? "." : ""} 이 장소를 8초 영상 3개와 이미지 3장 전부에서 일관되게 유지하고, 장소 유형에 맞는 한국적 디테일(간판의 한글, 저층 아파트, 전신주, 온돌 느낌의 낮은 가구 등)을 실제로 구체적인 프롬프트 문구로 명시한다.` : "";
+
+  const moodBlock = so.moodOverride ? `
+· 쇼츠 분위기는 본편과 다르게 지정되어 있다: ${so.moodDesc} 이 톤을 8초 영상 3개와 이미지 3장 전부에 일관되게 적용한다. 장소·의상·소품은 위에서 정한 설정을 유지하되, 표정·동작 강도·카메라 무브·조명 대비만 이 분위기에 맞게 조정한다.` : "";
 
   return `
 
 ━━━━━━━━━━━━━━━━━━━━━━
 ■ 위 구간 작업이 모두 끝나면, 이어서 아래 쇼츠(9:16) 콘텐츠도 만들어 주세요
 · 장르는 앞서 지정한 ${o.genreKo} 톤을 그대로 유지한다: ${o.genreDesc}
-· 기다림·그리움의 대상도 앞서 지정한 대로 유지한다: ${o.relDesc}${overrideBlock}${moodBlock}
+· 기다림·그리움의 대상도 앞서 지정한 대로 유지한다: ${o.relDesc}${nationalityLine}${overrideBlock}${bgBlock}${moodBlock}
 
 쇼츠 제작 최우선 원칙 — 스크롤을 멈추는 3초
 쇼츠는 유튜브에서 사실상 생명줄이다. 재생 시작 1~2초 안에 시선을 붙잡지 못하면 바로 다음 영상으로 넘어간다. 아래를 반드시 지킨다.
@@ -914,7 +971,10 @@ function snapshot(){
     shorts: SHORTS,
     shortsGender: $("shortsGender").value,
     shortsAge: $("shortsAge").value,
-    shortsMood: $("shortsMood").value,
+    shortsBg: shortsBgKey,
+    shortsCustomBg: $("shortsCustomBg").value,
+    shortsMoodKey: shortsMoodKey,
+    shortsCustomMood: $("shortsCustomMood").value,
     saved: new Date().toISOString()
   };
 }
@@ -932,13 +992,18 @@ function restorePrefs(s){
   $("shortsOptsBox").style.display = SHORTS ? "block" : "none";
   $("shortsGender").value = s.shortsGender || "same";
   $("shortsAge").value = s.shortsAge || "same";
-  $("shortsMood").value = s.shortsMood || "same";
+  shortsBgKey = s.shortsBg || "same";
+  $("shortsCustomBg").value = s.shortsCustomBg || "";
+  shortsMoodKey = s.shortsMoodKey || "same";
+  $("shortsCustomMood").value = s.shortsCustomMood || "";
   $("customBg").value = s.customBg || "";
   $("customBg").style.display = bgKey === "custom" ? "block" : "none";
   [...$("bgChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.bg === bgKey));
   [...$("lookChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.look === lookKey));
   [...$("genreChips").children].forEach(c => c.setAttribute("aria-pressed", genreKeys.includes(c.dataset.genre)));
   [...$("relChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.rel === relKey));
+  if ($("shortsBgChips").children.length) [...$("shortsBgChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.sbg === shortsBgKey));
+  if ($("shortsMoodChips").children.length) [...$("shortsMoodChips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.smood === shortsMoodKey));
 }
 
 function restore(s){
