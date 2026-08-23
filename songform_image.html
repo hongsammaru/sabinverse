@@ -595,9 +595,11 @@ function rulesText(o){
   const figure = o.noFigure
     ? "사람은 등장시키지 않는다. 사물, 빈 공간, 풍경으로만 쓴다."
     : `인물은 ${o.gender === "가사에서 추론" ? "가사에서 추론해 정한다" : o.gender}.
-- 인물 국적·인종 고정 (예외 없음, 옵션 아님, 매 프롬프트 필수): 이 도구가 생성하는 모든 인물은 예외 없이 한국인이다. 장르·가사 내용과 무관하게 항상 적용된다.
-- 영어 프롬프트에서 사람이 처음 등장하는 자리마다 국적과 나이대를 인종 특징과 함께 반드시 적는다. 예: "a Korean woman in her late 30s, definitively East Asian facial features, NOT Caucasian, NOT Western". 이 문구를 생략하면 생성 모델은 백인 20대를 기본값으로 그린다.
-- 손, 목덜미, 뒷모습, 발끝만 보일 때도 예외 없이 축약된 형태로 명시한다. 예: "the hands of a Korean man in his 60s, sun-worn knuckles, East Asian skin tone".
+- 인물 국적·인종·성별 고정 (예외 없음, 옵션 아님, 매 프롬프트 필수): 이 도구가 생성하는 모든 인물은 예외 없이 한국인이다. 장르·가사 내용과 무관하게 항상 적용된다.
+- 성별 표기 규칙 (반드시 지킬 것, 강화): 모든 영어 프롬프트에서 사람이 처음 등장하는 자리는 **문장 첫 단어(주어 자리)**이어야 하고, 그곳에는 반드시 "A Korean man" 또는 "A Korean woman"으로 국적과 성별을 명시한다. 절대 대명사(the same man, he, she, they)로 시작하지 않는다. 대명사는 그 뒤에만 사용한다. 예시 — 잘못된 형태: "The man stands near..." → 올바른 형태: "A Korean man in his 50s, short black hair combed back, stands near..."
+- 영어 프롬프트에서 사람이 처음 등장하는 자리마다 국적·성별·나이대를 인종 특징과 함께 반드시 적는다. 예: "A Korean woman in her late 30s, definitively East Asian facial features, NOT Caucasian, NOT Western". 이 문구를 생략하면 생성 모델은 백인 20대를 기본값으로 그린다.
+- 손, 목덜미, 뒷모습, 발끝만 보일 때도 예외 없이 축약된 형태로 명시한다. 예: "the hands of a Korean man in his 60s, sun-worn knuckles, definitively East Asian skin tone".
+- 매 프롬프트마다 성별과 국적 표기를 **정확히 같은 단어**로 반복한다. 한 구간에서 "A Korean woman in her 20s"라고 썼다면, 다음 구간에서도 "A Korean woman in her 20s"로 유지한다. "a Korean woman", "woman", "she" 같이 표기를 바꾸지 않는다.
 - negative 프롬프트 맨 앞에 항상 다음을 고정으로 포함한다: "Caucasian face, Western facial features, European setting, non-Korean ethnicity".
 - 국적: ${o.ethnicity}
 - 나이대: ${o.age === "auto"
