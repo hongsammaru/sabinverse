@@ -51,7 +51,7 @@
 
   .grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    grid-template-columns:repeat(4,1fr);
     gap:20px;
   }
   .card{
@@ -63,9 +63,10 @@
     transition:transform .25s, border-color .25s;
   }
   .card:hover{transform:translateY(-4px);border-color:var(--clay)}
-  .card .ph{aspect-ratio:1/1;overflow:hidden;background:#110d0b}
+  .card .ph{aspect-ratio:4/5;overflow:hidden;background:#110d0b}
   .card img{
     width:100%;height:100%;object-fit:cover;display:block;
+    object-position:50% 70%;
     transition:transform .5s;
   }
   .card:hover img{transform:scale(1.04)}
@@ -115,9 +116,12 @@
   }
   footer a{color:var(--clay);text-decoration:none}
 
-  @media (max-width:520px){
-    .grid{grid-template-columns:repeat(2,1fr);gap:10px}
-    .card .meta{padding:8px 10px;font-size:12px}
+  @media (max-width:768px){
+    main{padding:20px 12px 48px}
+    .grid{grid-template-columns:repeat(2,1fr);gap:12px}
+    .card .meta{padding:10px 10px 12px}
+    .card .title{font-size:14px}
+    .card .sub{font-size:11px}
   }
 </style>
 </head>
@@ -160,6 +164,11 @@
 const REPO = 'hongsammaru/sabinverse';
 const FOLDER = 'tou';
 
+/* ▼ 구글시트 "웹에 게시(CSV)" 주소를 따옴표 안에 붙여넣으세요.
+     비워두면 tou 폴더의 tou.txt 를 읽습니다.
+     시트 모양: A열 파일이름 | B열 제목 | C열 설명 (1행은 머리글) */
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vThbDeqH_6drO1h8z8UTLNZ2ZjNb9rVcyIiyIyroMB_5kTiUz0Ms_P1sBYjI76RRb0Im1ORDQ3aWAuB/pub?gid=913961309&single=true&output=csv';
+
 const grid = document.getElementById('grid');
 const statusEl = document.getElementById('status');
 let items = [];
@@ -172,9 +181,43 @@ function toDate(name){
   return `20${m[1]}. ${m[2]}. ${m[3]}`;
 }
 
-// tou.txt 읽기 → { 파일이름: {title, desc} }
+// CSV 해석 (따옴표·셀 안 줄바꿈 처리)
+function parseCSV(text){
+  const rows = []; let row = [], cell = '', q = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(q){
+      if(c === '"' && text[i+1] === '"'){ cell += '"'; i++; }
+      else if(c === '"') q = false;
+      else cell += c;
+    }else{
+      if(c === '"') q = true;
+      else if(c === ',') { row.push(cell); cell = ''; }
+      else if(c === '\n'){ row.push(cell); rows.push(row); row = []; cell = ''; }
+      else if(c !== '\r') cell += c;
+    }
+  }
+  if(cell || row.length){ row.push(cell); rows.push(row); }
+  return rows;
+}
+
+// 제목·설명 읽기 → { 파일이름: {title, desc} }
 async function loadInfo(){
   const info = {};
+  if(SHEET_URL){
+    try{
+      const r = await fetch(SHEET_URL + (SHEET_URL.includes('?') ? '&' : '?') + 't=' + Date.now());
+      if(r.ok){
+        const rows = parseCSV(await r.text());
+        rows.slice(1).forEach(([file = '', title = '', desc = '']) => {
+          file = file.trim();
+          if(!file) return;
+          if(!/\.(jpe?g|png|webp|gif)$/i.test(file)) file += '.jpg';
+          info[file.toLowerCase()] = { title: title.trim(), desc: desc.trim() };
+        });
+      }
+    }catch(e){}
+  }
   try{
     const r = await fetch(`${FOLDER}/tou.txt?v=${Date.now()}`);
     if(!r.ok) return info;
@@ -183,6 +226,7 @@ async function loadInfo(){
       line = line.trim();
       if(!line || line.startsWith('#')) return;
       const [file, title = '', ...rest] = line.split('|').map(s => s.trim());
+      if(info[file.toLowerCase()]) return; // 시트 내용이 우선
       info[file.toLowerCase()] = {
         title,
         desc: rest.join('|').split(' / ').join('\n').replace(/\s*\/\s*/g, '\n')
