@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>토우 · sabin verse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1a1512;
+    --panel:#241d18;
+    --line:#3a2f27;
+    --clay:#c08a5e;
+    --clay-soft:#d9b08c;
+    --text:#efe6dc;
+    --muted:#9c8b7c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Noto Sans KR',sans-serif;
+    min-height:100vh;
+  }
+  header{
+    text-align:center;
+    padding:56px 16px 36px;
+    border-bottom:1px solid var(--line);
+  }
+  header .brand{
+    font-size:13px;letter-spacing:.3em;color:var(--muted);
+    text-decoration:none;text-transform:lowercase;
+  }
+  header h1{
+    font-family:'Nanum Myeongjo',serif;
+    font-weight:800;
+    font-size:clamp(40px,8vw,64px);
+    color:var(--clay-soft);
+    margin:14px 0 10px;
+    letter-spacing:.08em;
+  }
+  header p{
+    font-family:'Nanum Myeongjo',serif;
+    color:var(--muted);
+    font-size:15px;
+  }
+  .count{margin-top:14px;font-size:13px;color:var(--clay)}
+
+  main{max-width:1200px;margin:0 auto;padding:32px 16px 64px}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    gap:20px;
+  }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    overflow:hidden;
+    cursor:pointer;
+    transition:transform .25s, border-color .25s;
+  }
+  .card:hover{transform:translateY(-4px);border-color:var(--clay)}
+  .card .ph{aspect-ratio:1/1;overflow:hidden;background:#110d0b}
+  .card img{
+    width:100%;height:100%;object-fit:cover;display:block;
+    transition:transform .5s;
+  }
+  .card:hover img{transform:scale(1.04)}
+  .card .meta{padding:12px 14px 14px}
+  .card .title{
+    font-family:'Nanum Myeongjo',serif;font-weight:700;
+    color:var(--clay-soft);font-size:16px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .card .sub{
+    display:flex;justify-content:space-between;
+    margin-top:6px;font-size:12px;color:var(--muted);
+  }
+
+  .status{text-align:center;color:var(--muted);padding:60px 0;font-size:15px}
+
+  /* 크게 보기 */
+  .lb{
+    position:fixed;inset:0;background:rgba(10,8,6,.95);
+    display:none;align-items:center;justify-content:center;
+    flex-direction:column;z-index:10;padding:16px;
+  }
+  .lb.on{display:flex}
+  .lb img{max-width:100%;max-height:68vh;border-radius:4px}
+  .lb .cap{margin-top:16px;text-align:center;max-width:560px}
+  .lb .cap h2{
+    font-family:'Nanum Myeongjo',serif;font-weight:800;
+    color:var(--clay-soft);font-size:22px;
+  }
+  .lb .cap .d{font-size:12px;color:var(--muted);margin-top:4px;letter-spacing:.05em}
+  .lb .cap p{
+    font-family:'Nanum Myeongjo',serif;color:var(--text);
+    font-size:15px;line-height:1.8;margin-top:12px;white-space:pre-line;
+  }
+  .lb button{
+    position:absolute;background:none;border:none;color:var(--text);
+    font-size:36px;cursor:pointer;padding:12px;opacity:.7;
+  }
+  .lb button:hover{opacity:1}
+  .lb .close{top:8px;right:12px}
+  .lb .prev{left:4px;top:50%;transform:translateY(-50%)}
+  .lb .next{right:4px;top:50%;transform:translateY(-50%)}
+
+  footer{
+    text-align:center;padding:28px 16px;border-top:1px solid var(--line);
+    font-size:13px;color:var(--muted);
+  }
+  footer a{color:var(--clay);text-decoration:none}
+
+  @media (max-width:520px){
+    .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+    .card .meta{padding:8px 10px;font-size:12px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="brand" href="https://sabinverse.com">sabin verse</a>
+  <h1>토 우</h1>
+  <p>흙으로 빚은 작은 마음들</p>
+  <div class="count" id="count"></div>
+</header>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <div class="status" id="status">불러오는 중…</div>
+</main>
+
+<div class="lb" id="lb">
+  <button class="close" id="lbClose" aria-label="닫기">×</button>
+  <button class="prev" id="lbPrev" aria-label="이전">‹</button>
+  <img id="lbImg" alt="">
+  <div class="cap" id="lbCap"></div>
+  <button class="next" id="lbNext" aria-label="다음">›</button>
+</div>
+
+<footer>
+  <a href="https://sabinverse.com">← sabinverse.com 으로 돌아가기</a>
+</footer>
+
+<script>
+/* ============================================
+   tou 폴더에 이미지만 올리면 자동으로 표시됩니다.
+   파일 이름 규칙: tou-YYMMDD.jpg
+   같은 날 여러 장이면: tou-260927-2.jpg, tou-260927-3.jpg
+
+   제목·설명은 tou 폴더의 tou.txt 에 한 줄씩:
+   파일이름 | 제목 | 설명
+   (설명 안에서 줄을 바꾸려면 / 를 쓰세요)
+   ============================================ */
+const REPO = 'hongsammaru/sabinverse';
+const FOLDER = 'tou';
+
+const grid = document.getElementById('grid');
+const statusEl = document.getElementById('status');
+let items = [];
+let cur = 0;
+
+// 파일 이름에서 날짜 읽기: tou-260927.jpg → 2026. 09. 27
+function toDate(name){
+  const m = name.match(/(\d{2})(\d{2})(\d{2})/);
+  if(!m) return '';
+  return `20${m[1]}. ${m[2]}. ${m[3]}`;
+}
+
+// tou.txt 읽기 → { 파일이름: {title, desc} }
+async function loadInfo(){
+  const info = {};
+  try{
+    const r = await fetch(`${FOLDER}/tou.txt?v=${Date.now()}`);
+    if(!r.ok) return info;
+    const text = await r.text();
+    text.split('\n').forEach(line => {
+      line = line.trim();
+      if(!line || line.startsWith('#')) return;
+      const [file, title = '', ...rest] = line.split('|').map(s => s.trim());
+      info[file.toLowerCase()] = {
+        title,
+        desc: rest.join('|').split(' / ').join('\n').replace(/\s*\/\s*/g, '\n')
+      };
+    });
+  }catch(e){}
+  return info;
+}
+
+function esc(s){
+  return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+
+async function load(){
+  try{
+    const [res, info] = await Promise.all([
+      fetch(`https://api.github.com/repos/${REPO}/contents/${FOLDER}`),
+      loadInfo()
+    ]);
+    if(!res.ok) throw new Error(res.status);
+    const files = await res.json();
+
+    items = files
+      .filter(f => f.type === 'file' && /\.(jpe?g|png|webp|gif)$/i.test(f.name))
+      .map(f => {
+        const x = info[f.name.toLowerCase()] || {};
+        return {
+          name: f.name,
+          src: `${FOLDER}/${f.name}`,
+          date: toDate(f.name),
+          title: x.title || '토우',
+          desc: x.desc || ''
+        };
+      })
+      .sort((a,b) => b.name.localeCompare(a.name, undefined, {numeric:true})); // 최신순
+
+    render();
+  }catch(e){
+    statusEl.textContent = '이미지를 불러오지 못했어요. 잠시 후 새로고침해 주세요.';
+  }
+}
+
+function render(){
+  if(!items.length){
+    statusEl.textContent = '아직 올라온 토우가 없어요.';
+    return;
+  }
+  statusEl.style.display = 'none';
+  document.getElementById('count').textContent = `${items.length}점`;
+
+  grid.innerHTML = items.map((it,i) => `
+    <div class="card" data-i="${i}">
+      <div class="ph"><img src="${it.src}" alt="${esc(it.title)}" loading="lazy"></div>
+      <div class="meta">
+        <div class="title">${esc(it.title)}</div>
+        <div class="sub">
+          <span>${it.date}</span>
+          <span>No. ${items.length - i}</span>
+        </div>
+      </div>
+    </div>`).join('');
+
+  grid.querySelectorAll('.card').forEach(c =>
+    c.addEventListener('click', () => open(+c.dataset.i)));
+}
+
+// 크게 보기
+const lb = document.getElementById('lb');
+const lbImg = document.getElementById('lbImg');
+const lbCap = document.getElementById('lbCap');
+
+function open(i){
+  cur = (i + items.length) % items.length;
+  lbImg.src = items[cur].src;
+  const it = items[cur];
+  lbImg.alt = it.title;
+  lbCap.innerHTML = `
+    <h2>${esc(it.title)}</h2>
+    <div class="d">No. ${items.length - cur}  ·  ${it.date}</div>
+    ${it.desc ? `<p>${esc(it.desc)}</p>` : ''}`;
+  lb.classList.add('on');
+}
+function close(){ lb.classList.remove('on'); }
+
+document.getElementById('lbClose').onclick = close;
+document.getElementById('lbPrev').onclick = e => { e.stopPropagation(); open(cur-1); };
+document.getElementById('lbNext').onclick = e => { e.stopPropagation(); open(cur+1); };
+lb.addEventListener('click', e => { if(e.target === lb) close(); });
+document.addEventListener('keydown', e => {
+  if(!lb.classList.contains('on')) return;
+  if(e.key === 'Escape') close();
+  if(e.key === 'ArrowLeft') open(cur-1);
+  if(e.key === 'ArrowRight') open(cur+1);
+});
+
+// 휴대폰 좌우 밀기
+let sx = 0;
+lb.addEventListener('touchstart', e => sx = e.touches[0].clientX);
+lb.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - sx;
+  if(Math.abs(dx) > 50) open(dx > 0 ? cur-1 : cur+1);
+});
+
+load();
+</script>
+</body>
+</html>
